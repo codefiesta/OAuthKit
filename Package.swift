@@ -5,19 +5,32 @@ import PackageDescription
 
 let package = Package(
     name: "OAuthKit",
+    platforms: [
+        .iOS(.v17),
+        .macOS(.v14),
+        .tvOS(.v17),
+        .visionOS(.v1)
+    ],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "OAuthKit",
-            targets: ["OAuthKit"]),
+            targets: ["OAuthKit"])
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "OAuthKit"),
+            name: "OAuthKit",
+            linkerSettings: [
+                .linkedFramework("CryptoKit"),
+                .linkedFramework("Security"),
+                .linkedFramework("LocalAuthentication", .when(
+                    platforms: [.iOS]
+                ))
+            ]
+        ),
         .testTarget(
             name: "OAuthKitTests",
-            dependencies: ["OAuthKit"]),
+            dependencies: ["OAuthKit"],
+            resources: [.process("Resources/")]
+        )
     ]
 )

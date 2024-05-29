@@ -1,0 +1,14 @@
+[
+    {
+        "id": "GitHub",
+        "authorizationURL": "https://github.com/login/oauth/authorize",
+        "accessTokenURL": "https://github.com/login/oauth/access_token",
+        "clientID": "CLIENT_ID",
+        "clientSecret": "CLIENT_SECRET",
+        "redirectURI": "oauthkit://callback",
+        "scope": [
+            "user",
+            "repo"
+        ]
+    }
+]

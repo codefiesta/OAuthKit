@@ -1,0 +1,24 @@
+only_rules:
+ - closing_brace
+ - colon
+ - comma
+ - duplicate_imports
+ - explicit_init
+ - file_header
+ - function_body_length
+ - legacy_constructor
+ - legacy_nsgeometry_functions
+ - legacy_constant
+ - modifier_order
+ - private_subject
+ - redundant_self_in_closure
+ - sorted_imports
+ - toggle_bool
+ - trailing_whitespace
+ - unneeded_break_in_switch
+ - unused_import
+ - weak_delegate
+ 
+ # rule parameters
+function_body_length:
+  - 225 # warning

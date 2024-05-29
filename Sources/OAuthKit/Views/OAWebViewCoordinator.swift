@@ -46,7 +46,7 @@ public class OAWebViewCoordinator: NSObject, WKNavigationDelegate {
     }
 
     public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        guard let url = navigationAction.request.url, let scheme = url.scheme else {
+        guard let url = navigationAction.request.url else {
             decisionHandler(.cancel)
             return
         }

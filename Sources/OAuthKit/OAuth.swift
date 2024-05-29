@@ -178,7 +178,7 @@ public extension OAuth {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        guard let (data, response) = try? await urlSession.data(for: request) else {
+        guard let (data, _) = try? await urlSession.data(for: request) else {
             return .failure(.badResponse)
         }
 

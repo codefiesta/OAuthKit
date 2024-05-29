@@ -34,7 +34,6 @@ public class OAWebViewCoordinator: NSObject, WKNavigationDelegate {
             self.provider = provider
             guard let request = provider.request(grantType: .authorizationCode) else { return }
             self.webView.view.load(request)
-            break
         }
 
         // Subsribe to oauth state
@@ -59,10 +58,8 @@ public class OAWebViewCoordinator: NSObject, WKNavigationDelegate {
                     switch result {
                     case .success(let token):
                         debugPrint("✅ [Received token]", token)
-                        break
                     case .failure(let error):
                         debugPrint("💩 [Error requesting access token]", error)
-                        break
                     }
                 }
             }
@@ -73,18 +70,11 @@ public class OAWebViewCoordinator: NSObject, WKNavigationDelegate {
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
     }
 
+    /// Handles OAuth state changes.
+    /// - Parameter state: the published state change.
     private func handle(state: OAuth.State) {
-        switch state {
-        case .empty:
-            break
-        case .authorizing:
-            break
-        case .requestingAccessToken:
-            break
-        case .authorized:
-            break
-        }
     }
+
 }
 
 extension OAWebViewCoordinator {

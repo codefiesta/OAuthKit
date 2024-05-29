@@ -1,5 +1,5 @@
-import XCTest
 @testable import OAuthKit
+import XCTest
 
 final class OAuthTests: XCTestCase {
 

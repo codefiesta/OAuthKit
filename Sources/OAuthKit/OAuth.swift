@@ -73,7 +73,6 @@ public class OAuth: NSObject, ObservableObject {
                 break
             case .pkce:
                 fatalError("Not implemented")
-                break
             case .refreshToken:
                 break
             }

@@ -35,6 +35,16 @@ public class OAuth: NSObject, ObservableObject {
         }
     }
 
+    /// Provides an enum representation for token storage options.
+    public enum Storage: String {
+        /// Tokens are stored inside Keychain (recommended).
+        case keychain
+        /// Tokens are stored inside SwiftData.
+        case swiftdata
+        /// Tokens are stored in memory only.
+        case memory
+    }
+
     /// Provides an enum representation for the OAuth 2.0 Grant Types.
     ///
     /// See: https://oauth.net/2/grant-types/
@@ -163,6 +173,7 @@ public class OAuth: NSObject, ObservableObject {
         }
         debugPrint("✅ [Registering OAuth Providers]: [\(providers.count)] ")
         self.providers = providers
+        // TODO: Implement storage options
     }
 }
 
@@ -208,9 +219,6 @@ public extension OAuth.Option {
 
     /// A key used to specify whether tokens should be stored in keychain or not.
     static let keychainStorage: OAuth.Option = .init(rawValue: "keychainStorage")
-
-    /// A key used to specify whether the file should be rendered in xray mode or not.
-    static let xRay: OAuth.Option = .init(rawValue: "xRay")
 
 }
 

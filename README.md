@@ -7,7 +7,5 @@
 
 # OAuthKit
 
-## Swift Package for OAuth 2.0
-
 OAuthKit is a modern, event driven Swift Package that leverages the [Combine](https://developer.apple.com/documentation/combine) Framework to publish [OAuth 2.0](https://oauth.net/2/) events and allow application developers to easily configure OAuth Providers and focus on making great applications instead of focusing on the details of authorization flows.
 

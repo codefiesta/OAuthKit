@@ -19,10 +19,21 @@ public enum OAError: Error {
     case malformedURL
     case badResponse
     case decoding
+    case keychain
 }
 
 /// Provides an observable OAuth 2.0 implementation.
 public class OAuth: NSObject, ObservableObject {
+
+    /// Keys and values used to specify loading or runtime options.
+    public struct Option: Hashable, Equatable, RawRepresentable, @unchecked Sendable {
+
+        public var rawValue: String
+
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
+    }
 
     /// Provides an enum representation for the OAuth 2.0 Grant Types.
     ///
@@ -87,7 +98,7 @@ public class OAuth: NSObject, ObservableObject {
     public struct Token: Codable, Equatable {
 
         let accessToken: String
-        let expiresIn: Int?
+        let expiresIn: Int64?
         let state: String?
         let type: String
 
@@ -143,7 +154,8 @@ public class OAuth: NSObject, ObservableObject {
     /// Common Initializer that attempts to load an `oauth.json` file from the specified bundle.
     /// - Parameters:
     ///   - bundle: the bundle to load the oauth provider configuration information from.
-    public init(_ bundle: Bundle) {
+    ///   - options: the initialization options to apply
+    public init(_ bundle: Bundle, options: [Option: Any]? = nil) {
         guard let url = bundle.url(forResource: defaultResourceName, withExtension: defaultExtension),
               let data = try? Data(contentsOf: url),
               let providers = try? JSONDecoder().decode([Provider].self, from: data) else {
@@ -189,3 +201,16 @@ public extension OAuth {
         return .success(token)
     }
 }
+
+// MARK: Options
+
+public extension OAuth.Option {
+
+    /// A key used to specify whether tokens should be stored in keychain or not.
+    static let keychainStorage: OAuth.Option = .init(rawValue: "keychainStorage")
+
+    /// A key used to specify whether the file should be rendered in xray mode or not.
+    static let xRay: OAuth.Option = .init(rawValue: "xRay")
+
+}
+

@@ -120,6 +120,18 @@ public class OAuth: NSObject, ObservableObject {
         }
     }
 
+    /// A codable type that holds authorization information that can be stored.
+    public struct Authorization: Codable, Equatable {
+
+        let provider: Provider
+        let token: Token
+
+        // Returns the storage key
+        var key: String {
+            provider.id
+        }
+    }
+
     public enum State: Equatable {
 
         /// The state is empty and no authorizations or tokens have been issued.
@@ -135,10 +147,10 @@ public class OAuth: NSObject, ObservableObject {
         ///   - Provider: the oauth provider
         case requestingAccessToken(Provider)
 
-        /// The OAuth provider has been issued an access token is authorized to access resources.
+        /// An authorization has been granted.
         /// - Parameters:
-        ///   - Provider: the oauth provider
-        case authorized(Token)
+        ///   - Authorization: the oauth authorization
+        case authorized(Authorization)
     }
 
     /// A published list of available OAuth providers to choose from.
@@ -154,11 +166,16 @@ public class OAuth: NSObject, ObservableObject {
         return URLSession(configuration: URLSessionConfiguration.default)
     }()
 
+    private var keychain: Keychain
+
     /// Initializes the OAuth service with the specified providers.
     /// - Parameters:
     ///   - providers: the list of oauth providers
     public init(providers: [Provider] = [Provider]()) {
         self.providers = providers
+        self.keychain = .default
+        super.init()
+        restore()
     }
 
     /// Common Initializer that attempts to load an `oauth.json` file from the specified bundle.
@@ -166,27 +183,53 @@ public class OAuth: NSObject, ObservableObject {
     ///   - bundle: the bundle to load the oauth provider configuration information from.
     ///   - options: the initialization options to apply
     public init(_ bundle: Bundle, options: [Option: Any]? = nil) {
+
+        // TODO: Implement storage options
+        self.keychain = .default
+
         guard let url = bundle.url(forResource: defaultResourceName, withExtension: defaultExtension),
               let data = try? Data(contentsOf: url),
               let providers = try? JSONDecoder().decode([Provider].self, from: data) else {
+            super.init()
             return
         }
         debugPrint("✅ [Registering OAuth Providers]: [\(providers.count)] ")
         self.providers = providers
-        // TODO: Implement storage options
+        super.init()
+        restore()
+    }
+
+    /// Restores state from storage.
+    private func restore() {
+        for provider in providers {
+            if let authorization: OAuth.Authorization = try? keychain.get(key: provider.id) {
+                publish(state: .authorized(authorization))
+                break
+            }
+        }
     }
 }
 
 public extension OAuth {
 
+    /// Starts the authorization process for the specified provider.
+    /// - Parameter provider: the provider to being authorization for
     func authorize(provider: Provider) {
-        state = .authorizing(provider)
+        publish(state: .authorizing(provider))
     }
 
+    /// Requests to exchange a code for an access token.
+    /// - Parameters:
+    ///   - provider: the provider the access token is being requested from
+    ///   - code: the code to exchange
+    /// - Returns: the exchange result
     @discardableResult
     func requestAccessToken(provider: Provider, code: String) async -> Result<Token, OAError> {
         debugPrint("✅ [Requesting access token]", provider.id, code)
+        // Publish the state
+        state = .requestingAccessToken(provider)
         guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
+            publish(state: .empty)
             return .failure(.malformedURL)
         }
         var queryItems = [URLQueryItem]()
@@ -196,20 +239,47 @@ public extension OAuth {
         queryItems.append(URLQueryItem(name: "redirect_uri", value: provider.redirectURI))
         urlComponents.queryItems = queryItems
         guard let url = urlComponents.url else {
+            publish(state: .empty)
             return .failure(.malformedURL)
         }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         guard let (data, _) = try? await urlSession.data(for: request) else {
+            publish(state: .empty)
             return .failure(.badResponse)
         }
 
+        // Decode the token
         let decoder = JSONDecoder()
         guard let token = try? decoder.decode(Token.self, from: data) else {
+            publish(state: .empty)
             return .failure(.decoding)
         }
+
+        // Store the authorization
+        let authorization = Authorization(provider: provider, token: token)
+        guard let stored = try? keychain.set(authorization, for: authorization.key), stored else {
+            publish(state: .empty)
+            return .failure(.keychain)
+        }
+        state = .authorized(authorization)
         return .success(token)
+    }
+
+    /// Attempts to refresh the current access token.
+    /// - Parameter authorization: the authorization to refresh
+    private func refresh(authorization: Authorization) {
+        // TODO: Implement
+    }
+
+
+    /// Publishes state on the main thread.
+    /// - Parameter state: the new state information to publish out on the main thread.
+    private func publish(state: State) {
+        DispatchQueue.main.async {
+            self.state = state
+        }
     }
 }
 

@@ -123,8 +123,8 @@ public class OAuth: NSObject, ObservableObject {
     /// A codable type that holds authorization information that can be stored.
     public struct Authorization: Codable, Equatable {
 
-        let provider: Provider
-        let token: Token
+        public let provider: Provider
+        public let token: Token
 
         // Returns the storage key
         var key: String {
@@ -193,7 +193,6 @@ public class OAuth: NSObject, ObservableObject {
             super.init()
             return
         }
-        debugPrint("✅ [Registering OAuth Providers]: [\(providers.count)] ")
         self.providers = providers
         super.init()
         restore()
@@ -215,7 +214,7 @@ public extension OAuth {
     /// Starts the authorization process for the specified provider.
     /// - Parameter provider: the provider to being authorization for
     func authorize(provider: Provider) {
-        publish(state: .authorizing(provider))
+        state = .authorizing(provider)
     }
 
     /// Requests to exchange a code for an access token.
@@ -225,9 +224,8 @@ public extension OAuth {
     /// - Returns: the exchange result
     @discardableResult
     func requestAccessToken(provider: Provider, code: String) async -> Result<Token, OAError> {
-        debugPrint("✅ [Requesting access token]", provider.id, code)
         // Publish the state
-        state = .requestingAccessToken(provider)
+        publish(state: .requestingAccessToken(provider))
         guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
             publish(state: .empty)
             return .failure(.malformedURL)
@@ -263,8 +261,14 @@ public extension OAuth {
             publish(state: .empty)
             return .failure(.keychain)
         }
-        state = .authorized(authorization)
+        publish(state: .authorized(authorization))
         return .success(token)
+    }
+
+    /// Removes all tokens and clears the OAuth state
+    func clear() {
+        keychain.clear()
+        publish(state: .empty)
     }
 
     /// Attempts to refresh the current access token.
@@ -272,7 +276,6 @@ public extension OAuth {
     private func refresh(authorization: Authorization) {
         // TODO: Implement
     }
-
 
     /// Publishes state on the main thread.
     /// - Parameter state: the new state information to publish out on the main thread.

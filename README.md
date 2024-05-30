@@ -9,3 +9,87 @@
 
 OAuthKit is a modern, event driven Swift Package that leverages the [Combine](https://developer.apple.com/documentation/combine) Framework to publish [OAuth 2.0](https://oauth.net/2/) events and allow application developers to easily configure OAuth Providers and focus on making great applications instead of focusing on the details of authorization flows.
 
+## OAuthKit Usage
+
+The following is an example of the simplest usage of using OAuthKit in macOS:
+
+```swift
+import OAuthKit
+import SwiftUI
+
+@main
+struct OAuthApp: App {
+
+    @Environment(\.oauth)
+    var oauth: OAuth
+
+    /// Build the scene body
+    var body: some Scene {
+
+        WindowGroup {
+            ContentView()
+        }.environmentObject(oauth)
+        
+        WindowGroup(id: "oauth") {
+            OAWebView()
+        }.environmentObject(oauth)
+    }
+} 
+
+struct ContentView: View {
+    
+    @Environment(\.openWindow)
+    var openWindow
+    
+    @Environment(\.dismissWindow)
+    private var dismissWindow
+    
+    @EnvironmentObject
+    var oauth: OAuth
+
+    var body: some View {
+        VStack {
+            switch oauth.state {
+            case .empty:
+                providerList
+            case .authorizing(let provider):
+                Text("Authorizing [\(provider.id)]")
+            case .requestingAccessToken(let provider):
+                Text("Requesting Access Token [\(provider.id)]")
+            case .authorized(let auth):
+                Button("Authorized [\(auth.provider.id)]") {
+                    oauth.clear()
+                }
+            }
+        }
+        .onReceive(oauth.$state) { state in
+            handle(state: state)
+        }
+    }
+    
+    /// Displays a list of oauth providers.
+    var providerList: some View {
+        List(oauth.providers) { provider in
+            Button(provider.id) {
+                // Start the authorization flow
+                oauth.authorize(provider: provider)
+            }
+        }
+    }
+    
+    /// Reacts to oauth state changes by opening or closing authorization windows.
+    /// - Parameter state: the published state change
+    private func handle(state: OAuth.State) {
+        switch state {
+        case .empty, .requestingAccessToken:
+            break
+        case .authorizing(let provider):
+            openWindow(id: "oauth")
+            break
+        case .authorized(_):
+            dismissWindow(id: "oauth")
+            break
+        }
+    }
+}
+```

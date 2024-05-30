@@ -10,6 +10,8 @@ import Security
 
 /// The default application tag to use.
 private let defaultApplicationTag = "oauthkit"
+/// The token identifier
+private let tokenIdentifier = "oauth-token"
 
 /// A helper class used to interact with  Keychain access.
 class Keychain {
@@ -171,6 +173,6 @@ class Keychain {
     /// - Parameter key: the key to prefix.
     /// - Returns: the unique account key to use
     private func accountKey(_ key: String) -> String {
-        return applicationTag + "." + key
+        return applicationTag + "." + key + "." + tokenIdentifier
     }
 }

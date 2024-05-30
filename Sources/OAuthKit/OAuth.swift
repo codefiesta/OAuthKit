@@ -208,7 +208,13 @@ public class OAuth: NSObject, ObservableObject {
     ///   - options: the initialization options to apply
     public init(_ bundle: Bundle, options: [Option: Any]? = nil) {
 
-        // TODO: Implement storage options
+        // Initialize with custom options
+        if let options {
+            // Use the custom application tag
+            if let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
+                self.keychain = Keychain(applicationTag)
+            }
+        }
 
         if let url = bundle.url(forResource: defaultResourceName, withExtension: defaultExtension),
               let data = try? Data(contentsOf: url),
@@ -356,6 +362,9 @@ public extension OAuth.Option {
 
     /// A key used to specify whether tokens should be automatically refreshed or not.
     static let autoRefresh: OAuth.Option = .init(rawValue: "autoRefresh")
+
+    /// A key used for custom application identifiers to improve token tagging.
+    static let applicationTag: OAuth.Option = .init(rawValue: "applicationTag")
 
 }
 

@@ -69,9 +69,11 @@ public class OAuth: NSObject, ObservableObject {
         var scope: [String]?
 
         /// Builds an url request for the specified grant type.
-        /// - Parameter grantType: the grant type to build a request for
+        /// - Parameters:
+        ///   - grantType: the grant type to build a request for
+        ///   - token: the current access token
         /// - Returns: an url request or nil
-        public func request(grantType: GrantType) -> URLRequest? {
+        public func request(grantType: GrantType, token: Token? = nil) -> URLRequest? {
 
             var urlComponents = URLComponents()
             var queryItems = [URLQueryItem]()
@@ -95,27 +97,34 @@ public class OAuth: NSObject, ObservableObject {
             case .pkce:
                 fatalError("Not implemented")
             case .refreshToken:
-                break
+                guard let refreshToken = token?.refreshToken, let components = URLComponents(string: authorizationURL.absoluteString) else {
+                    return nil
+                }
+                urlComponents = components
+                queryItems.append(URLQueryItem(name: "client_id", value: clientID))
+                queryItems.append(URLQueryItem(name: "grant_type", value: grantType.rawValue))
+                queryItems.append(URLQueryItem(name: "refresh_token", value: refreshToken))
             }
             urlComponents.queryItems = queryItems
             guard let url = urlComponents.url else { return nil }
-            let request = URLRequest(url: url)
-//            request.addValue(<#T##value: String##String#>, forHTTPHeaderField: <#T##String#>)
             return URLRequest(url: url)
         }
     }
 
     /// A codable type that holds oauth token information.
     /// See: https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
+    /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-5.1
     public struct Token: Codable, Equatable {
 
         let accessToken: String
+        let refreshToken: String?
         let expiresIn: Int64?
         let state: String?
         let type: String
 
         enum CodingKeys: String, CodingKey {
             case accessToken = "access_token"
+            case refreshToken = "refresh_token"
             case expiresIn = "expires_in"
             case type = "token_type"
             case state
@@ -125,12 +134,22 @@ public class OAuth: NSObject, ObservableObject {
     /// A codable type that holds authorization information that can be stored.
     public struct Authorization: Codable, Equatable {
 
-        public let provider: Provider
+        /// The provider ID that issued the authorization.
+        public let issuer: String
+        /// The issue date.
+        public let issued: Date
+        /// The issued access token.
         public let token: Token
 
-        // Returns the storage key
-        var key: String {
-            provider.id
+        /// Initializer
+        /// - Parameters:
+        ///   - issuer: the provider ID that issued the authorization.
+        ///   - token: the access token
+        ///   - issued: the issued date
+        init(issuer: String, token: Token, issued: Date = Date.now) {
+            self.issuer = issuer
+            self.token = token
+            self.issued = issued
         }
     }
 
@@ -180,8 +199,7 @@ public class OAuth: NSObject, ObservableObject {
     public init(providers: [Provider] = [Provider]()) {
         self.providers = providers
         super.init()
-        restore()
-        subscribe()
+        start()
     }
 
     /// Common Initializer that attempts to load an `oauth.json` file from the specified bundle.
@@ -192,14 +210,17 @@ public class OAuth: NSObject, ObservableObject {
 
         // TODO: Implement storage options
 
-        guard let url = bundle.url(forResource: defaultResourceName, withExtension: defaultExtension),
+        if let url = bundle.url(forResource: defaultResourceName, withExtension: defaultExtension),
               let data = try? Data(contentsOf: url),
-              let providers = try? JSONDecoder().decode([Provider].self, from: data) else {
-            super.init()
-            return
+              let providers = try? JSONDecoder().decode([Provider].self, from: data) {
+            self.providers = providers
         }
-        self.providers = providers
         super.init()
+        start()
+    }
+
+    /// Performs post init operations.
+    private func start() {
         restore()
         subscribe()
     }
@@ -232,6 +253,7 @@ public extension OAuth {
     }
 
     /// Requests to exchange a code for an access token.
+    /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.3
     /// - Parameters:
     ///   - provider: the provider the access token is being requested from
     ///   - code: the code to exchange
@@ -270,8 +292,8 @@ public extension OAuth {
         }
 
         // Store the authorization
-        let authorization = Authorization(provider: provider, token: token)
-        guard let stored = try? keychain.set(authorization, for: authorization.key), stored else {
+        let authorization = Authorization(issuer: provider.id, token: token)
+        guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
             publish(state: .empty)
             return .failure(.keychain)
         }
@@ -286,8 +308,37 @@ public extension OAuth {
     }
 
     /// Attempts to refresh the current access token.
+    /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-6
     /// - Parameter authorization: the authorization to refresh
-    private func refresh(authorization: Authorization) {
+    private func refresh(authorization: Authorization) async -> Result<Token, OAError> {
+
+        guard let provider = providers.filter({ $0.id == authorization.issuer }).first else {
+            return .failure(.unknown)
+        }
+        guard var request = provider.request(grantType: .refreshToken, token: authorization.token) else { return .failure(.unknown) }
+
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        guard let (data, _) = try? await urlSession.data(for: request) else {
+            publish(state: .empty)
+            return .failure(.badResponse)
+        }
+
+        // Decode the token
+        let decoder = JSONDecoder()
+        guard let token = try? decoder.decode(Token.self, from: data) else {
+            publish(state: .empty)
+            return .failure(.decoding)
+        }
+
+        // Store the authorization
+        let authorization = Authorization(issuer: provider.id, token: token)
+        guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
+            publish(state: .empty)
+            return .failure(.keychain)
+        }
+        publish(state: .authorized(authorization))
+        return .success(token)
     }
 
     /// Publishes state on the main thread.

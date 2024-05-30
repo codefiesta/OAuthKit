@@ -153,6 +153,7 @@ public class OAuth: NSObject, ObservableObject {
         }
     }
 
+    /// Holds the OAuth state that is published to subscribers via the `state` property publisher.
     public enum State: Equatable {
 
         /// The state is empty and no authorizations or tokens have been issued.

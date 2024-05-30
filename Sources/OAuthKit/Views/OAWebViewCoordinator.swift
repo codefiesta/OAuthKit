@@ -69,7 +69,7 @@ public class OAWebViewCoordinator: NSObject, WKNavigationDelegate {
             break
         case .authorizing(let provider):
             guard let request = provider.request(grantType: .authorizationCode) else { return }
-            self.webView.view.load(request)
+            webView.view.load(request)
         }
     }
 }

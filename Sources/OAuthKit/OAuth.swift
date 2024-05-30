@@ -197,10 +197,10 @@ public class OAuth: NSObject, ObservableObject {
     /// Initializes the OAuth service with the specified providers.
     /// - Parameters:
     ///   - providers: the list of oauth providers
-    public init(providers: [Provider] = [Provider]()) {
+    public init(providers: [Provider] = [Provider](), options: [Option: Any]? = nil) {
         self.providers = providers
         super.init()
-        start()
+        start(options: options)
     }
 
     /// Common Initializer that attempts to load an `oauth.json` file from the specified bundle.
@@ -208,6 +208,17 @@ public class OAuth: NSObject, ObservableObject {
     ///   - bundle: the bundle to load the oauth provider configuration information from.
     ///   - options: the initialization options to apply
     public init(_ bundle: Bundle, options: [Option: Any]? = nil) {
+        if let url = bundle.url(forResource: defaultResourceName, withExtension: defaultExtension),
+              let data = try? Data(contentsOf: url),
+              let providers = try? JSONDecoder().decode([Provider].self, from: data) {
+            self.providers = providers
+        }
+        super.init()
+        start(options: options)
+    }
+
+    /// Performs post init operations.
+    private func start(options: [Option: Any]? = nil) {
 
         // Initialize with custom options
         if let options {
@@ -217,17 +228,6 @@ public class OAuth: NSObject, ObservableObject {
             }
         }
 
-        if let url = bundle.url(forResource: defaultResourceName, withExtension: defaultExtension),
-              let data = try? Data(contentsOf: url),
-              let providers = try? JSONDecoder().decode([Provider].self, from: data) {
-            self.providers = providers
-        }
-        super.init()
-        start()
-    }
-
-    /// Performs post init operations.
-    private func start() {
         restore()
         subscribe()
     }

@@ -10,12 +10,12 @@ import WebKit
 
 public struct OAWebView {
 
-    let oauth: OAuth
+    @EnvironmentObject
+    var oauth: OAuth
     let view = WKWebView()
 
-    public init(oauth: OAuth) {
-        self.oauth = oauth
-    }
+    /// Public Initializer.
+    public init() { }
 
     public func makeWebView(context: Context) -> WKWebView {
         view.navigationDelegate = context.coordinator
@@ -37,7 +37,7 @@ extension OAWebView: UIViewRepresentable {
     }
 
     public func updateUIView(_ uiView: WKWebView, context: Context) {
-
+        context.coordinator.update(state: oauth.state)
     }
 }
 
@@ -50,6 +50,8 @@ extension OAWebView: NSViewRepresentable {
     }
 
     public func updateNSView(_ nsView: NSViewType, context: Context) {
+        debugPrint("✅ [Pushing state]", oauth.state)
+        context.coordinator.update(state: oauth.state)
     }
 }
 

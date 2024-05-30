@@ -18,31 +18,11 @@ public class OAWebViewCoordinator: NSObject, WKNavigationDelegate {
         return webView.oauth
     }
 
-    /// The current oauth provider the webview is interacting with.
-    var provider: OAuth.Provider?
-
-    /// Combine Subscribers which drive oauth events.
-    var subscribers = Set<AnyCancellable>()
-
+    /// Initializer
+    /// - Parameter webView: the webview that is being coordinated.
     init(_ webView: OAWebView) {
         self.webView = webView
         super.init()
-        switch oauth.state {
-        case .empty, .requestingAccessToken, .authorized:
-            break
-        case .authorizing(let provider):
-            self.provider = provider
-            guard let request = provider.request(grantType: .authorizationCode) else { return }
-            self.webView.view.load(request)
-        }
-
-        // Subsribe to oauth state
-        oauth.$state.sink { state in
-            self.handle(state: state)
-        }.store(in: &subscribers)
-    }
-
-    public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
     }
 
     public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
@@ -50,9 +30,24 @@ public class OAWebViewCoordinator: NSObject, WKNavigationDelegate {
             decisionHandler(.cancel)
             return
         }
+        switch oauth.state {
+        case .empty, .requestingAccessToken, .authorized:
+            break
+        case .authorizing(let provider):
+            handle(url: url, provider: provider)
+        }
+        decisionHandler(.allow)
+    }
+
+    /// Handles the authorization url for the specified provider.
+    /// - Parameters:
+    ///   - url: the url to handle
+    ///   - provider: the oauth provider
+    private func handle(url: URL, provider: OAuth.Provider) {
+        debugPrint("👻", url.absoluteString)
         let urlComponents = URLComponents(string: url.absoluteString)
         if let queryItems = urlComponents?.queryItems {
-            if let provider, let code = queryItems.filter({ $0.name == "code"}).first?.value {
+            if let code = queryItems.filter({ $0.name == "code"}).first?.value {
                 Task {
                     let result = await oauth.requestAccessToken(provider: provider, code: code)
                     switch result {
@@ -64,24 +59,17 @@ public class OAWebViewCoordinator: NSObject, WKNavigationDelegate {
                 }
             }
         }
-        decisionHandler(.allow)
     }
 
-    public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-    }
-
-    /// Handles OAuth state changes.
+    /// Handles oauth state changes.
     /// - Parameter state: the published state change.
-    private func handle(state: OAuth.State) {
+    func update(state: OAuth.State) {
+        switch state {
+        case .empty, .authorized, .requestingAccessToken:
+            break
+        case .authorizing(let provider):
+            guard let request = provider.request(grantType: .authorizationCode) else { return }
+            webView.view.load(request)
+        }
     }
-
-}
-
-extension OAWebViewCoordinator {
-
-#if os(iOS) || os(visionOS)
-#elseif os(macOS)
-
-#endif
-
 }

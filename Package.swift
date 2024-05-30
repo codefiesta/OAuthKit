@@ -21,10 +21,11 @@ let package = Package(
             name: "OAuthKit",
             linkerSettings: [
                 .linkedFramework("CryptoKit"),
-                .linkedFramework("Security"),
                 .linkedFramework("LocalAuthentication", .when(
                     platforms: [.iOS]
-                ))
+                )),
+                .linkedFramework("Network"),
+                .linkedFramework("Security")
             ]
         ),
         .testTarget(

@@ -19,10 +19,31 @@ public enum OAError: Error {
     case malformedURL
     case badResponse
     case decoding
+    case keychain
 }
 
 /// Provides an observable OAuth 2.0 implementation.
 public class OAuth: NSObject, ObservableObject {
+
+    /// Keys and values used to specify loading or runtime options.
+    public struct Option: Hashable, Equatable, RawRepresentable, @unchecked Sendable {
+
+        public var rawValue: String
+
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
+    }
+
+    /// Provides an enum representation for token storage options.
+    public enum Storage: String {
+        /// Tokens are stored inside Keychain (recommended).
+        case keychain
+        /// Tokens are stored inside SwiftData.
+        case swiftdata
+        /// Tokens are stored in memory only.
+        case memory
+    }
 
     /// Provides an enum representation for the OAuth 2.0 Grant Types.
     ///
@@ -48,9 +69,11 @@ public class OAuth: NSObject, ObservableObject {
         var scope: [String]?
 
         /// Builds an url request for the specified grant type.
-        /// - Parameter grantType: the grant type to build a request for
+        /// - Parameters:
+        ///   - grantType: the grant type to build a request for
+        ///   - token: the current access token
         /// - Returns: an url request or nil
-        public func request(grantType: GrantType) -> URLRequest? {
+        public func request(grantType: GrantType, token: Token? = nil) -> URLRequest? {
 
             var urlComponents = URLComponents()
             var queryItems = [URLQueryItem]()
@@ -74,7 +97,13 @@ public class OAuth: NSObject, ObservableObject {
             case .pkce:
                 fatalError("Not implemented")
             case .refreshToken:
-                break
+                guard let refreshToken = token?.refreshToken, let components = URLComponents(string: authorizationURL.absoluteString) else {
+                    return nil
+                }
+                urlComponents = components
+                queryItems.append(URLQueryItem(name: "client_id", value: clientID))
+                queryItems.append(URLQueryItem(name: "grant_type", value: grantType.rawValue))
+                queryItems.append(URLQueryItem(name: "refresh_token", value: refreshToken))
             }
             urlComponents.queryItems = queryItems
             guard let url = urlComponents.url else { return nil }
@@ -84,21 +113,47 @@ public class OAuth: NSObject, ObservableObject {
 
     /// A codable type that holds oauth token information.
     /// See: https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
+    /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-5.1
     public struct Token: Codable, Equatable {
 
         let accessToken: String
-        let expiresIn: Int?
+        let refreshToken: String?
+        let expiresIn: Int64?
         let state: String?
         let type: String
 
         enum CodingKeys: String, CodingKey {
             case accessToken = "access_token"
+            case refreshToken = "refresh_token"
             case expiresIn = "expires_in"
             case type = "token_type"
             case state
         }
     }
 
+    /// A codable type that holds authorization information that can be stored.
+    public struct Authorization: Codable, Equatable {
+
+        /// The provider ID that issued the authorization.
+        public let issuer: String
+        /// The issue date.
+        public let issued: Date
+        /// The issued access token.
+        public let token: Token
+
+        /// Initializer
+        /// - Parameters:
+        ///   - issuer: the provider ID that issued the authorization.
+        ///   - token: the access token
+        ///   - issued: the issued date
+        init(issuer: String, token: Token, issued: Date = Date.now) {
+            self.issuer = issuer
+            self.token = token
+            self.issued = issued
+        }
+    }
+
+    /// Holds the OAuth state that is published to subscribers via the `state` property publisher.
     public enum State: Equatable {
 
         /// The state is empty and no authorizations or tokens have been issued.
@@ -114,10 +169,10 @@ public class OAuth: NSObject, ObservableObject {
         ///   - Provider: the oauth provider
         case requestingAccessToken(Provider)
 
-        /// The OAuth provider has been issued an access token is authorized to access resources.
+        /// An authorization has been granted.
         /// - Parameters:
-        ///   - Provider: the oauth provider
-        case authorized(Token)
+        ///   - Authorization: the oauth authorization
+        case authorized(Authorization)
     }
 
     /// A published list of available OAuth providers to choose from.
@@ -133,37 +188,89 @@ public class OAuth: NSObject, ObservableObject {
         return URLSession(configuration: URLSessionConfiguration.default)
     }()
 
+    private let networkMonitor = NetworkMonitor()
+    private var keychain: Keychain = .default
+
+    /// Combine subscribers.
+    private var subscribers = Set<AnyCancellable>()
+
     /// Initializes the OAuth service with the specified providers.
     /// - Parameters:
     ///   - providers: the list of oauth providers
     public init(providers: [Provider] = [Provider]()) {
         self.providers = providers
+        super.init()
+        start()
     }
 
     /// Common Initializer that attempts to load an `oauth.json` file from the specified bundle.
     /// - Parameters:
     ///   - bundle: the bundle to load the oauth provider configuration information from.
-    public init(_ bundle: Bundle) {
-        guard let url = bundle.url(forResource: defaultResourceName, withExtension: defaultExtension),
-              let data = try? Data(contentsOf: url),
-              let providers = try? JSONDecoder().decode([Provider].self, from: data) else {
-            return
+    ///   - options: the initialization options to apply
+    public init(_ bundle: Bundle, options: [Option: Any]? = nil) {
+
+        // Initialize with custom options
+        if let options {
+            // Use the custom application tag
+            if let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
+                self.keychain = Keychain(applicationTag)
+            }
         }
-        debugPrint("✅ [Registering OAuth Providers]: [\(providers.count)] ")
-        self.providers = providers
+
+        if let url = bundle.url(forResource: defaultResourceName, withExtension: defaultExtension),
+              let data = try? Data(contentsOf: url),
+              let providers = try? JSONDecoder().decode([Provider].self, from: data) {
+            self.providers = providers
+        }
+        super.init()
+        start()
+    }
+
+    /// Performs post init operations.
+    private func start() {
+        restore()
+        subscribe()
+    }
+
+    /// Restores state from storage.
+    private func restore() {
+        for provider in providers {
+            if let authorization: OAuth.Authorization = try? keychain.get(key: provider.id) {
+                publish(state: .authorized(authorization))
+                break
+            }
+        }
+    }
+
+    /// Subsribes to event publishers.
+    private func subscribe() {
+        // Subscribe to network status events
+        networkMonitor.networkStatus.sink { (_) in
+
+        }.store(in: &subscribers)
     }
 }
 
 public extension OAuth {
 
+    /// Starts the authorization process for the specified provider.
+    /// - Parameter provider: the provider to being authorization for
     func authorize(provider: Provider) {
         state = .authorizing(provider)
     }
 
+    /// Requests to exchange a code for an access token.
+    /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.3
+    /// - Parameters:
+    ///   - provider: the provider the access token is being requested from
+    ///   - code: the code to exchange
+    /// - Returns: the exchange result
     @discardableResult
     func requestAccessToken(provider: Provider, code: String) async -> Result<Token, OAError> {
-        debugPrint("✅ [Requesting access token]", provider.id, code)
+        // Publish the state
+        publish(state: .requestingAccessToken(provider))
         guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
+            publish(state: .empty)
             return .failure(.malformedURL)
         }
         var queryItems = [URLQueryItem]()
@@ -173,19 +280,92 @@ public extension OAuth {
         queryItems.append(URLQueryItem(name: "redirect_uri", value: provider.redirectURI))
         urlComponents.queryItems = queryItems
         guard let url = urlComponents.url else {
+            publish(state: .empty)
             return .failure(.malformedURL)
         }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         guard let (data, _) = try? await urlSession.data(for: request) else {
+            publish(state: .empty)
             return .failure(.badResponse)
         }
 
+        // Decode the token
         let decoder = JSONDecoder()
         guard let token = try? decoder.decode(Token.self, from: data) else {
+            publish(state: .empty)
             return .failure(.decoding)
         }
+
+        // Store the authorization
+        let authorization = Authorization(issuer: provider.id, token: token)
+        guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
+            publish(state: .empty)
+            return .failure(.keychain)
+        }
+        publish(state: .authorized(authorization))
         return .success(token)
     }
+
+    /// Removes all tokens and clears the OAuth state
+    func clear() {
+        keychain.clear()
+        publish(state: .empty)
+    }
+
+    /// Attempts to refresh the current access token.
+    /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-6
+    /// - Parameter authorization: the authorization to refresh
+    private func refresh(authorization: Authorization) async -> Result<Token, OAError> {
+
+        guard let provider = providers.filter({ $0.id == authorization.issuer }).first else {
+            return .failure(.unknown)
+        }
+        guard var request = provider.request(grantType: .refreshToken, token: authorization.token) else { return .failure(.unknown) }
+
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        guard let (data, _) = try? await urlSession.data(for: request) else {
+            publish(state: .empty)
+            return .failure(.badResponse)
+        }
+
+        // Decode the token
+        let decoder = JSONDecoder()
+        guard let token = try? decoder.decode(Token.self, from: data) else {
+            publish(state: .empty)
+            return .failure(.decoding)
+        }
+
+        // Store the authorization
+        let authorization = Authorization(issuer: provider.id, token: token)
+        guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
+            publish(state: .empty)
+            return .failure(.keychain)
+        }
+        publish(state: .authorized(authorization))
+        return .success(token)
+    }
+
+    /// Publishes state on the main thread.
+    /// - Parameter state: the new state information to publish out on the main thread.
+    private func publish(state: State) {
+        DispatchQueue.main.async {
+            self.state = state
+        }
+    }
 }
+
+// MARK: Options
+
+public extension OAuth.Option {
+
+    /// A key used to specify whether tokens should be automatically refreshed or not.
+    static let autoRefresh: OAuth.Option = .init(rawValue: "autoRefresh")
+
+    /// A key used for custom application identifiers to improve token tagging.
+    static let applicationTag: OAuth.Option = .init(rawValue: "applicationTag")
+
+}
+

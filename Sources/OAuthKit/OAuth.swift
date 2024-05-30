@@ -63,8 +63,8 @@ public class OAuth: NSObject, ObservableObject {
         public var icon: URL?
         var authorizationURL: URL
         var accessTokenURL: URL
-        var clientID: String
-        var clientSecret: String
+        fileprivate var clientID: String
+        fileprivate var clientSecret: String
         var redirectURI: String?
         var scope: [String]?
 
@@ -118,7 +118,7 @@ public class OAuth: NSObject, ObservableObject {
 
         let accessToken: String
         let refreshToken: String?
-        let expiresIn: Int64?
+        let expiresIn: Int?
         let state: String?
         let type: String
 
@@ -150,6 +150,12 @@ public class OAuth: NSObject, ObservableObject {
             self.issuer = issuer
             self.token = token
             self.issued = issued
+        }
+
+        /// Returns true if the token is expired or not.
+        public var isExpired: Bool {
+            guard let expiresIn = token.expiresIn else { return false }
+            return issued.addingTimeInterval(Double(expiresIn)) < Date.now
         }
     }
 
@@ -227,7 +233,6 @@ public class OAuth: NSObject, ObservableObject {
                 self.keychain = Keychain(applicationTag)
             }
         }
-
         restore()
         subscribe()
     }
@@ -235,7 +240,7 @@ public class OAuth: NSObject, ObservableObject {
     /// Restores state from storage.
     private func restore() {
         for provider in providers {
-            if let authorization: OAuth.Authorization = try? keychain.get(key: provider.id) {
+            if let authorization: OAuth.Authorization = try? keychain.get(key: provider.id), !authorization.isExpired {
                 publish(state: .authorized(authorization))
                 break
             }
@@ -246,7 +251,7 @@ public class OAuth: NSObject, ObservableObject {
     private func subscribe() {
         // Subscribe to network status events
         networkMonitor.networkStatus.sink { (_) in
-
+            // TODO: Add Handler
         }.store(in: &subscribers)
     }
 }
@@ -304,6 +309,7 @@ public extension OAuth {
             publish(state: .empty)
             return .failure(.keychain)
         }
+
         publish(state: .authorized(authorization))
         return .success(token)
     }
@@ -351,6 +357,13 @@ public extension OAuth {
     /// Publishes state on the main thread.
     /// - Parameter state: the new state information to publish out on the main thread.
     private func publish(state: State) {
+        switch state {
+        case .authorized(let auth):
+            guard let _ = auth.token.expiresIn else { return }
+            // TODO: Schedule a token refresh
+        case .empty, .authorizing, .requestingAccessToken:
+            break
+        }
         DispatchQueue.main.async {
             self.state = state
         }

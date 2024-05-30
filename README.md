@@ -85,10 +85,8 @@ struct ContentView: View {
             break
         case .authorizing(let provider):
             openWindow(id: "oauth")
-            break
         case .authorized(_):
             dismissWindow(id: "oauth")
-            break
         }
     }
 }

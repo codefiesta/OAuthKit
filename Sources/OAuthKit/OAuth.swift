@@ -99,6 +99,8 @@ public class OAuth: NSObject, ObservableObject {
             }
             urlComponents.queryItems = queryItems
             guard let url = urlComponents.url else { return nil }
+            let request = URLRequest(url: url)
+//            request.addValue(<#T##value: String##String#>, forHTTPHeaderField: <#T##String#>)
             return URLRequest(url: url)
         }
     }
@@ -166,16 +168,20 @@ public class OAuth: NSObject, ObservableObject {
         return URLSession(configuration: URLSessionConfiguration.default)
     }()
 
-    private var keychain: Keychain
+    private let networkMonitor = NetworkMonitor()
+    private var keychain: Keychain = .default
+
+    /// Combine subscribers.
+    private var subscribers = Set<AnyCancellable>()
 
     /// Initializes the OAuth service with the specified providers.
     /// - Parameters:
     ///   - providers: the list of oauth providers
     public init(providers: [Provider] = [Provider]()) {
         self.providers = providers
-        self.keychain = .default
         super.init()
         restore()
+        subscribe()
     }
 
     /// Common Initializer that attempts to load an `oauth.json` file from the specified bundle.
@@ -185,7 +191,6 @@ public class OAuth: NSObject, ObservableObject {
     public init(_ bundle: Bundle, options: [Option: Any]? = nil) {
 
         // TODO: Implement storage options
-        self.keychain = .default
 
         guard let url = bundle.url(forResource: defaultResourceName, withExtension: defaultExtension),
               let data = try? Data(contentsOf: url),
@@ -196,6 +201,7 @@ public class OAuth: NSObject, ObservableObject {
         self.providers = providers
         super.init()
         restore()
+        subscribe()
     }
 
     /// Restores state from storage.
@@ -206,6 +212,14 @@ public class OAuth: NSObject, ObservableObject {
                 break
             }
         }
+    }
+
+    /// Subsribes to event publishers.
+    private func subscribe() {
+        // Subscribe to network status events
+        networkMonitor.networkStatus.sink { (_) in
+
+        }.store(in: &subscribers)
     }
 }
 
@@ -274,7 +288,6 @@ public extension OAuth {
     /// Attempts to refresh the current access token.
     /// - Parameter authorization: the authorization to refresh
     private func refresh(authorization: Authorization) {
-        // TODO: Implement
     }
 
     /// Publishes state on the main thread.
@@ -290,8 +303,8 @@ public extension OAuth {
 
 public extension OAuth.Option {
 
-    /// A key used to specify whether tokens should be stored in keychain or not.
-    static let keychainStorage: OAuth.Option = .init(rawValue: "keychainStorage")
+    /// A key used to specify whether tokens should be automatically refreshed or not.
+    static let autoRefresh: OAuth.Option = .init(rawValue: "autoRefresh")
 
 }
 

@@ -91,3 +91,7 @@ struct ContentView: View {
     }
 }
 ```
+
+## Security Best Practices
+Although OAuthKit will automatically try to load the `oauth.json` file found inside your main bundle (or bundle passed to the initializer) for convenience purposes, it is good policy to **never** check in **clientID** or **clientSecret** values into source control. Also, it is possible for someone to inspect the contents of your app and look at any files inside your app bundle. The most secure way is to build Providers programatically and bake any these values into your code via your CI pipeline.
+

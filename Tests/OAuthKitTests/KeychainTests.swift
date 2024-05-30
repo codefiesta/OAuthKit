@@ -18,7 +18,7 @@ final class KeychainTests: XCTestCase {
     func testDefaultKeychain() {
         let keychain = Keychain.default
         let key = "Github"
-        let token = OAuth.Token(accessToken: "1234", expiresIn: 3600, state: "x", type: "bearer")
+        let token = OAuth.Token(accessToken: "1234", refreshToken: nil, expiresIn: 3600, state: "x", type: "bearer")
 
         let inserted = try! keychain.set(token, for: key)
         XCTAssertTrue(inserted)

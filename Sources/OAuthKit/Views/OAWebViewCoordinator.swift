@@ -65,16 +65,11 @@ public class OAWebViewCoordinator: NSObject, WKNavigationDelegate {
     /// - Parameter state: the published state change.
     func update(state: OAuth.State) {
         switch state {
-        case .empty:
+        case .empty, .authorized, .requestingAccessToken:
             break
         case .authorizing(let provider):
             guard let request = provider.request(grantType: .authorizationCode) else { return }
             self.webView.view.load(request)
-            break
-        case .requestingAccessToken(_):
-            break
-        case .authorized(_):
-            break
         }
     }
 }

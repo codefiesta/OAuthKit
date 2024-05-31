@@ -10,7 +10,7 @@ import Security
 
 /// The default application tag to use.
 private let defaultApplicationTag = "oauthkit"
-/// The token identifier
+/// The default token identifier suffix.
 private let tokenIdentifier = "oauth-token"
 
 /// A helper class used to interact with  Keychain access.
@@ -76,8 +76,6 @@ class Keychain {
         let account = accountKey(key)
         deleteNoLock(account)
 
-        deleteNoLock(key)
-
         let data = try encoder.encode(value)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -87,7 +85,6 @@ class Keychain {
         ]
 
         let status = SecItemAdd(query as CFDictionary, nil)
-
         return status == errSecSuccess
     }
 
@@ -140,8 +137,6 @@ class Keychain {
         // TODO: Handle errSecInvalidOwnerEdit
         return true
     }
-
-
 
     /// Deletes the value for the specified key.
     /// - Parameter key: the key to delete

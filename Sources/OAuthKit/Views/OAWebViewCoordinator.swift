@@ -5,6 +5,7 @@
 //  Created by Kevin McKee on 5/16/24.
 //
 
+#if !os(tvOS)
 import Combine
 import SwiftUI
 import WebKit
@@ -73,3 +74,4 @@ public class OAWebViewCoordinator: NSObject, WKNavigationDelegate {
         }
     }
 }
+#endif

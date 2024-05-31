@@ -5,9 +5,12 @@
 //  Created by Kevin McKee on 5/16/24.
 //
 
+#if !os(tvOS)
 import SwiftUI
 import WebKit
 
+/// A UIViewRepresentable / NSViewRepresentable wrapper type that coordinates
+/// oauth authorization flows inside a WKWebView.
 public struct OAWebView {
 
     @EnvironmentObject
@@ -27,6 +30,8 @@ public struct OAWebView {
         OAWebViewCoordinator(self)
     }
 }
+#endif
+
 
 #if os(iOS) || os(visionOS)
 

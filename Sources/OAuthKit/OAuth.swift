@@ -194,6 +194,8 @@ public class OAuth: NSObject, ObservableObject {
         return URLSession(configuration: URLSessionConfiguration.default)
     }()
 
+    private var tasks = [Task<(), any Error>]()
+    private var options: [Option: Any]?
     private let networkMonitor = NetworkMonitor()
     private var keychain: Keychain = .default
 
@@ -204,9 +206,10 @@ public class OAuth: NSObject, ObservableObject {
     /// - Parameters:
     ///   - providers: the list of oauth providers
     public init(providers: [Provider] = [Provider](), options: [Option: Any]? = nil) {
+        self.options = options
         self.providers = providers
         super.init()
-        start(options: options)
+        start()
     }
 
     /// Common Initializer that attempts to load an `oauth.json` file from the specified bundle.
@@ -214,17 +217,18 @@ public class OAuth: NSObject, ObservableObject {
     ///   - bundle: the bundle to load the oauth provider configuration information from.
     ///   - options: the initialization options to apply
     public init(_ bundle: Bundle, options: [Option: Any]? = nil) {
+        self.options = options
         if let url = bundle.url(forResource: defaultResourceName, withExtension: defaultExtension),
               let data = try? Data(contentsOf: url),
               let providers = try? JSONDecoder().decode([Provider].self, from: data) {
             self.providers = providers
         }
         super.init()
-        start(options: options)
+        start()
     }
 
     /// Performs post init operations.
-    private func start(options: [Option: Any]? = nil) {
+    private func start() {
 
         // Initialize with custom options
         if let options {
@@ -316,42 +320,50 @@ public extension OAuth {
 
     /// Removes all tokens and clears the OAuth state
     func clear() {
+        debugPrint("⚠️ [Clearing oauth state]")
         keychain.clear()
         publish(state: .empty)
     }
 
     /// Attempts to refresh the current access token.
     /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-6
-    /// - Parameter authorization: the authorization to refresh
-    private func refresh(authorization: Authorization) async -> Result<Token, OAError> {
+    private func refresh() async {
+        switch state {
+        case .empty, .authorizing, .requestingAccessToken:
+            return
+        case .authorized(let auth):
+            guard let provider = providers.filter({ $0.id == auth.issuer }).first else {
+                return
+            }
 
-        guard let provider = providers.filter({ $0.id == authorization.issuer }).first else {
-            return .failure(.unknown)
-        }
-        guard var request = provider.request(grantType: .refreshToken, token: authorization.token) else { return .failure(.unknown) }
+            // If we can't build a refresh request and the token is expired, simply clear the token and state
+            guard var request = provider.request(grantType: .refreshToken, token: auth.token) else {
+                if auth.isExpired { clear() }
+                return
+            }
 
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        guard let (data, _) = try? await urlSession.data(for: request) else {
-            publish(state: .empty)
-            return .failure(.badResponse)
-        }
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            guard let (data, _) = try? await urlSession.data(for: request) else {
+                publish(state: .empty)
+                return
+            }
 
-        // Decode the token
-        let decoder = JSONDecoder()
-        guard let token = try? decoder.decode(Token.self, from: data) else {
-            publish(state: .empty)
-            return .failure(.decoding)
-        }
+            // Decode the token
+            let decoder = JSONDecoder()
+            guard let token = try? decoder.decode(Token.self, from: data) else {
+                publish(state: .empty)
+                return
+            }
 
-        // Store the authorization
-        let authorization = Authorization(issuer: provider.id, token: token)
-        guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
-            publish(state: .empty)
-            return .failure(.keychain)
+            // Store the authorization
+            let authorization = Authorization(issuer: provider.id, token: token)
+            guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
+                publish(state: .empty)
+                return
+            }
+            publish(state: .authorized(authorization))
         }
-        publish(state: .authorized(authorization))
-        return .success(token)
     }
 
     /// Publishes state on the main thread.
@@ -359,8 +371,14 @@ public extension OAuth {
     private func publish(state: State) {
         switch state {
         case .authorized(let auth):
-            guard let _ = auth.token.expiresIn else { return }
-            // TODO: Schedule a token refresh
+            // Schedule the refresh task
+            if let expiresIn = auth.token.expiresIn {
+                let timeInterval = Double(expiresIn)
+                let task = Task.delayed(byTimeInterval: timeInterval) {
+                    await self.refresh()
+                }
+                tasks.append(task)
+            }
         case .empty, .authorizing, .requestingAccessToken:
             break
         }

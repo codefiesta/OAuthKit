@@ -9,7 +9,7 @@ final class OAuthTests: XCTestCase {
         let providers = oauth.providers
         XCTAssertGreaterThan(providers.count, 0)
     }
-    
+
     /// Tests the custom date extension operator.
     func testDateExtensions() {
         let expiresIn = 60

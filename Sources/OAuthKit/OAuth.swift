@@ -157,6 +157,12 @@ public class OAuth: NSObject, ObservableObject {
             guard let expiresIn = token.expiresIn else { return false }
             return issued.addingTimeInterval(Double(expiresIn)) < Date.now
         }
+
+        /// Returns the expiration date of the authorization or nil if none exists.
+        public var expiration: Date? {
+            guard let expiresIn = token.expiresIn else { return nil }
+            return issued.addingTimeInterval(TimeInterval(expiresIn))
+        }
     }
 
     /// Holds the OAuth state that is published to subscribers via the `state` property publisher.
@@ -371,22 +377,34 @@ public extension OAuth {
     private func publish(state: State) {
         switch state {
         case .authorized(let auth):
-            if let options, let autoRefresh = options[.autoRefresh] as? Bool, autoRefresh {
-                // Schedule the refresh task
-                if let expiresIn = auth.token.expiresIn {
-                    // TODO: Calculate the timeInterval when being restored on launch
-                    let timeInterval = Double(expiresIn)
-                    let task = Task.delayed(timeInterval: timeInterval) {
-                        await self.refresh()
-                    }
-                    tasks.append(task)
-                }
-            }
+            schedule(auth: auth)
         case .empty, .authorizing, .requestingAccessToken:
             break
         }
         DispatchQueue.main.async {
             self.state = state
+        }
+    }
+
+    /// Schedules refresh tasks for the specified authorization.
+    /// - Parameter auth: the authentication to schedule a future tasks for
+    private func schedule(auth: Authorization) {
+        if let options, let autoRefresh = options[.autoRefresh] as? Bool, autoRefresh {
+            if let expiration = auth.expiration {
+                let timeInterval = expiration - Date.now
+                if timeInterval > 0 {
+                    // Schedule the refresh task
+                    let task = Task.delayed(timeInterval: timeInterval) {
+                        await self.refresh()
+                    }
+                    tasks.append(task)
+                } else {
+                    // Execute the task immediately
+                    Task {
+                        await self.refresh()
+                    }
+                }
+            }
         }
     }
 }

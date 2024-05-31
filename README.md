@@ -100,7 +100,7 @@ By default, the easiest way to configure OAuthKit is to simply drop an `oauth.js
     var oauth: OAuth
 ```
 
-If you want to customize your OAuth environment or are using modules in your application, you can also specify which bundle to look for your configure file in like so:
+If you want to customize your OAuth environment or are using modules in your application, you can also specify which bundle to load configure files from:
 
 
 ```swift
@@ -117,5 +117,5 @@ If you are building your OAuth Providers programatically (recommended for produc
 
 
 ## Security Best Practices
-Although OAuthKit will automatically try to load the `oauth.json` file found inside your main bundle (or bundle passed to the initializer) for convenience purposes, it is good policy to **never** check in **clientID** or **clientSecret** values into source control. Also, it is possible for someone to inspect the contents of your app and look at any files inside your app bundle. The most secure way is to build Providers programatically and bake any these values into your code via your CI pipeline.
+Although OAuthKit will automatically try to load the `oauth.json` file found inside your main bundle (or bundle passed to the initializer) for convenience purposes, it is good policy to **NEVER** check in **clientID** or **clientSecret** values into source control. Also, it is possible for someone to [inspect and reverse engineer](https://www.nowsecure.com/blog/2021/09/08/basics-of-reverse-engineering-ios-mobile-apps/) the contents of your app and look at any files inside your app bundle which means you could potentially expose these secrets in the `oauth.json` file. The most secure way to protect OAuth secrets is to build your Providers programatically and bake [secret values](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions) into your code via your CI pipeline.
 

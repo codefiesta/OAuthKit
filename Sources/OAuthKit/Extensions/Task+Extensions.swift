@@ -13,12 +13,12 @@ extension Task where Failure == Error {
 
     /// Builds a delayed task.
     /// - Parameters:
-    ///   - delayInterval: the delay interval
+    ///   - timeInterval: the delay interval
     ///   - priority: the task priority
     ///   - operation: the task operation to execute
     /// - Returns: a new task that will execute after the specified delay
     static func delayed(
-        byTimeInterval delayInterval: TimeInterval,
+        timeInterval delayInterval: TimeInterval,
         operation: @escaping @Sendable () async throws -> Success
     ) -> Task {
 

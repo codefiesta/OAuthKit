@@ -371,13 +371,16 @@ public extension OAuth {
     private func publish(state: State) {
         switch state {
         case .authorized(let auth):
-            // Schedule the refresh task
-            if let expiresIn = auth.token.expiresIn {
-                let timeInterval = Double(expiresIn)
-                let task = Task.delayed(byTimeInterval: timeInterval) {
-                    await self.refresh()
+            if let options, let autoRefresh = options[.autoRefresh] as? Bool, autoRefresh {
+                // Schedule the refresh task
+                if let expiresIn = auth.token.expiresIn {
+                    // TODO: Calculate the timeInterval when being restored on launch
+                    let timeInterval = Double(expiresIn)
+                    let task = Task.delayed(timeInterval: timeInterval) {
+                        await self.refresh()
+                    }
+                    tasks.append(task)
                 }
-                tasks.append(task)
             }
         case .empty, .authorizing, .requestingAccessToken:
             break

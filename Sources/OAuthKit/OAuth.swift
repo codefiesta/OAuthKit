@@ -13,7 +13,7 @@ private let defaultResourceName = "oauth"
 /// The default file extension.
 private let defaultExtension = "json"
 
-/// Provides an enum error that provides
+/// Provides an enum of oauth errors.
 public enum OAError: Error {
     case unknown
     case malformedURL
@@ -23,6 +23,7 @@ public enum OAError: Error {
 }
 
 /// Provides an observable OAuth 2.0 implementation.
+/// See: https://datatracker.ietf.org/doc/html/rfc6749
 public class OAuth: NSObject, ObservableObject {
 
     /// Keys and values used to specify loading or runtime options.
@@ -90,12 +91,8 @@ public class OAuth: NSObject, ObservableObject {
                 if let scope {
                     queryItems.append(URLQueryItem(name: "scope", value: scope.joined(separator: " ")))
                 }
-            case .clientCredentials:
-                break
-            case .deviceCode:
-                break
-            case .pkce:
-                fatalError("Not implemented")
+            case .clientCredentials, .deviceCode, .pkce:
+                fatalError("TODO: Not implemented")
             case .refreshToken:
                 guard let refreshToken = token?.refreshToken, let components = URLComponents(string: authorizationURL.absoluteString) else {
                     return nil
@@ -176,7 +173,7 @@ public class OAuth: NSObject, ObservableObject {
         ///   - Provider: the oauth provider
         case authorizing(Provider)
 
-        /// An access token is being requested for the specifed provider..
+        /// An access token is being requested for the specifed provider.
         /// - Parameters:
         ///   - Provider: the oauth provider
         case requestingAccessToken(Provider)
@@ -191,6 +188,7 @@ public class OAuth: NSObject, ObservableObject {
     @Published
     public var providers = [Provider]()
 
+    /// An observable  published oauth state.
     @Published
     public var state: State = .empty
 
@@ -212,9 +210,9 @@ public class OAuth: NSObject, ObservableObject {
     /// - Parameters:
     ///   - providers: the list of oauth providers
     public init(providers: [Provider] = [Provider](), options: [Option: Any]? = nil) {
+        super.init()
         self.options = options
         self.providers = providers
-        super.init()
         start()
     }
 
@@ -223,14 +221,22 @@ public class OAuth: NSObject, ObservableObject {
     ///   - bundle: the bundle to load the oauth provider configuration information from.
     ///   - options: the initialization options to apply
     public init(_ bundle: Bundle, options: [Option: Any]? = nil) {
-        self.options = options
-        if let url = bundle.url(forResource: defaultResourceName, withExtension: defaultExtension),
-              let data = try? Data(contentsOf: url),
-              let providers = try? JSONDecoder().decode([Provider].self, from: data) {
-            self.providers = providers
-        }
         super.init()
+        self.options = options
+        self.providers = loadProviders(bundle)
         start()
+    }
+
+    /// Loads providers from the specified bundle.
+    /// - Parameter bundle: the bundle to load the oauth provider configuration information from.
+    /// - Returns: found providers in the specifed bundle or an empty list if not found
+    private func loadProviders(_ bundle: Bundle) -> [Provider] {
+        guard let url = bundle.url(forResource: defaultResourceName, withExtension: defaultExtension),
+              let data = try? Data(contentsOf: url),
+              let providers = try? JSONDecoder().decode([Provider].self, from: data) else {
+            return []
+        }
+        return providers
     }
 
     /// Performs post init operations.

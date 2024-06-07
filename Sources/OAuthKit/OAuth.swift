@@ -213,7 +213,9 @@ public class OAuth: NSObject, ObservableObject {
         super.init()
         self.options = options
         self.providers = providers
-        start()
+        Task {
+            await start()
+        }
     }
 
     /// Common Initializer that attempts to load an `oauth.json` file from the specified bundle.
@@ -224,7 +226,9 @@ public class OAuth: NSObject, ObservableObject {
         super.init()
         self.options = options
         self.providers = loadProviders(bundle)
-        start()
+        Task {
+            await start()
+        }
     }
 
     /// Loads providers from the specified bundle.
@@ -240,8 +244,7 @@ public class OAuth: NSObject, ObservableObject {
     }
 
     /// Performs post init operations.
-    private func start() {
-
+    private func start() async {
         // Initialize with custom options
         if let options {
             // Use the custom application tag
@@ -249,15 +252,15 @@ public class OAuth: NSObject, ObservableObject {
                 self.keychain = Keychain(applicationTag)
             }
         }
-        restore()
         subscribe()
+        await restore()
     }
 
     /// Restores state from storage.
-    private func restore() {
+    private func restore() async {
         for provider in providers {
             if let authorization: OAuth.Authorization = try? keychain.get(key: provider.id), !authorization.isExpired {
-                publish(state: .authorized(authorization))
+                await publish(state: .authorized(authorization))
                 break
             }
         }
@@ -289,9 +292,9 @@ public extension OAuth {
     @discardableResult
     func requestAccessToken(provider: Provider, code: String) async -> Result<Token, OAError> {
         // Publish the state
-        publish(state: .requestingAccessToken(provider))
+        await publish(state: .requestingAccessToken(provider))
         guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
-            publish(state: .empty)
+            await publish(state: .empty)
             return .failure(.malformedURL)
         }
         var queryItems = [URLQueryItem]()
@@ -301,40 +304,42 @@ public extension OAuth {
         queryItems.append(URLQueryItem(name: "redirect_uri", value: provider.redirectURI))
         urlComponents.queryItems = queryItems
         guard let url = urlComponents.url else {
-            publish(state: .empty)
+            await publish(state: .empty)
             return .failure(.malformedURL)
         }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         guard let (data, _) = try? await urlSession.data(for: request) else {
-            publish(state: .empty)
+            await publish(state: .empty)
             return .failure(.badResponse)
         }
 
         // Decode the token
         let decoder = JSONDecoder()
         guard let token = try? decoder.decode(Token.self, from: data) else {
-            publish(state: .empty)
+            await publish(state: .empty)
             return .failure(.decoding)
         }
 
         // Store the authorization
         let authorization = Authorization(issuer: provider.id, token: token)
         guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
-            publish(state: .empty)
+            await publish(state: .empty)
             return .failure(.keychain)
         }
 
-        publish(state: .authorized(authorization))
+        await publish(state: .authorized(authorization))
         return .success(token)
     }
 
     /// Removes all tokens and clears the OAuth state
     func clear() {
-        debugPrint("⚠️ [Clearing oauth state]")
-        keychain.clear()
-        publish(state: .empty)
+        Task {
+            debugPrint("⚠️ [Clearing oauth state]")
+            keychain.clear()
+            await publish(state: .empty)
+        }
     }
 
     /// Attempts to refresh the current access token.
@@ -357,29 +362,27 @@ public extension OAuth {
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Accept")
             guard let (data, _) = try? await urlSession.data(for: request) else {
-                publish(state: .empty)
-                return
+                return await publish(state: .empty)
             }
 
             // Decode the token
             let decoder = JSONDecoder()
             guard let token = try? decoder.decode(Token.self, from: data) else {
-                publish(state: .empty)
-                return
+                return await publish(state: .empty)
             }
 
             // Store the authorization
             let authorization = Authorization(issuer: provider.id, token: token)
             guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
-                publish(state: .empty)
-                return
+                return await publish(state: .empty)
             }
-            publish(state: .authorized(authorization))
+            await publish(state: .authorized(authorization))
         }
     }
 
     /// Publishes state on the main thread.
     /// - Parameter state: the new state information to publish out on the main thread.
+    @MainActor
     private func publish(state: State) {
         switch state {
         case .authorized(let auth):
@@ -387,9 +390,7 @@ public extension OAuth {
         case .empty, .authorizing, .requestingAccessToken:
             break
         }
-        DispatchQueue.main.async {
-            self.state = state
-        }
+        self.state = state
     }
 
     /// Schedules refresh tasks for the specified authorization.

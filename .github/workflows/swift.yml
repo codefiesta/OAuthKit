@@ -14,7 +14,7 @@ jobs:
   build:
 
     env:
-      XCODE_VERSION: 'Xcode_15.3'
+      XCODE_VERSION: 'Xcode_15.4'
 
     runs-on: macos-14
 

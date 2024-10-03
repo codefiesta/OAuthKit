@@ -10,7 +10,8 @@ import Combine
 import SwiftUI
 import WebKit
 
-public class OAWebViewCoordinator: NSObject, WKNavigationDelegate {
+@MainActor
+public class OAWebViewCoordinator: NSObject {
 
     var webView: OAWebView
 
@@ -24,20 +25,6 @@ public class OAWebViewCoordinator: NSObject, WKNavigationDelegate {
     init(_ webView: OAWebView) {
         self.webView = webView
         super.init()
-    }
-
-    public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        guard let url = navigationAction.request.url else {
-            decisionHandler(.cancel)
-            return
-        }
-        switch oauth.state {
-        case .empty, .requestingAccessToken, .authorized:
-            break
-        case .authorizing(let provider):
-            handle(url: url, provider: provider)
-        }
-        decisionHandler(.allow)
     }
 
     /// Handles the authorization url for the specified provider.
@@ -74,4 +61,21 @@ public class OAWebViewCoordinator: NSObject, WKNavigationDelegate {
         }
     }
 }
+
+extension OAWebViewCoordinator: WKNavigationDelegate {
+
+    public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
+        guard let url = navigationAction.request.url else {
+            return .cancel
+        }
+        switch oauth.state {
+        case .empty, .requestingAccessToken, .authorized:
+            break
+        case .authorizing(let provider):
+            handle(url: url, provider: provider)
+        }
+        return .allow
+    }
+}
+
 #endif

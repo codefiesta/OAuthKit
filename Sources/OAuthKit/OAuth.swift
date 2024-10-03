@@ -24,7 +24,7 @@ public enum OAError: Error {
 
 /// Provides an observable OAuth 2.0 implementation.
 /// See: https://datatracker.ietf.org/doc/html/rfc6749
-public class OAuth: NSObject, ObservableObject {
+public class OAuth: NSObject, ObservableObject, @unchecked Sendable {
 
     /// Keys and values used to specify loading or runtime options.
     public struct Option: Hashable, Equatable, RawRepresentable, @unchecked Sendable {
@@ -111,7 +111,7 @@ public class OAuth: NSObject, ObservableObject {
     /// A codable type that holds oauth token information.
     /// See: https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
     /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-5.1
-    public struct Token: Codable, Equatable {
+    public struct Token: Codable, Equatable, @unchecked Sendable {
 
         let accessToken: String
         let refreshToken: String?
@@ -163,7 +163,7 @@ public class OAuth: NSObject, ObservableObject {
     }
 
     /// Holds the OAuth state that is published to subscribers via the `state` property publisher.
-    public enum State: Equatable {
+    public enum State: Equatable, @unchecked Sendable {
 
         /// The state is empty and no authorizations or tokens have been issued.
         case empty

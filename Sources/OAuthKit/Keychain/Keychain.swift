@@ -14,7 +14,7 @@ private let defaultApplicationTag = "oauthkit"
 private let tokenIdentifier = "oauth-token"
 
 /// A helper class used to interact with  Keychain access.
-class Keychain {
+class Keychain: @unchecked Sendable {
 
     static let `default`: Keychain = Keychain()
     private let lock = NSLock()

@@ -11,7 +11,7 @@ import Network
 private let queueLabel = "oauthkit.NetworkMonitor"
 
 /// A type that broadcasts network reachability via Combine event publishing.
-final class NetworkMonitor {
+final class NetworkMonitor: @unchecked Sendable {
 
     /// The private pass through publisher.
     private var publisher = PassthroughSubject<Bool, Never>()

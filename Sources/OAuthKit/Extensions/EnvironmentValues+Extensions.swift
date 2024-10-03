@@ -19,5 +19,5 @@ public extension EnvironmentValues {
 struct OAuthKey: EnvironmentKey {
 
     /// The default OAuth instance that is loaded into the environment.
-    static var defaultValue: OAuth = .init(.main)
+    static let defaultValue: OAuth = .init(.main)
 }

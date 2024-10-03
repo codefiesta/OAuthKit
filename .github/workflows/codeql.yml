@@ -15,7 +15,7 @@ jobs:
   analyze:
 
     env:
-      XCODE_VERSION: 'Xcode_15.4'
+      XCODE_VERSION: 'Xcode_16.0'
 
     name: Analyze (${{ matrix.language }})
     # Runner size impacts CodeQL analysis time. To learn more, please see:
@@ -25,7 +25,7 @@ jobs:
     # Consider using larger runners or machines with greater resources for possible analysis time improvements.
 
     if: github.event.pull_request.draft == false
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
     permissions:
       # required for all workflows

@@ -14,9 +14,9 @@ jobs:
   build:
 
     env:
-      XCODE_VERSION: 'Xcode_15.4'
+      XCODE_VERSION: 'Xcode_16.0'
 
-    runs-on: macos-14
+    runs-on: macos-15
 
     steps:
     - uses: actions/checkout@v4

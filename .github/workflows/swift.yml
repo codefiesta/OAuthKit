@@ -14,7 +14,7 @@ jobs:
   build:
 
     env:
-      XCODE_VERSION: 'Xcode_16.0'
+      XCODE_VERSION: 'Xcode_16.1'
 
     runs-on: macos-15
 

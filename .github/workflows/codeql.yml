@@ -14,6 +14,9 @@ jobs:
 
   analyze:
 
+    # Only run this action if the PR isn't a draft and it is labled as a `security` PR
+    if: github.event.pull_request.draft == false && contains(github.event.pull_request.labels.*.name, 'security')
+
     env:
       XCODE_VERSION: 'Xcode_16.2'
 
@@ -23,8 +26,7 @@ jobs:
     #   - https://gh.io/supported-runners-and-hardware-resources
     #   - https://gh.io/using-larger-runners (GitHub.com only)
     # Consider using larger runners or machines with greater resources for possible analysis time improvements.
-
-    if: github.event.pull_request.draft == false
+    
     runs-on: macos-15
     timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
     permissions:

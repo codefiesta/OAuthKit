@@ -15,7 +15,7 @@ jobs:
   analyze:
 
     env:
-      XCODE_VERSION: 'Xcode_16.1'
+      XCODE_VERSION: 'Xcode_16.2'
 
     name: Analyze (${{ matrix.language }})
     # Runner size impacts CodeQL analysis time. To learn more, please see:

@@ -1,22 +1,32 @@
+//
+//  OAuthTests.swift
+//
+//
+//  Created by Kevin McKee
+//
+import Foundation
 @testable import OAuthKit
-import XCTest
+import Testing
 
-final class OAuthTests: XCTestCase {
+@Suite("OAuth Tests", .tags(.oauth))
+final class OAuthTests {
 
     /// Tests the init method using a custom bundle.
-    func testInit() throws {
+    @Test("Initializing providers")
+    func whenInitializing() async throws {
         let oauth: OAuth = .init(.module)
         let providers = oauth.providers
-        XCTAssertGreaterThan(providers.count, 0)
+        #expect(providers.isNotEmpty)
     }
 
     /// Tests the custom date extension operator.
-    func testDateExtensions() {
+    @Test("Expiring tokens")
+    func whenExpiring() async throws {
         let expiresIn = 60
         let now = Date.now
         let issued = now.addingTimeInterval(-TimeInterval(expiresIn * 10)) // 10 minutes ago
         let expiration = issued.addingTimeInterval(TimeInterval(expiresIn))
         let timeInterval = expiration - Date.now
-        XCTAssertLessThan(timeInterval, 0)
+        #expect(timeInterval < 0)
     }
 }

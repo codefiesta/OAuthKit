@@ -2,42 +2,41 @@
 //  KeychainTests.swift
 //  
 //
-//  Created by Kevin McKee on 5/29/24.
+//  Created by Kevin McKee
 //
 
 @testable import OAuthKit
-import XCTest
+import Testing
 
-final class KeychainTests: XCTestCase {
+@Suite("Keychain Tests", .tags(.keychain))
+final class KeychainTests {
 
-    override func tearDown() {
+    deinit {
         Keychain.default.clear()
     }
 
-    /// Tests default keychain storage.
-    func testDefaultKeychain() {
+    @Test("Storing keychain values")
+    func whenStoring() async throws {
         let keychain = Keychain.default
         let key = "Github"
         let token = OAuth.Token(accessToken: "1234", refreshToken: nil, expiresIn: 3600, state: "x", type: "bearer")
 
         let inserted = try! keychain.set(token, for: key)
-        XCTAssertTrue(inserted)
-        guard let found: OAuth.Token = try! keychain.get(key: key) else {
-            XCTFail("No token found!")
-            return
-        }
-        XCTAssertNotNil(token.accessToken)
-        XCTAssertEqual(token.accessToken, found.accessToken)
-        XCTAssertEqual(token.expiresIn, found.expiresIn)
-        XCTAssertEqual(token.state, found.state)
-        XCTAssertEqual(token.type, found.type)
+        #expect(inserted == true)
+
+        let found: OAuth.Token = try! keychain.get(key: key)!
+
+        #expect(token.accessToken != nil)
+        #expect(token.accessToken == found.accessToken)
+        #expect(token.expiresIn == found.expiresIn)
+        #expect(token.state == found.state)
+        #expect(token.type == found.type)
 
         let keys = keychain.keys.filter{ $0.contains("oauth")}
         debugPrint("🔐", keys)
-        XCTAssertGreaterThan(keys.count, 0)
+        #expect(keys.count > 0)
 
         let deleted = keychain.delete(key: key)
-        XCTAssertTrue(deleted)
+        #expect(deleted == true)
     }
 }
-

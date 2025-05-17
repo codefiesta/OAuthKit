@@ -18,7 +18,7 @@ jobs:
     if: github.event.pull_request.draft == false && contains(github.event.pull_request.labels.*.name, 'security')
 
     env:
-      XCODE_VERSION: 'Xcode_16.2'
+      XCODE_VERSION: 'Xcode_16.3'
 
     name: Analyze (${{ matrix.language }})
     # Runner size impacts CodeQL analysis time. To learn more, please see:

@@ -27,7 +27,7 @@ public enum OAError: Error {
 public class OAuth: NSObject, ObservableObject, @unchecked Sendable {
 
     /// Keys and values used to specify loading or runtime options.
-    public struct Option: Hashable, Equatable, RawRepresentable, @unchecked Sendable {
+    public struct Option: Hashable, Equatable, RawRepresentable, Sendable {
 
         public var rawValue: String
 
@@ -58,7 +58,7 @@ public class OAuth: NSObject, ObservableObject, @unchecked Sendable {
     }
 
     /// Provides configuration data for an OAuth service provider.
-    public struct Provider: Codable, Identifiable, Hashable {
+    public struct Provider: Codable, Identifiable, Hashable, Sendable {
 
         public var id: String
         public var icon: URL?
@@ -111,13 +111,21 @@ public class OAuth: NSObject, ObservableObject, @unchecked Sendable {
     /// A codable type that holds oauth token information.
     /// See: https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
     /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-5.1
-    public struct Token: Codable, Equatable, @unchecked Sendable {
+    public struct Token: Codable, Equatable, Sendable {
 
-        let accessToken: String
-        let refreshToken: String?
-        let expiresIn: Int?
-        let state: String?
-        let type: String
+        public let accessToken: String
+        public let refreshToken: String?
+        public let expiresIn: Int?
+        public let state: String?
+        public let type: String
+
+        public init(accessToken: String, refreshToken: String?, expiresIn: Int?, state: String?, type: String) {
+            self.accessToken = accessToken
+            self.refreshToken = refreshToken
+            self.expiresIn = expiresIn
+            self.state = state
+            self.type = type
+        }
 
         enum CodingKeys: String, CodingKey {
             case accessToken = "access_token"
@@ -129,7 +137,7 @@ public class OAuth: NSObject, ObservableObject, @unchecked Sendable {
     }
 
     /// A codable type that holds authorization information that can be stored.
-    public struct Authorization: Codable, Equatable {
+    public struct Authorization: Codable, Equatable, Sendable {
 
         /// The provider ID that issued the authorization.
         public let issuer: String
@@ -143,7 +151,7 @@ public class OAuth: NSObject, ObservableObject, @unchecked Sendable {
         ///   - issuer: the provider ID that issued the authorization.
         ///   - token: the access token
         ///   - issued: the issued date
-        init(issuer: String, token: Token, issued: Date = Date.now) {
+        public init(issuer: String, token: Token, issued: Date = Date.now) {
             self.issuer = issuer
             self.token = token
             self.issued = issued
@@ -163,7 +171,7 @@ public class OAuth: NSObject, ObservableObject, @unchecked Sendable {
     }
 
     /// Holds the OAuth state that is published to subscribers via the `state` property publisher.
-    public enum State: Equatable, @unchecked Sendable {
+    public enum State: Equatable, Sendable {
 
         /// The state is empty and no authorizations or tokens have been issued.
         case empty

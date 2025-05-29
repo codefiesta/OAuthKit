@@ -521,21 +521,18 @@ public extension OAuth {
         }
     }
 
-    /// Polls the oauth provider's access token endpoint until the device code has expired or we've received a
+    /// Polls the oauth provider's access token endpoint until the device code has expired or we've successfully received an auth token.
+    /// See: https://oauth.net/2/grant-types/device-code/
     /// - Parameters:
     ///   - provider: the provider to poll
     ///   - deviceCode: the device code to use
     private func poll(provider: Provider, deviceCode: DeviceCode) async {
 
-        guard !deviceCode.isExpired else {
+        guard !deviceCode.isExpired, var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
             publish(state: .empty)
             return
         }
 
-        guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
-            publish(state: .empty)
-            return
-        }
         var queryItems = [URLQueryItem]()
         queryItems.append(URLQueryItem(name: "client_id", value: provider.clientID))
         queryItems.append(URLQueryItem(name: "grant_type", value: "urn:ietf:params:oauth:grant-type:device_code"))

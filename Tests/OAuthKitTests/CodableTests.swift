@@ -32,7 +32,12 @@ struct CodableTests {
 
         let data = try encoder.encode(deviceCode)
         let decoded: OAuth.DeviceCode = try decoder.decode(OAuth.DeviceCode.self, from: data)
-        #expect(deviceCode == decoded)
+        #expect(deviceCode.deviceCode == decoded.deviceCode)
+        #expect(deviceCode.userCode == decoded.userCode)
+        #expect(deviceCode.verificationUri == decoded.verificationUri)
+        #expect(deviceCode.verificationUriComplete == decoded.verificationUriComplete)
+        #expect(deviceCode.expiresIn == decoded.expiresIn)
+        #expect(deviceCode.interval == decoded.interval)
     }
 
 

@@ -202,7 +202,7 @@ public class OAuth: NSObject, ObservableObject, @unchecked Sendable {
 
     /// The url session to use for communicating with providers.
     private lazy var urlSession: URLSession = {
-        return URLSession(configuration: .default)
+        .init(configuration: .default)
     }()
 
     private var tasks = [Task<(), any Error>]()

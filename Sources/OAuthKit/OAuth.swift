@@ -7,6 +7,7 @@
 import Combine
 import CryptoKit
 import Foundation
+import Observation
 
 /// The default file name that holds the list of providers.
 private let defaultResourceName = "oauth"
@@ -24,7 +25,9 @@ public enum OAError: Error {
 
 /// Provides an observable OAuth 2.0 implementation.
 /// See: https://datatracker.ietf.org/doc/html/rfc6749
-public class OAuth: NSObject, ObservableObject, @unchecked Sendable {
+@MainActor
+@Observable
+public final class OAuth: NSObject {
 
     /// Keys and values used to specify loading or runtime options.
     public struct Option: Hashable, Equatable, RawRepresentable, Sendable {
@@ -193,31 +196,35 @@ public class OAuth: NSObject, ObservableObject, @unchecked Sendable {
     }
 
     /// A published list of available OAuth providers to choose from.
-    @Published
     public var providers = [Provider]()
 
     /// An observable  published oauth state.
-    @Published
     public var state: State = .empty
 
     /// The url session to use for communicating with providers.
+    @ObservationIgnored
     private lazy var urlSession: URLSession = {
         let configuration = URLSessionConfiguration.default
         return URLSession(configuration: URLSessionConfiguration.default)
     }()
 
+    @ObservationIgnored
     private var tasks = [Task<(), any Error>]()
-    private var options: [Option: Any]?
+    @ObservationIgnored
+    private var options: [Option: Sendable]?
+    @ObservationIgnored
     private let networkMonitor = NetworkMonitor()
+    @ObservationIgnored
     private var keychain: Keychain = .default
 
     /// Combine subscribers.
+    @ObservationIgnored
     private var subscribers = Set<AnyCancellable>()
 
     /// Initializes the OAuth service with the specified providers.
     /// - Parameters:
     ///   - providers: the list of oauth providers
-    public init(providers: [Provider] = [Provider](), options: [Option: Any]? = nil) {
+    public init(providers: [Provider] = [Provider](), options: [Option: Sendable]? = nil) {
         super.init()
         self.options = options
         self.providers = providers
@@ -230,7 +237,7 @@ public class OAuth: NSObject, ObservableObject, @unchecked Sendable {
     /// - Parameters:
     ///   - bundle: the bundle to load the oauth provider configuration information from.
     ///   - options: the initialization options to apply
-    public init(_ bundle: Bundle, options: [Option: Any]? = nil) {
+    public init(_ bundle: Bundle, options: [Option: Sendable]? = nil) {
         super.init()
         self.options = options
         self.providers = loadProviders(bundle)
@@ -268,8 +275,7 @@ public class OAuth: NSObject, ObservableObject, @unchecked Sendable {
     private func restore() async {
         for provider in providers {
             if let authorization: OAuth.Authorization = try? keychain.get(key: provider.id), !authorization.isExpired {
-                await publish(state: .authorized(authorization))
-                break
+                publish(state: .authorized(authorization))
             }
         }
     }
@@ -300,9 +306,9 @@ public extension OAuth {
     @discardableResult
     func requestAccessToken(provider: Provider, code: String) async -> Result<Token, OAError> {
         // Publish the state
-        await publish(state: .requestingAccessToken(provider))
+        publish(state: .requestingAccessToken(provider))
         guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
-            await publish(state: .empty)
+            publish(state: .empty)
             return .failure(.malformedURL)
         }
         var queryItems = [URLQueryItem]()
@@ -312,32 +318,32 @@ public extension OAuth {
         queryItems.append(URLQueryItem(name: "redirect_uri", value: provider.redirectURI))
         urlComponents.queryItems = queryItems
         guard let url = urlComponents.url else {
-            await publish(state: .empty)
+            publish(state: .empty)
             return .failure(.malformedURL)
         }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         guard let (data, _) = try? await urlSession.data(for: request) else {
-            await publish(state: .empty)
+            publish(state: .empty)
             return .failure(.badResponse)
         }
 
         // Decode the token
         let decoder = JSONDecoder()
         guard let token = try? decoder.decode(Token.self, from: data) else {
-            await publish(state: .empty)
+            publish(state: .empty)
             return .failure(.decoding)
         }
 
         // Store the authorization
         let authorization = Authorization(issuer: provider.id, token: token)
         guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
-            await publish(state: .empty)
+            publish(state: .empty)
             return .failure(.keychain)
         }
 
-        await publish(state: .authorized(authorization))
+        publish(state: .authorized(authorization))
         return .success(token)
     }
 
@@ -346,7 +352,7 @@ public extension OAuth {
         Task {
             debugPrint("⚠️ [Clearing oauth state]")
             keychain.clear()
-            await publish(state: .empty)
+            publish(state: .empty)
         }
     }
 
@@ -370,27 +376,26 @@ public extension OAuth {
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Accept")
             guard let (data, _) = try? await urlSession.data(for: request) else {
-                return await publish(state: .empty)
+                return publish(state: .empty)
             }
 
             // Decode the token
             let decoder = JSONDecoder()
             guard let token = try? decoder.decode(Token.self, from: data) else {
-                return await publish(state: .empty)
+                return publish(state: .empty)
             }
 
             // Store the authorization
             let authorization = Authorization(issuer: provider.id, token: token)
             guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
-                return await publish(state: .empty)
+                return publish(state: .empty)
             }
-            await publish(state: .authorized(authorization))
+            publish(state: .authorized(authorization))
         }
     }
 
     /// Publishes state on the main thread.
     /// - Parameter state: the new state information to publish out on the main thread.
-    @MainActor
     private func publish(state: State) {
         switch state {
         case .authorized(let auth):

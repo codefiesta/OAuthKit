@@ -14,7 +14,7 @@ import WebKit
 @MainActor
 public struct OAWebView {
 
-    @EnvironmentObject
+    @Environment(\.oauth)
     var oauth: OAuth
     let view = WKWebView()
 

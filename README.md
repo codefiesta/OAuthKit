@@ -95,6 +95,12 @@ struct ContentView: View {
     }
 }
 ```
+## tvOS (Device Authorization Grant)
+OAuthKit supports the OAuth 2.0 Device Authorization Grant, which is used by apps that don't have access to a web browser (like tvOS). To leverage OAuthKit in tvOS apps, simply add the `deviceCodeURL` to your OAuth provider and initialize the device authorization grant workflow by calling ```oauth.authorize(provider: provider, grantType: .deviceCode)```
+
+![tvOS-screenshot](https://github.com/user-attachments/assets/14997164-f86a-4ee0-b6b7-8c0d9732c83e)
+
+
 ## OAuthKit Configuration
 By default, the easiest way to configure OAuthKit is to simply drop an `oauth.json` file into your main bundle and it will get automatically loaded into your swift application and available as an [EnvironmentObject](https://developer.apple.com/documentation/swiftui/environmentobject). You can find an example `oauth.json` file [here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json).
 

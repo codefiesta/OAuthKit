@@ -189,7 +189,7 @@ public final class OAuth: NSObject {
             case interval
         }
 
-        /// Returns true if the device code is expired or not.
+        /// Returns true if the device code is expired.
         public var isExpired: Bool {
             guard let expiresIn = expiresIn else { return false }
             return issued.addingTimeInterval(Double(expiresIn)) < Date.now
@@ -223,7 +223,7 @@ public final class OAuth: NSObject {
             self.issued = issued
         }
 
-        /// Returns true if the token is expired or not.
+        /// Returns true if the token is expired.
         public var isExpired: Bool {
             guard let expiresIn = token.expiresIn else { return false }
             return issued.addingTimeInterval(Double(expiresIn)) < Date.now

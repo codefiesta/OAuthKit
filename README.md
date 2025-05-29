@@ -96,7 +96,7 @@ struct ContentView: View {
 }
 ```
 ## tvOS (Device Authorization Grant)
-OAuthKit supports the OAuth 2.0 Device Authorization Grant, which is used by apps that don't have access to a web browser (like tvOS). To leverage OAuthKit in tvOS apps, simply add the `deviceCodeURL` to your OAuth provider and initialize the device authorization grant workflow by calling ```oauth.authorize(provider: provider, grantType: .deviceCode)```
+OAuthKit supports the [OAuth 2.0 Device Authorization Grant](https://alexbilbie.github.io/2016/04/oauth-2-device-flow-grant/), which is used by apps that don't have access to a web browser (like tvOS). To leverage OAuthKit in tvOS apps, simply add the `deviceCodeURL` to your OAuth provider and initialize the device authorization grant workflow by calling ```oauth.authorize(provider: provider, grantType: .deviceCode)```
 
 ![tvOS-screenshot](https://github.com/user-attachments/assets/14997164-f86a-4ee0-b6b7-8c0d9732c83e)
 

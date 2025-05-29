@@ -14,6 +14,7 @@ public extension URLRequest {
 
     /// Attempts to set the authorization header using the access token.
     /// - Parameter oath: the oauth holder
+    @MainActor
     mutating func addAuthorization(oath: OAuth) {
         switch oath.state {
         case .authorized(let auth):

@@ -16,8 +16,8 @@ public extension EnvironmentValues {
     }
 }
 
-struct OAuthKey: EnvironmentKey {
+struct OAuthKey: @preconcurrency EnvironmentKey {
 
     /// The default OAuth instance that is loaded into the environment.
-    static let defaultValue: OAuth = .init(.main)
+    @MainActor static let defaultValue: OAuth = .init(.main)
 }

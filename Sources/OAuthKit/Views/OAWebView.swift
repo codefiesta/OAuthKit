@@ -56,7 +56,6 @@ extension OAWebView: NSViewRepresentable {
     }
 
     public func updateNSView(_ nsView: NSViewType, context: Context) {
-        debugPrint("✅ [Pushing state]", oauth.state)
         context.coordinator.update(state: oauth.state)
     }
 }

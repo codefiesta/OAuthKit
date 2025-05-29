@@ -31,7 +31,9 @@ public class OAWebViewCoordinator: NSObject {
     /// - Parameters:
     ///   - url: the url to handle
     ///   - provider: the oauth provider
-    private func handle(url: URL, provider: OAuth.Provider) {
+    ///   - grantType: the grant type to handle
+    private func handle(url: URL, provider: OAuth.Provider, grantType: OAuth.GrantType) {
+        guard grantType == .authorizationCode else { return }
         debugPrint("👻", url.absoluteString)
         let urlComponents = URLComponents(string: url.absoluteString)
         if let queryItems = urlComponents?.queryItems {
@@ -53,10 +55,14 @@ public class OAWebViewCoordinator: NSObject {
     /// - Parameter state: the published state change.
     func update(state: OAuth.State) {
         switch state {
-        case .empty, .authorized, .requestingAccessToken:
+        case .empty, .authorized, .requestingAccessToken, .requestingDeviceCode:
             break
-        case .authorizing(let provider):
-            guard let request = provider.request(grantType: .authorizationCode) else { return }
+        case .authorizing(let provider, let grantType):
+            guard let request = provider.request(grantType: grantType) else { return }
+            webView.view.load(request)
+        case .receivedDeviceCode(_, let deviceCode):
+            guard let url = URL(string: deviceCode.verificationUri) else { return }
+            let request = URLRequest(url: url)
             webView.view.load(request)
         }
     }
@@ -69,10 +75,10 @@ extension OAWebViewCoordinator: WKNavigationDelegate {
             return .cancel
         }
         switch oauth.state {
-        case .empty, .requestingAccessToken, .authorized:
+        case .empty, .requestingAccessToken, .authorized, .requestingDeviceCode, .receivedDeviceCode:
             break
-        case .authorizing(let provider):
-            handle(url: url, provider: provider)
+        case .authorizing(let provider, let grantType):
+            handle(url: url, provider: provider, grantType: grantType)
         }
         return .allow
     }

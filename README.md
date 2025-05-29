@@ -50,14 +50,20 @@ struct ContentView: View {
             switch oauth.state {
             case .empty:
                 providerList
-            case .authorizing(let provider):
+            case .authorizing(let provider, _):
                 Text("Authorizing [\(provider.id)]")
             case .requestingAccessToken(let provider):
                 Text("Requesting Access Token [\(provider.id)]")
+            case .requestingDeviceCode(let provider):
+                Text("Requesting Device Code [\(provider.id)]")
             case .authorized(let auth):
                 Button("Authorized [\(auth.provider.id)]") {
                     oauth.clear()
                 }
+            case .receivedDeviceCode(_, let deviceCode):
+                Text("To login, visit")
+                Text(deviceCode.verificationUri).foregroundStyle(.blue)
+                Text("and enter the following code:")
             }
         }
         .onChange(of: oauth.state) { _, state in
@@ -69,8 +75,8 @@ struct ContentView: View {
     var providerList: some View {
         List(oauth.providers) { provider in
             Button(provider.id) {
-                // Start the authorization flow
-                oauth.authorize(provider: provider)
+                // Start the authorization flow (use .deviceCode for tvOS)
+                oauth.authorize(provider: provider, grantType: .authorizationCode)
             }
         }
     }
@@ -79,9 +85,9 @@ struct ContentView: View {
     /// - Parameter state: the published state change
     private func handle(state: OAuth.State) {
         switch state {
-        case .empty, .requestingAccessToken:
+        case .empty, .requestingAccessToken, .requestingDeviceCode:
             break
-        case .authorizing(let provider):
+        case .authorizing, .receivedDeviceCode:
             openWindow(id: "oauth")
         case .authorized(_):
             dismissWindow(id: "oauth")

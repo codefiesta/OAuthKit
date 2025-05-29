@@ -64,6 +64,10 @@ struct ContentView: View {
                 Text("To login, visit")
                 Text(deviceCode.verificationUri).foregroundStyle(.blue)
                 Text("and enter the following code:")
+                Text(deviceCode.userCode)
+                    .padding()
+                    .border(Color.primary)
+                    .font(.title)
             }
         }
         .onChange(of: oauth.state) { _, state in

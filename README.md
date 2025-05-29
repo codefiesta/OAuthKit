@@ -21,19 +21,16 @@ import SwiftUI
 @main
 struct OAuthApp: App {
 
-    @Environment(\.oauth)
-    var oauth: OAuth
-
     /// Build the scene body
     var body: some Scene {
 
         WindowGroup {
             ContentView()
-        }.environmentObject(oauth)
+        }
         
         WindowGroup(id: "oauth") {
             OAWebView()
-        }.environmentObject(oauth)
+        }
     }
 } 
 
@@ -45,7 +42,7 @@ struct ContentView: View {
     @Environment(\.dismissWindow)
     private var dismissWindow
     
-    @EnvironmentObject
+    @Environment(\.oauth)
     var oauth: OAuth
 
     var body: some View {
@@ -63,8 +60,8 @@ struct ContentView: View {
                 }
             }
         }
-        .onReceive(oauth.$state) { state in
-            handle(state: state)
+        .onChange(of: oauth.state) { state, _ in
+            handle(state: oauth.state)
         }
     }
     
@@ -96,7 +93,7 @@ struct ContentView: View {
 By default, the easiest way to configure OAuthKit is to simply drop an `oauth.json` file into your main bundle and it will get automatically loaded into your swift application and available as an [EnvironmentObject](https://developer.apple.com/documentation/swiftui/environmentobject). You can find an example `oauth.json` file [here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json).
 
 ```swift
-    @EnvironmentObject
+    @Environment(\.oauth)
     var oauth: OAuth
 ```
 
@@ -111,7 +108,7 @@ If you are building your OAuth Providers programatically (recommended for produc
 
 ```swift
     let providers: [OAuth.Provider] = ...
-    let options: [OAuth.Option: Any] = [.applicationTag: "com.bundle.identifier"]
+    let options: [OAuth.Option: Sendable] = [.applicationTag: "com.bundle.identifier"]
     let oauth: OAuth = .init(providers: providers, options: options)
 ```
 

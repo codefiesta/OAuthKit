@@ -17,7 +17,7 @@ public class OAWebViewCoordinator: NSObject {
 
     /// The oauth reference.
     var oauth: OAuth {
-        return webView.oauth
+        webView.oauth
     }
 
     /// Initializer

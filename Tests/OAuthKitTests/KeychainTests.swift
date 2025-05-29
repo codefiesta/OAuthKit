@@ -26,7 +26,7 @@ final class KeychainTests {
 
         let found: OAuth.Token = try! keychain.get(key: key)!
 
-        #expect(token.accessToken != nil)
+        #expect(token.accessToken.isNotEmpty)
         #expect(token.accessToken == found.accessToken)
         #expect(token.expiresIn == found.expiresIn)
         #expect(token.state == found.state)

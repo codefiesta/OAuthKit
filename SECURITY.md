@@ -19,8 +19,8 @@ with the [details usually included with bug reports][issue-template].
 
 #### When to report a vulnerability
 
-* You think you have discovered a potential security vulnerability in VimKit.
-* You are unsure how a vulnerability affects VimKit.
+* You think you have discovered a potential security vulnerability in OAuthKit.
+* You are unsure how a vulnerability affects OAuthKit.
 
 [issue-template]: https://github.com/codefiesta/OAuthKit/blob/main/.github/ISSUE_TEMPLATE/bug_report.md
   

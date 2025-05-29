@@ -52,7 +52,7 @@ public final class OAuth: NSObject {
     /// Provides an enum representation for the OAuth 2.0 Grant Types.
     ///
     /// See: https://oauth.net/2/grant-types/
-    public enum GrantType: String, Codable {
+    public enum GrantType: String, Codable, Sendable {
         case authorizationCode
         case clientCredentials = "client_credentials"
         case deviceCode = "device_code"
@@ -67,6 +67,7 @@ public final class OAuth: NSObject {
         public var icon: URL?
         var authorizationURL: URL
         var accessTokenURL: URL
+        var deviceCodeURL: URL?
         fileprivate var clientID: String
         fileprivate var clientSecret: String
         var redirectURI: String?
@@ -94,7 +95,16 @@ public final class OAuth: NSObject {
                 if let scope {
                     queryItems.append(URLQueryItem(name: "scope", value: scope.joined(separator: " ")))
                 }
-            case .clientCredentials, .deviceCode, .pkce:
+            case .deviceCode:
+                guard let deviceCodeURL, let components = URLComponents(string: deviceCodeURL.absoluteString) else {
+                    return nil
+                }
+                urlComponents = components
+                queryItems.append(URLQueryItem(name: "client_id", value: clientID))
+                if let scope {
+                    queryItems.append(URLQueryItem(name: "scope", value: scope.joined(separator: " ")))
+                }
+            case .clientCredentials, .pkce:
                 fatalError("TODO: Not implemented")
             case .refreshToken:
                 guard let refreshToken = token?.refreshToken, let components = URLComponents(string: authorizationURL.absoluteString) else {
@@ -139,6 +149,59 @@ public final class OAuth: NSObject {
         }
     }
 
+    /// A codable type that holds device code information.
+    /// See: https://auth0.com/docs/get-started/authentication-and-authorization-flow/device-authorization-flow
+    /// See: https://www.oauth.com/playground/device-code.html
+    public struct DeviceCode: Codable, Equatable, Sendable {
+
+        /// The server assigned device code.
+        public let deviceCode: String
+        /// The code the user should enter when visiting the `verificationUri`
+        public let userCode: String
+        /// The uri the user should visit to enter the `userCode`
+        public let verificationUri: String
+        /// Either a QR Code or shortened URL with embedded user code
+        public let verificationUriComplete: String?
+        /// The lifetime in seconds for `deviceCode` and `userCode`
+        public let expiresIn: Int?
+        /// The polling interval
+        public let interval: Int
+        /// The issue date.
+        public let issued: Date = .now
+
+        public init(deviceCode: String, userCode: String,
+                    verificationUri: String, verificationUriComplete: String? = nil,
+                    expiresIn: Int?, interval: Int) {
+            self.deviceCode = deviceCode
+            self.userCode = userCode
+            self.verificationUri = verificationUri
+            self.verificationUriComplete = verificationUriComplete
+            self.expiresIn = expiresIn
+            self.interval = interval
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case deviceCode = "device_code"
+            case userCode = "user_code"
+            case verificationUri = "verification_uri"
+            case verificationUriComplete = "verification_uri_complete"
+            case expiresIn = "expires_in"
+            case interval
+        }
+
+        /// Returns true if the device code is expired or not.
+        public var isExpired: Bool {
+            guard let expiresIn = expiresIn else { return false }
+            return issued.addingTimeInterval(Double(expiresIn)) < Date.now
+        }
+
+        /// Returns the expiration date of the device token or nil if none exists.
+        public var expiration: Date? {
+            guard let expiresIn = expiresIn else { return nil }
+            return issued.addingTimeInterval(TimeInterval(expiresIn))
+        }
+    }
+
     /// A codable type that holds authorization information that can be stored.
     public struct Authorization: Codable, Equatable, Sendable {
 
@@ -179,15 +242,28 @@ public final class OAuth: NSObject {
         /// The state is empty and no authorizations or tokens have been issued.
         case empty
 
-        /// The OAuth authorization step has been started for the specifed provider.
+        /// The OAuth authorization workflow has been started for the specifed provider and grant type.
         /// - Parameters:
         ///   - Provider: the oauth provider
-        case authorizing(Provider)
+        ///   - GrantType: the grant type
+        case authorizing(Provider, GrantType)
 
         /// An access token is being requested for the specifed provider.
         /// - Parameters:
         ///   - Provider: the oauth provider
         case requestingAccessToken(Provider)
+
+        /// A device code is being requested for the specifed provider.
+        /// - Parameters:
+        ///   - Provider: the oauth provider
+        case requestingDeviceCode(Provider)
+
+        /// A device code has been received by the specified provider and it's access token endpoint is
+        /// actively being polled at the device code's interval until it expires, or until an error or access token is returned.
+        /// - Parameters:
+        ///   - Provider: the oauth provider
+        ///   - DeviceCode: the device code
+        case receivedDeviceCode(Provider, DeviceCode)
 
         /// An authorization has been granted.
         /// - Parameters:
@@ -220,6 +296,10 @@ public final class OAuth: NSObject {
     @ObservationIgnored
     private var subscribers = Set<AnyCancellable>()
 
+    /// The json decoder
+    @ObservationIgnored
+    private let decoder: JSONDecoder = .init()
+
     /// Initializes the OAuth service with the specified providers.
     /// - Parameters:
     ///   - providers: the list of oauth providers
@@ -251,7 +331,7 @@ public final class OAuth: NSObject {
     private func loadProviders(_ bundle: Bundle) -> [Provider] {
         guard let url = bundle.url(forResource: defaultResourceName, withExtension: defaultExtension),
               let data = try? Data(contentsOf: url),
-              let providers = try? JSONDecoder().decode([Provider].self, from: data) else {
+              let providers = try? decoder.decode([Provider].self, from: data) else {
             return []
         }
         return providers
@@ -291,9 +371,20 @@ public final class OAuth: NSObject {
 public extension OAuth {
 
     /// Starts the authorization process for the specified provider.
-    /// - Parameter provider: the provider to being authorization for
-    func authorize(provider: Provider) {
-        state = .authorizing(provider)
+    /// - Parameters:
+    ///   - provider: the provider to begin authorization for
+    ///   - grantType: the grant type to execute
+    func authorize(provider: Provider, grantType: GrantType = .authorizationCode) {
+        switch grantType {
+        case .authorizationCode:
+            state = .authorizing(provider, grantType)
+        case .deviceCode:
+            Task {
+                await requestDeviceCode(provider: provider)
+            }
+        case .clientCredentials, .pkce, .refreshToken:
+            break
+        }
     }
 
     /// Requests to exchange a code for an access token.
@@ -329,7 +420,6 @@ public extension OAuth {
         }
 
         // Decode the token
-        let decoder = JSONDecoder()
         guard let token = try? decoder.decode(Token.self, from: data) else {
             publish(state: .empty)
             return .failure(.decoding)
@@ -346,6 +436,31 @@ public extension OAuth {
         return .success(token)
     }
 
+    /// Requests a device code from the specified provider.
+    /// - Parameters:
+    ///   - provider: the provider the device code is being requested from
+    private func requestDeviceCode(provider: Provider) async {
+        // Publish the state
+        publish(state: .requestingDeviceCode(provider))
+        guard var request = provider.request(grantType: .deviceCode) else { return }
+
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        guard let (data, _) = try? await urlSession.data(for: request) else {
+            publish(state: .empty)
+            return
+        }
+
+        // Decode the device code
+        guard let deviceCode = try? decoder.decode(DeviceCode.self, from: data) else {
+            publish(state: .empty)
+            return
+        }
+
+        // Publish the state
+        publish(state: .receivedDeviceCode(provider, deviceCode))
+    }
+
     /// Removes all tokens and clears the OAuth state
     func clear() {
         Task {
@@ -355,11 +470,25 @@ public extension OAuth {
         }
     }
 
+    /// Publishes state on the main thread.
+    /// - Parameter state: the new state information to publish out on the main thread.
+    private func publish(state: State) {
+        switch state {
+        case .authorized(let auth):
+            schedule(auth: auth)
+        case .receivedDeviceCode(let provider, let deviceCode):
+            schedule(provider: provider, deviceCode: deviceCode)
+        case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode:
+            break
+        }
+        self.state = state
+    }
+
     /// Attempts to refresh the current access token.
     /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-6
     private func refresh() async {
         switch state {
-        case .empty, .authorizing, .requestingAccessToken:
+        case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
             return
         case .authorized(let auth):
             guard let provider = providers.filter({ $0.id == auth.issuer }).first else {
@@ -379,7 +508,6 @@ public extension OAuth {
             }
 
             // Decode the token
-            let decoder = JSONDecoder()
             guard let token = try? decoder.decode(Token.self, from: data) else {
                 return publish(state: .empty)
             }
@@ -393,16 +521,64 @@ public extension OAuth {
         }
     }
 
-    /// Publishes state on the main thread.
-    /// - Parameter state: the new state information to publish out on the main thread.
-    private func publish(state: State) {
-        switch state {
-        case .authorized(let auth):
-            schedule(auth: auth)
-        case .empty, .authorizing, .requestingAccessToken:
-            break
+    /// Polls the oauth provider's access token endpoint until the device code has expired or we've received a
+    /// - Parameters:
+    ///   - provider: the provider to poll
+    ///   - deviceCode: the device code to use
+    private func poll(provider: Provider, deviceCode: DeviceCode) async {
+
+        guard !deviceCode.isExpired else {
+            publish(state: .empty)
+            return
         }
-        self.state = state
+
+        guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
+            publish(state: .empty)
+            return
+        }
+        var queryItems = [URLQueryItem]()
+        queryItems.append(URLQueryItem(name: "client_id", value: provider.clientID))
+        queryItems.append(URLQueryItem(name: "grant_type", value: "urn:ietf:params:oauth:grant-type:device_code"))
+        queryItems.append(URLQueryItem(name: "device_code", value: deviceCode.deviceCode))
+        urlComponents.queryItems = queryItems
+        guard let url = urlComponents.url else {
+            publish(state: .empty)
+            return
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        guard let (data, response) = try? await urlSession.data(for: request) else {
+            publish(state: .empty)
+            return
+        }
+
+        /// If we received something other than a 200 response or we can't decode the token then restart the polling
+        guard response.isOK, let token = try? decoder.decode(Token.self, from: data) else {
+            // Reschedule the polling task
+            schedule(provider: provider, deviceCode: deviceCode)
+            return
+        }
+
+        // Store the authorization
+        let authorization = Authorization(issuer: provider.id, token: token)
+        guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
+            return publish(state: .empty)
+        }
+        publish(state: .authorized(authorization))
+    }
+
+    /// Schedules the provider to be polled for authorization with the specified device token.
+    /// - Parameters:
+    ///   - provider: the oauth provider
+    ///   - deviceCode: the device code issued by the provider
+    private func schedule(provider: Provider, deviceCode: DeviceCode) {
+        let timeInterval: TimeInterval = .init(deviceCode.interval)
+        let task = Task.delayed(timeInterval: timeInterval) { [weak self] in
+            guard let self else { return }
+            await self.poll(provider: provider, deviceCode: deviceCode)
+        }
+        tasks.append(task)
     }
 
     /// Schedules refresh tasks for the specified authorization.
@@ -413,14 +589,15 @@ public extension OAuth {
                 let timeInterval = expiration - Date.now
                 if timeInterval > 0 {
                     // Schedule the refresh task
-                    let task = Task.delayed(timeInterval: timeInterval) {
+                    let task = Task.delayed(timeInterval: timeInterval) { [weak self] in
+                        guard let self else { return }
                         await self.refresh()
                     }
                     tasks.append(task)
                 } else {
                     // Execute the task immediately
                     Task {
-                        await self.refresh()
+                        await refresh()
                     }
                 }
             }

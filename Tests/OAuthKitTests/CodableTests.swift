@@ -25,4 +25,15 @@ struct CodableTests {
         #expect(token == decoded)
     }
 
+    @Test("Encoding and Decoding Device Codes")
+    func whenDecodingDeviceCodes() async throws {
+
+        let deviceCode: OAuth.DeviceCode = .init(deviceCode: UUID().uuidString, userCode: "ABC-XYZ", verificationUri: "https://example.com/device", expiresIn: 1800, interval: 5)
+
+        let data = try encoder.encode(deviceCode)
+        let decoded: OAuth.DeviceCode = try decoder.decode(OAuth.DeviceCode.self, from: data)
+        #expect(deviceCode == decoded)
+    }
+
+
 }

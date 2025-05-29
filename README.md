@@ -60,7 +60,7 @@ struct ContentView: View {
                 }
             }
         }
-        .onChange(of: oauth.state) { state, _ in
+        .onChange(of: oauth.state) { _, state in
             handle(state: state)
         }
     }

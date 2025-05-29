@@ -19,7 +19,7 @@ public extension URLRequest {
         switch oath.state {
         case .authorized(let auth):
             addValue("\(bearer) \(auth.token.accessToken)", forHTTPHeaderField: authHeader)
-        case .empty, .authorizing, .requestingAccessToken:
+        case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
             debugPrint("⚠️ [OAuth is not authorized]")
         }
     }

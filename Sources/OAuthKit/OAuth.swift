@@ -204,8 +204,7 @@ public final class OAuth: NSObject {
     /// The url session to use for communicating with providers.
     @ObservationIgnored
     private lazy var urlSession: URLSession = {
-        let configuration = URLSessionConfiguration.default
-        return URLSession(configuration: URLSessionConfiguration.default)
+        .init(configuration: .default)
     }()
 
     @ObservationIgnored

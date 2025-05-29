@@ -60,8 +60,8 @@ struct ContentView: View {
                 }
             }
         }
-        .onChange(of: oauth.state) {
-            handle(state: oauth.state)
+        .onChange(of: oauth.state) { state, _ in
+            handle(state: state)
         }
     }
     
@@ -101,7 +101,7 @@ If you want to customize your OAuth environment or are using modules in your app
 
 
 ```swift
-    let oauth: OAuth = .init(.module)
+    let oauth: OAuth = await .init(.module)
 ```
 
 If you are building your OAuth Providers programatically (recommended for production applications via a CI build pipeline for security purposes), you can pass providers and options as well.
@@ -109,7 +109,7 @@ If you are building your OAuth Providers programatically (recommended for produc
 ```swift
     let providers: [OAuth.Provider] = ...
     let options: [OAuth.Option: Sendable] = [.applicationTag: "com.bundle.identifier"]
-    let oauth: OAuth = .init(providers: providers, options: options)
+    let oauth: OAuth = await .init(providers: providers, options: options)
 ```
 
 

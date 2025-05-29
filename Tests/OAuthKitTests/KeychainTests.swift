@@ -19,14 +19,14 @@ final class KeychainTests {
     func whenStoring() async throws {
         let keychain = Keychain.default
         let key = "Github"
-        let token = OAuth.Token(accessToken: "1234", refreshToken: nil, expiresIn: 3600, state: "x", type: "bearer")
+        let token: OAuth.Token = .init(accessToken: "1234", refreshToken: nil, expiresIn: 3600, state: "x", type: "bearer")
 
         let inserted = try! keychain.set(token, for: key)
         #expect(inserted == true)
 
         let found: OAuth.Token = try! keychain.get(key: key)!
 
-        #expect(token.accessToken != nil)
+        #expect(token.accessToken.isNotEmpty)
         #expect(token.accessToken == found.accessToken)
         #expect(token.expiresIn == found.expiresIn)
         #expect(token.state == found.state)

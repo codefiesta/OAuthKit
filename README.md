@@ -106,7 +106,7 @@ OAuthKit supports the [OAuth 2.0 Device Authorization Grant](https://alexbilbie.
 
 
 ## OAuthKit Configuration
-By default, the easiest way to configure OAuthKit is to simply drop an `oauth.json` file into your main bundle and it will get automatically loaded into your swift application and available as an [EnvironmentObject](https://developer.apple.com/documentation/swiftui/environmentobject). You can find an example `oauth.json` file [here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json).
+By default, the easiest way to configure OAuthKit is to simply drop an `oauth.json` file into your main bundle and it will get automatically loaded into your swift application and available as an [Environment](https://developer.apple.com/documentation/swiftui/environment). You can find an example `oauth.json` file [here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json).
 
 ```swift
     @Environment(\.oauth)
@@ -115,9 +115,8 @@ By default, the easiest way to configure OAuthKit is to simply drop an `oauth.js
 
 If you want to customize your OAuth environment or are using modules in your application, you can also specify which bundle to load configure files from:
 
-
 ```swift
-    let oauth: OAuth = await .init(.module)
+    let oauth = OAuth(.module)
 ```
 
 If you are building your OAuth Providers programatically (recommended for production applications via a CI build pipeline for security purposes), you can pass providers and options as well.
@@ -125,7 +124,7 @@ If you are building your OAuth Providers programatically (recommended for produc
 ```swift
     let providers: [OAuth.Provider] = ...
     let options: [OAuth.Option: Sendable] = [.applicationTag: "com.bundle.identifier"]
-    let oauth: OAuth = await .init(providers: providers, options: options)
+    let oauth: OAuth = OAuth(providers: providers, options: options)
 ```
 
 

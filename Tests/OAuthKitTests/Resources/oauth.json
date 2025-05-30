@@ -16,6 +16,7 @@
         "id": "Google",
         "authorizationURL": "https://accounts.google.com/o/oauth2/v2/auth",
         "accessTokenURL": "https://oauth2.googleapis.com/token",
+        "deviceCodeURL": "https://oauth2.googleapis.com/device/code",
         "clientID": "CLIENT_ID",
         "clientSecret": "CLIENT_SECRET",
         "redirectURI": "https://github.com/codefiesta/",

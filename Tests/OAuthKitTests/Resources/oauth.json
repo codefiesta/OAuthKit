@@ -21,8 +21,21 @@
         "clientSecret": "CLIENT_SECRET",
         "redirectURI": "https://github.com/codefiesta/",
         "scope": [
-            "https://www.googleapis.com/auth/userinfo.email",
-            "https://www.googleapis.com/auth/userinfo.profile",
+            "email",
+            "profile",
+            "openid"
+        ]
+    },
+    {
+        "id": "Microsoft",
+        "authorizationURL": "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize",
+        "accessTokenURL": "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
+        "clientID": "CLIENT_ID",
+        "clientSecret": "CLIENT_SECRET",
+        "redirectURI": "https://github.com/codefiesta/",
+        "scope": [
+            "email",
+            "profile",
             "openid"
         ]
     }

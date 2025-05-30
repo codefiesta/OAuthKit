@@ -137,6 +137,7 @@ Although OAuthKit will automatically try to load the `oauth.json` file found ins
 	* **Important**: When creating a Google OAuth2 application from the [Google API Console](https://console.developers.google.com/) create an OAuth 2.0 Client type of Web Application (not iOS).
 * [Instagram](https://developers.facebook.com/docs/instagram-basic-display-api/guides/getting-access-tokens-and-permissions)
 * [Microsoft](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow)
+    * **Important**: When registering an application inside the [Microsoft Azure Portal](https://portal.azure.com/) it's important to choose a **Redirect URI** as **Web** otherwise the `/token` endpoint will return an error when sending the `client_secret` in the body payload.
 * [Slack](https://api.slack.com/authentication/oauth-v2)
 * [Twitter](https://developer.x.com/en/docs/authentication/oauth-2-0)
 

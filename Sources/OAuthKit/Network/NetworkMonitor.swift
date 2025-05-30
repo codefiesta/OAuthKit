@@ -11,7 +11,7 @@ import Network
 private let queueLabel = "oauthkit.NetworkMonitor"
 
 /// A type that broadcasts network reachability via Combine event publishing.
-final class NetworkMonitor: @unchecked Sendable {
+@MainActor final class NetworkMonitor {
 
     /// The private pass through publisher.
     private var publisher = PassthroughSubject<Bool, Never>()
@@ -32,10 +32,16 @@ final class NetworkMonitor: @unchecked Sendable {
     init() {
         pathMonitor.pathUpdateHandler = { [weak self] path in
             guard let self else { return }
-            onWifi = path.usesInterfaceType(.wifi)
-            onCellular = path.usesInterfaceType(.cellular)
-            publisher.send(path.status == .satisfied)
+            DispatchQueue.main.async {
+                self.handle(path: path)
+            }
         }
         pathMonitor.start(queue: queue)
+    }
+
+    func handle(path: NWPath) {
+        onWifi = path.usesInterfaceType(.wifi)
+        onCellular = path.usesInterfaceType(.cellular)
+        publisher.send(path.status == .satisfied)
     }
 }

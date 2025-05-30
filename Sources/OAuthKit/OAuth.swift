@@ -436,22 +436,24 @@ public extension OAuth {
     func requestAccessToken(provider: Provider, code: String) async -> Result<Token, OAError> {
         // Publish the state
         publish(state: .requestingAccessToken(provider))
-        guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
+        
+        guard let url = URL(string: provider.accessTokenURL.absoluteString) else {
             publish(state: .empty)
             return .failure(.malformedURL)
         }
-        var queryItems = [URLQueryItem]()
-        queryItems.append(URLQueryItem(name: "client_id", value: provider.clientID))
-        queryItems.append(URLQueryItem(name: "client_secret", value: provider.clientSecret))
-        queryItems.append(URLQueryItem(name: "code", value: code))
-        queryItems.append(URLQueryItem(name: "redirect_uri", value: provider.redirectURI))
-        queryItems.append(URLQueryItem(name: "grant_type", value: "authorization_code"))
-        urlComponents.queryItems = queryItems
-        guard let url = urlComponents.url else {
-            publish(state: .empty)
-            return .failure(.malformedURL)
-        }
+        
+        var urlComponents = URLComponents()
+        urlComponents.queryItems = [
+            URLQueryItem(name: "client_id", value: provider.clientID),
+            URLQueryItem(name: "client_secret", value: provider.clientSecret),
+            URLQueryItem(name: "code", value: code),
+            URLQueryItem(name: "redirect_uri", value: provider.redirectURI),
+            URLQueryItem(name: "grant_type", value: "authorization_code")
+        ]
+
+        // Encode the url components as 'application/x-www-form-urlencoded' body
         var request = URLRequest(url: url)
+        request.httpBody = urlComponents.query?.data(using: .utf8)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         guard let (data, _) = try? await urlSession.data(for: request) else {

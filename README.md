@@ -134,6 +134,7 @@ Although OAuthKit will automatically try to load the `oauth.json` file found ins
 ## OAuth Providers
 * [Github](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps)
 * [Google](https://developers.google.com/identity/protocols/oauth2)
+	* **Important**: When creating a Google OAuth2 application from the [Google API Console](https://console.developers.google.com/) create an OAuth 2.0 Client type of Web Application (not iOS).
 * [Instagram](https://developers.facebook.com/docs/instagram-basic-display-api/guides/getting-access-tokens-and-permissions)
 * [Microsoft](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow)
 * [Slack](https://api.slack.com/authentication/oauth-v2)

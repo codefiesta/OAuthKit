@@ -406,6 +406,7 @@ public extension OAuth {
         queryItems.append(URLQueryItem(name: "client_secret", value: provider.clientSecret))
         queryItems.append(URLQueryItem(name: "code", value: code))
         queryItems.append(URLQueryItem(name: "redirect_uri", value: provider.redirectURI))
+        queryItems.append(URLQueryItem(name: "grant_type", value: "authorization_code"))
         urlComponents.queryItems = queryItems
         guard let url = urlComponents.url else {
             publish(state: .empty)

@@ -11,5 +11,19 @@
             "user",
             "repo"
         ]
+    },
+    {
+        "id": "Google",
+        "authorizationURL": "https://accounts.google.com/o/oauth2/v2/auth",
+        "accessTokenURL": "https://oauth2.googleapis.com/token",
+        "clientID": "CLIENT_ID",
+        "clientSecret": "CLIENT_SECRET",
+        "redirectURI": "https://github.com/codefiesta/",
+        "scope": [
+            "https://www.googleapis.com/auth/userinfo.email",
+            "https://www.googleapis.com/auth/userinfo.profile",
+            "openid"
+        ]
     }
+
 ]

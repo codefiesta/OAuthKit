@@ -436,12 +436,12 @@ public extension OAuth {
     func requestAccessToken(provider: Provider, code: String) async -> Result<Token, OAError> {
         // Publish the state
         publish(state: .requestingAccessToken(provider))
-        
+
         guard let url = URL(string: provider.accessTokenURL.absoluteString) else {
             publish(state: .empty)
             return .failure(.malformedURL)
         }
-        
+
         var urlComponents = URLComponents()
         urlComponents.queryItems = [
             URLQueryItem(name: "client_id", value: provider.clientID),

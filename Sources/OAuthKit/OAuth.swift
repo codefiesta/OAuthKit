@@ -49,232 +49,6 @@ public final class OAuth: NSObject {
         case memory
     }
 
-    /// Provides an enum representation for the OAuth 2.0 Grant Types.
-    ///
-    /// See: https://oauth.net/2/grant-types/
-    public enum GrantType: String, Codable, Sendable {
-        case authorizationCode
-        case clientCredentials = "client_credentials"
-        case deviceCode = "device_code"
-        case pkce
-        case refreshToken = "refresh_token"
-    }
-
-    /// Provides configuration data for an OAuth service provider.
-    public struct Provider: Codable, Identifiable, Hashable, Sendable {
-
-        public var id: String
-        public var icon: URL?
-        var authorizationURL: URL
-        var accessTokenURL: URL
-        var deviceCodeURL: URL?
-        fileprivate var clientID: String
-        fileprivate var clientSecret: String
-        var redirectURI: String?
-        var scope: [String]?
-
-        /// Builds an url request for the specified grant type.
-        /// - Parameters:
-        ///   - grantType: the grant type to build a request for
-        ///   - token: the current access token
-        /// - Returns: an url request or nil
-        public func request(grantType: GrantType, token: Token? = nil) -> URLRequest? {
-
-            var urlComponents = URLComponents()
-            var queryItems = [URLQueryItem]()
-
-            switch grantType {
-            case .authorizationCode:
-                guard let components = URLComponents(string: authorizationURL.absoluteString) else {
-                    return nil
-                }
-                urlComponents = components
-                queryItems.append(URLQueryItem(name: "client_id", value: clientID))
-                queryItems.append(URLQueryItem(name: "redirect_uri", value: redirectURI))
-                queryItems.append(URLQueryItem(name: "response_type", value: "code"))
-                if let scope {
-                    queryItems.append(URLQueryItem(name: "scope", value: scope.joined(separator: " ")))
-                }
-            case .deviceCode:
-                guard let deviceCodeURL, let components = URLComponents(string: deviceCodeURL.absoluteString) else {
-                    return nil
-                }
-                urlComponents = components
-                queryItems.append(URLQueryItem(name: "client_id", value: clientID))
-                if let scope {
-                    queryItems.append(URLQueryItem(name: "scope", value: scope.joined(separator: " ")))
-                }
-            case .clientCredentials, .pkce:
-                fatalError("TODO: Not implemented")
-            case .refreshToken:
-                guard let refreshToken = token?.refreshToken, let components = URLComponents(string: authorizationURL.absoluteString) else {
-                    return nil
-                }
-                urlComponents = components
-                queryItems.append(URLQueryItem(name: "client_id", value: clientID))
-                queryItems.append(URLQueryItem(name: "grant_type", value: grantType.rawValue))
-                queryItems.append(URLQueryItem(name: "refresh_token", value: refreshToken))
-            }
-            urlComponents.queryItems = queryItems
-            guard let url = urlComponents.url else { return nil }
-            return URLRequest(url: url)
-        }
-    }
-
-    /// A codable type that holds oauth token information.
-    /// See: https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
-    /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-5.1
-    public struct Token: Codable, Equatable, Sendable {
-
-        public let accessToken: String
-        public let refreshToken: String?
-        public let expiresIn: Int?
-        public let state: String?
-        public let type: String
-
-        public init(accessToken: String, refreshToken: String?, expiresIn: Int?, state: String?, type: String) {
-            self.accessToken = accessToken
-            self.refreshToken = refreshToken
-            self.expiresIn = expiresIn
-            self.state = state
-            self.type = type
-        }
-
-        enum CodingKeys: String, CodingKey {
-            case accessToken = "access_token"
-            case refreshToken = "refresh_token"
-            case expiresIn = "expires_in"
-            case type = "token_type"
-            case state
-        }
-    }
-
-    /// A codable type that holds device code information.
-    /// See: https://auth0.com/docs/get-started/authentication-and-authorization-flow/device-authorization-flow
-    /// See: https://www.oauth.com/playground/device-code.html
-    public struct DeviceCode: Codable, Equatable, Sendable {
-
-        /// The server assigned device code.
-        public let deviceCode: String
-        /// The code the user should enter when visiting the `verificationUri`
-        public let userCode: String
-        /// The uri the user should visit to enter the `userCode`
-        public let verificationUri: String
-        /// Either a QR Code or shortened URL with embedded user code
-        public let verificationUriComplete: String?
-        /// The lifetime in seconds for `deviceCode` and `userCode`
-        public let expiresIn: Int?
-        /// The polling interval
-        public let interval: Int
-        /// The issue date.
-        public let issued: Date = .now
-
-        /// Returns true if the device code is expired.
-        public var isExpired: Bool {
-            guard let expiresIn = expiresIn else { return false }
-            return issued.addingTimeInterval(Double(expiresIn)) < Date.now
-        }
-
-        /// Returns the expiration date of the device token or nil if none exists.
-        public var expiration: Date? {
-            guard let expiresIn = expiresIn else { return nil }
-            return issued.addingTimeInterval(TimeInterval(expiresIn))
-        }
-
-        enum CodingKeys: String, CodingKey {
-            case deviceCode = "device_code"
-            case userCode = "user_code"
-            case verificationUri = "verification_uri"
-            /// Google sends `verification_url` instead of `verification_uri` so we need to account for both.
-            /// See: https://developers.google.com/identity/protocols/oauth2/limited-input-device
-            case verificationUrl = "verification_url"
-            case verificationUriComplete = "verification_uri_complete"
-            case expiresIn = "expires_in"
-            case interval
-        }
-
-        /// Public initializer
-        /// - Parameters:
-        ///   - deviceCode: the device code
-        ///   - userCode: the user code
-        ///   - verificationUri: the verification uri
-        ///   - verificationUriComplete: the qr code or shortened url with embedded user code
-        ///   - expiresIn: lifetime in seconds
-        ///   - interval: the polling interval
-        public init(deviceCode: String, userCode: String,
-                    verificationUri: String, verificationUriComplete: String? = nil,
-                    expiresIn: Int?, interval: Int) {
-            self.deviceCode = deviceCode
-            self.userCode = userCode
-            self.verificationUri = verificationUri
-            self.verificationUriComplete = verificationUriComplete
-            self.expiresIn = expiresIn
-            self.interval = interval
-        }
-
-        ///  Custom initializer for handling different keys sent by different providers (Google)
-        public init(from decoder: any Decoder) throws {
-
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            deviceCode = try container.decode(String.self, forKey: .deviceCode)
-            userCode = try container.decode(String.self, forKey: .userCode)
-            expiresIn = try container.decodeIfPresent(Int.self, forKey: .expiresIn)
-            interval = try container.decode(Int.self, forKey: .interval)
-            verificationUriComplete = try container.decodeIfPresent(String.self, forKey: .verificationUriComplete)
-
-            let verification = try container.decodeIfPresent(String.self, forKey: .verificationUri)
-            if let verification {
-                verificationUri = verification
-            } else {
-                verificationUri = try container.decode(String.self, forKey: .verificationUrl)
-            }
-        }
-
-        public func encode(to encoder: any Encoder) throws {
-            var container = encoder.container(keyedBy: CodingKeys.self)
-            try container.encode(deviceCode, forKey: .deviceCode)
-            try container.encode(userCode, forKey: .userCode)
-            try container.encode(verificationUri, forKey: .verificationUri)
-            try container.encodeIfPresent(verificationUriComplete, forKey: .verificationUri)
-            try container.encode(interval, forKey: .interval)
-            try container.encodeIfPresent(expiresIn, forKey: .expiresIn)
-        }
-    }
-
-    /// A codable type that holds authorization information that can be stored.
-    public struct Authorization: Codable, Equatable, Sendable {
-
-        /// The provider ID that issued the authorization.
-        public let issuer: String
-        /// The issue date.
-        public let issued: Date
-        /// The issued access token.
-        public let token: Token
-
-        /// Initializer
-        /// - Parameters:
-        ///   - issuer: the provider ID that issued the authorization.
-        ///   - token: the access token
-        ///   - issued: the issued date
-        public init(issuer: String, token: Token, issued: Date = Date.now) {
-            self.issuer = issuer
-            self.token = token
-            self.issued = issued
-        }
-
-        /// Returns true if the token is expired.
-        public var isExpired: Bool {
-            guard let expiresIn = token.expiresIn else { return false }
-            return issued.addingTimeInterval(Double(expiresIn)) < Date.now
-        }
-
-        /// Returns the expiration date of the authorization or nil if none exists.
-        public var expiration: Date? {
-            guard let expiresIn = token.expiresIn else { return nil }
-            return issued.addingTimeInterval(TimeInterval(expiresIn))
-        }
-    }
-
     /// Holds the OAuth state that is published to subscribers via the `state` property publisher.
     public enum State: Equatable, Sendable {
 
@@ -319,7 +93,7 @@ public final class OAuth: NSObject {
     /// The url session to use for communicating with providers.
     @ObservationIgnored
     private lazy var urlSession: URLSession = {
-        .init(configuration: .default)
+        .init(configuration: .ephemeral)
     }()
 
     @ObservationIgnored
@@ -363,48 +137,6 @@ public final class OAuth: NSObject {
             await start()
         }
     }
-
-    /// Loads providers from the specified bundle.
-    /// - Parameter bundle: the bundle to load the oauth provider configuration information from.
-    /// - Returns: found providers in the specifed bundle or an empty list if not found
-    private func loadProviders(_ bundle: Bundle) -> [Provider] {
-        guard let url = bundle.url(forResource: defaultResourceName, withExtension: defaultExtension),
-              let data = try? Data(contentsOf: url),
-              let providers = try? decoder.decode([Provider].self, from: data) else {
-            return []
-        }
-        return providers
-    }
-
-    /// Performs post init operations.
-    private func start() async {
-        // Initialize with custom options
-        if let options {
-            // Use the custom application tag
-            if let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
-                self.keychain = Keychain(applicationTag)
-            }
-        }
-        subscribe()
-        await restore()
-    }
-
-    /// Restores state from storage.
-    private func restore() async {
-        for provider in providers {
-            if let authorization: OAuth.Authorization = try? keychain.get(key: provider.id), !authorization.isExpired {
-                publish(state: .authorized(authorization))
-            }
-        }
-    }
-
-    /// Subsribes to event publishers.
-    private func subscribe() {
-        // Subscribe to network status events
-        networkMonitor.networkStatus.sink { (_) in
-            // TODO: Add Handler
-        }.store(in: &subscribers)
-    }
 }
 
 public extension OAuth {
@@ -431,19 +163,139 @@ public extension OAuth {
     /// - Parameters:
     ///   - provider: the provider the access token is being requested from
     ///   - code: the code to exchange
-    /// - Returns: the exchange result
-    @discardableResult
-    func requestAccessToken(provider: Provider, code: String) async -> Result<Token, OAError> {
-        // Publish the state
-        publish(state: .requestingAccessToken(provider))
-
-        guard let url = URL(string: provider.accessTokenURL.absoluteString) else {
-            publish(state: .empty)
-            return .failure(.malformedURL)
+    func requestAccessToken(provider: Provider, code: String) {
+        Task {
+            let result = await requestAccessToken(provider: provider, code: code)
+            switch result {
+            case .success(let token):
+                debugPrint("✅ [Received token]", token)
+            case .failure(let error):
+                debugPrint("💩 [Error requesting access token]", error)
+            }
         }
+    }
 
-        var urlComponents = URLComponents()
-        urlComponents.queryItems = [
+    /// Removes all tokens and clears the OAuth state
+    func clear() {
+        Task {
+            debugPrint("⚠️ [Clearing oauth state]")
+            keychain.clear()
+            publish(state: .empty)
+        }
+    }
+}
+
+// MARK: Private
+
+private extension OAuth {
+
+    /// Loads providers from the specified bundle.
+    /// - Parameter bundle: the bundle to load the oauth provider configuration information from.
+    /// - Returns: found providers in the specifed bundle or an empty list if not found
+    func loadProviders(_ bundle: Bundle) -> [Provider] {
+        guard let url = bundle.url(forResource: defaultResourceName, withExtension: defaultExtension),
+              let data = try? Data(contentsOf: url),
+              let providers = try? decoder.decode([Provider].self, from: data) else {
+            return []
+        }
+        return providers
+    }
+
+    /// Performs post init operations.
+    func start() async {
+        // Initialize with custom options
+        if let options {
+            // Use the custom application tag
+            if let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
+                self.keychain = Keychain(applicationTag)
+            }
+        }
+        subscribe()
+        await restore()
+    }
+
+    /// Restores state from storage.
+    func restore() async {
+        for provider in providers {
+            if let authorization: OAuth.Authorization = try? keychain.get(key: provider.id), !authorization.isExpired {
+                publish(state: .authorized(authorization))
+            }
+        }
+    }
+
+    /// Subsribes to event publishers.
+    private func subscribe() {
+        // Subscribe to network status events
+        networkMonitor.networkStatus.sink { (_) in
+            // TODO: Add Handler
+        }.store(in: &subscribers)
+    }
+
+    /// Publishes state on the main thread.
+    /// - Parameter state: the new state information to publish out on the main thread.
+    func publish(state: State) {
+        switch state {
+        case .authorized(let auth):
+            schedule(auth: auth)
+        case .receivedDeviceCode(let provider, let deviceCode):
+            schedule(provider: provider, deviceCode: deviceCode)
+        case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode:
+            break
+        }
+        self.state = state
+    }
+
+    /// Schedules the provider to be polled for authorization with the specified device token.
+    /// - Parameters:
+    ///   - provider: the oauth provider
+    ///   - deviceCode: the device code issued by the provider
+    func schedule(provider: Provider, deviceCode: DeviceCode) {
+        let timeInterval: TimeInterval = .init(deviceCode.interval)
+        let task = Task.delayed(timeInterval: timeInterval) { [weak self] in
+            guard let self else { return }
+            await self.poll(provider: provider, deviceCode: deviceCode)
+        }
+        tasks.append(task)
+    }
+
+    /// Schedules refresh tasks for the specified authorization.
+    /// - Parameter auth: the authentication to schedule a future tasks for
+    func schedule(auth: Authorization) {
+        if let options, let autoRefresh = options[.autoRefresh] as? Bool, autoRefresh {
+            if let expiration = auth.expiration {
+                let timeInterval = expiration - Date.now
+                if timeInterval > 0 {
+                    // Schedule the refresh task
+                    let task = Task.delayed(timeInterval: timeInterval) { [weak self] in
+                        guard let self else { return }
+                        await self.refresh()
+                    }
+                    tasks.append(task)
+                } else {
+                    // Execute the task immediately
+                    Task {
+                        await refresh()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: URLRequests
+
+fileprivate extension OAuth {
+
+    /// Builds the access token request. This method will either encode the query items into the
+    /// http body (using application/x-www-form-urlencoded) or simply send the query item parameters with the request
+    /// based on how the provider is implemented. If you are seeing errors when fetching access tokens from a provider, it may be necessary to
+    /// disable the `encodeHttpBody` parameter to false as server implementaitons across providers varies.
+    /// - Parameters:
+    ///   - provider: the provider
+    ///   - code: the code to exchange
+    /// - Returns: an url request for exchanging a code for an access token.
+    func buildAccessTokenRequest(provider: Provider, code: String) -> URLRequest? {
+        let queryItems: [URLQueryItem] = [
             URLQueryItem(name: "client_id", value: provider.clientID),
             URLQueryItem(name: "client_secret", value: provider.clientSecret),
             URLQueryItem(name: "code", value: code),
@@ -451,15 +303,46 @@ public extension OAuth {
             URLQueryItem(name: "grant_type", value: "authorization_code")
         ]
 
-        // Encode the url components as 'application/x-www-form-urlencoded' body
+        guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else { return nil }
+        urlComponents.queryItems = queryItems
+        guard var url = urlComponents.url else { return nil }
+
+        // If we're encoding the http body, rebuild the url without the query items
+        if provider.encodeHttpBody {
+            urlComponents = URLComponents()
+            urlComponents.queryItems = queryItems
+            url = provider.accessTokenURL
+        }
+
         var request = URLRequest(url: url)
-        request.httpBody = urlComponents.query?.data(using: .utf8)
+        request.httpBody = provider.encodeHttpBody ? urlComponents.query?.data(using: .utf8) : nil
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        return request
+    }
+
+    /// Requests to exchange a code for an access token.
+    /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.3
+    /// - Parameters:
+    ///   - provider: the provider the access token is being requested from
+    ///   - code: the code to exchange
+    /// - Returns: the exchange result
+    @discardableResult
+    func requestAccessToken(provider: Provider, code: String) async -> Result<Token, OAError> {
+        // Publish the state
+        publish(state: .requestingAccessToken(provider))
+
+        guard let request = buildAccessTokenRequest(provider: provider, code: code) else {
+            publish(state: .empty)
+            return .failure(.malformedURL)
+        }
         guard let (data, _) = try? await urlSession.data(for: request) else {
             publish(state: .empty)
             return .failure(.badResponse)
         }
+
+        debugPrint("⭐️ Raw access token response", String(data: data, encoding: .utf8) ?? "")
 
         // Decode the token
         guard let token = try? decoder.decode(Token.self, from: data) else {
@@ -478,57 +361,9 @@ public extension OAuth {
         return .success(token)
     }
 
-    /// Requests a device code from the specified provider.
-    /// - Parameters:
-    ///   - provider: the provider the device code is being requested from
-    private func requestDeviceCode(provider: Provider) async {
-        // Publish the state
-        publish(state: .requestingDeviceCode(provider))
-        guard var request = provider.request(grantType: .deviceCode) else { return }
-
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        guard let (data, _) = try? await urlSession.data(for: request) else {
-            publish(state: .empty)
-            return
-        }
-
-        // Decode the device code
-        guard let deviceCode = try? decoder.decode(DeviceCode.self, from: data) else {
-            publish(state: .empty)
-            return
-        }
-
-        // Publish the state
-        publish(state: .receivedDeviceCode(provider, deviceCode))
-    }
-
-    /// Removes all tokens and clears the OAuth state
-    func clear() {
-        Task {
-            debugPrint("⚠️ [Clearing oauth state]")
-            keychain.clear()
-            publish(state: .empty)
-        }
-    }
-
-    /// Publishes state on the main thread.
-    /// - Parameter state: the new state information to publish out on the main thread.
-    private func publish(state: State) {
-        switch state {
-        case .authorized(let auth):
-            schedule(auth: auth)
-        case .receivedDeviceCode(let provider, let deviceCode):
-            schedule(provider: provider, deviceCode: deviceCode)
-        case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode:
-            break
-        }
-        self.state = state
-    }
-
     /// Attempts to refresh the current access token.
     /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-6
-    private func refresh() async {
+    func refresh() async {
         switch state {
         case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
             return
@@ -563,6 +398,31 @@ public extension OAuth {
         }
     }
 
+    /// Requests a device code from the specified provider.
+    /// - Parameters:
+    ///   - provider: the provider the device code is being requested from
+    private func requestDeviceCode(provider: Provider) async {
+        // Publish the state
+        publish(state: .requestingDeviceCode(provider))
+        guard var request = provider.request(grantType: .deviceCode) else { return }
+
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        guard let (data, _) = try? await urlSession.data(for: request) else {
+            publish(state: .empty)
+            return
+        }
+
+        // Decode the device code
+        guard let deviceCode = try? decoder.decode(DeviceCode.self, from: data) else {
+            publish(state: .empty)
+            return
+        }
+
+        // Publish the state
+        publish(state: .receivedDeviceCode(provider, deviceCode))
+    }
+
     /// Polls the oauth provider's access token endpoint until the device code has expired or we've successfully received an auth token.
     /// See: https://oauth.net/2/grant-types/device-code/
     /// - Parameters:
@@ -578,7 +438,7 @@ public extension OAuth {
         var queryItems = [URLQueryItem]()
         queryItems.append(URLQueryItem(name: "client_id", value: provider.clientID))
         queryItems.append(URLQueryItem(name: "client_secret", value: provider.clientSecret))
-        queryItems.append(URLQueryItem(name: "grant_type", value: "urn:ietf:params:oauth:grant-type:device_code"))
+        queryItems.append(URLQueryItem(name: "grant_type", value: DeviceCode.grantType))
         queryItems.append(URLQueryItem(name: "device_code", value: deviceCode.deviceCode))
         urlComponents.queryItems = queryItems
         guard let url = urlComponents.url else {
@@ -607,43 +467,8 @@ public extension OAuth {
         }
         publish(state: .authorized(authorization))
     }
-
-    /// Schedules the provider to be polled for authorization with the specified device token.
-    /// - Parameters:
-    ///   - provider: the oauth provider
-    ///   - deviceCode: the device code issued by the provider
-    private func schedule(provider: Provider, deviceCode: DeviceCode) {
-        let timeInterval: TimeInterval = .init(deviceCode.interval)
-        let task = Task.delayed(timeInterval: timeInterval) { [weak self] in
-            guard let self else { return }
-            await self.poll(provider: provider, deviceCode: deviceCode)
-        }
-        tasks.append(task)
-    }
-
-    /// Schedules refresh tasks for the specified authorization.
-    /// - Parameter auth: the authentication to schedule a future tasks for
-    private func schedule(auth: Authorization) {
-        if let options, let autoRefresh = options[.autoRefresh] as? Bool, autoRefresh {
-            if let expiration = auth.expiration {
-                let timeInterval = expiration - Date.now
-                if timeInterval > 0 {
-                    // Schedule the refresh task
-                    let task = Task.delayed(timeInterval: timeInterval) { [weak self] in
-                        guard let self else { return }
-                        await self.refresh()
-                    }
-                    tasks.append(task)
-                } else {
-                    // Execute the task immediately
-                    Task {
-                        await refresh()
-                    }
-                }
-            }
-        }
-    }
 }
+
 
 // MARK: Options
 

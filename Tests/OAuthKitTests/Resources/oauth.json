@@ -38,6 +38,31 @@
             "profile",
             "openid"
         ]
+    },
+    {
+        "id": "Slack",
+        "authorizationURL": "https://slack.com/oauth/v2/authorize",
+        "accessTokenURL": "https://slack.com/api/oauth.v2.access",
+        "clientID": "CLIENT_ID",
+        "clientSecret": "CLIENT_SECRET",
+        "redirectURI": "https://github.com/codefiesta/",
+        "customUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Safari/605.1.15",
+        "scope": [
+            "incoming-webhook"
+        ]
+    },
+    {
+        "id": "LinkedIn",
+        "authorizationURL": "https://www.linkedin.com/oauth/v2/authorization",
+        "accessTokenURL": "https://www.linkedin.com/oauth/v2/accessToken",
+        "clientID": "CLIENT_ID",
+        "clientSecret": "CLIENT_SECRET",
+        "redirectURI": "https://www.linkedin.com/developers/tools/oauth/redirect",
+        "encodeHttpBody": false,
+        "scope": [
+            "email",
+            "profile",
+            "openid"
+        ]
     }
-
 ]

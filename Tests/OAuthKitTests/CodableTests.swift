@@ -40,5 +40,4 @@ struct CodableTests {
         #expect(deviceCode.interval == decoded.interval)
     }
 
-
 }

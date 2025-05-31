@@ -39,18 +39,10 @@ public class OAWebViewCoordinator: NSObject {
         let queryItems = urlComponents?.queryItems ?? []
         guard queryItems.isNotEmpty else { return }
         guard let code = queryItems.filter({ $0.name == "code"}).first?.value else { return }
-        debugPrint("🚩", url.absoluteString)
+        debugPrint("Handling url candidate [\(url.absoluteString)], [\(code)]")
         // If the url begins with the provider redirectURI and a code
         // has been sent to it then attempt to exchange the code for an an access token
-        Task {
-            let result = await oauth.requestAccessToken(provider: provider, code: code)
-            switch result {
-            case .success(let token):
-                debugPrint("✅ [Received token]", token)
-            case .failure(let error):
-                debugPrint("💩 [Error requesting access token]", error)
-            }
-        }
+        oauth.requestAccessToken(provider: provider, code: code)
     }
 
     /// Handles oauth state changes.
@@ -60,9 +52,13 @@ public class OAWebViewCoordinator: NSObject {
         case .empty, .authorized, .requestingAccessToken, .requestingDeviceCode:
             break
         case .authorizing(let provider, let grantType):
+            // Override the custom user agent for the provider and tell the browser to load the request
+            webView.view.customUserAgent = provider.customUserAgent
             guard let request = provider.request(grantType: grantType) else { return }
             webView.view.load(request)
-        case .receivedDeviceCode(_, let deviceCode):
+        case .receivedDeviceCode(let provider, let deviceCode):
+            // Override the custom user agent for the provider and tell the browser to load the request
+            webView.view.customUserAgent = provider.customUserAgent
             guard let url = URL(string: deviceCode.verificationUri) else { return }
             let request = URLRequest(url: url)
             webView.view.load(request)

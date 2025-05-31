@@ -135,9 +135,12 @@ Although OAuthKit will automatically try to load the `oauth.json` file found ins
 * [Github](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps)
 * [Google](https://developers.google.com/identity/protocols/oauth2)
 	* **Important**: When creating a Google OAuth2 application from the [Google API Console](https://console.developers.google.com/) create an OAuth 2.0 Client type of Web Application (not iOS).
+* [LinkedIn](https://developer.linkedin.com/)
+	* **Important**: When creating a LinkedIn OAuth2 provider, you will need to explicitly set the `encodeHttpBody` property to false otherwise the /token request will fail. Unfortunately, OAuth providers vary in the way they decode the parameters of that request (either encoded into the httpBody or as query parameters). See sample [oauth.json](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json).
 * [Instagram](https://developers.facebook.com/docs/instagram-basic-display-api/guides/getting-access-tokens-and-permissions)
 * [Microsoft](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow)
     * **Important**: When registering an application inside the [Microsoft Azure Portal](https://portal.azure.com/) it's important to choose a **Redirect URI** as **Web** otherwise the `/token` endpoint will return an error when sending the `client_secret` in the body payload.
 * [Slack](https://api.slack.com/authentication/oauth-v2)
+    * **Important**: Slack will block unknown browsers from initiating OAuth workflows. See sample [oauth.json](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json) for setting the `customUserAgent` as a workaround.
 * [Twitter](https://developer.x.com/en/docs/authentication/oauth-2-0)
 	* **Unsupported**: Although OAuthKit *should* work with Twitter/X OAuth2 APIs without any modification, **@codefiesta** has chosen not to support any [Elon Musk](https://www.natesilver.net/p/elon-musk-polls-popularity-nate-silver-bulletin) backed ventures due to his facist, racist, and divisive behavior that epitomizes out-of-touch wealth and greed. **@codefiesta** will not raise objections to other developers who wish to contribute to OAuthKit in order to support Twitter OAuth2.

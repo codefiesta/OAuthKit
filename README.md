@@ -140,4 +140,4 @@ Although OAuthKit will automatically try to load the `oauth.json` file found ins
     * **Important**: When registering an application inside the [Microsoft Azure Portal](https://portal.azure.com/) it's important to choose a **Redirect URI** as **Web** otherwise the `/token` endpoint will return an error when sending the `client_secret` in the body payload.
 * [Slack](https://api.slack.com/authentication/oauth-v2)
 * [Twitter](https://developer.x.com/en/docs/authentication/oauth-2-0)
-
+	* **Unsupported**: Although OAuthKit *should* work with Twitter/X OAuth2 APIs without any modification, **@codefiesta** has chosen not to support any [Elon Musk](https://www.natesilver.net/p/elon-musk-polls-popularity-nate-silver-bulletin) backed ventures due to his facist, racist, and divisive behavior that epitomizes out-of-touch wealth and greed. **@codefiesta** will not raise objections to other developers who wish to contribute to OAuthKit in order to support Twitter OAuth2.

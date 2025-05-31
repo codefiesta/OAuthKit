@@ -40,6 +40,7 @@ public final class OAuth: NSObject {
     }
 
     /// Provides an enum representation for token storage options.
+    /// Future enhancement - all tokens are currently stored inside the Keychain.
     public enum Storage: String {
         /// Tokens are stored inside Keychain (recommended).
         case keychain
@@ -47,41 +48,6 @@ public final class OAuth: NSObject {
         case swiftdata
         /// Tokens are stored in memory only.
         case memory
-    }
-
-    /// Holds the OAuth state that is published to subscribers via the `state` property publisher.
-    public enum State: Equatable, Sendable {
-
-        /// The state is empty and no authorizations or tokens have been issued.
-        case empty
-
-        /// The OAuth authorization workflow has been started for the specifed provider and grant type.
-        /// - Parameters:
-        ///   - Provider: the oauth provider
-        ///   - GrantType: the grant type
-        case authorizing(Provider, GrantType)
-
-        /// An access token is being requested for the specifed provider.
-        /// - Parameters:
-        ///   - Provider: the oauth provider
-        case requestingAccessToken(Provider)
-
-        /// A device code is being requested for the specifed provider.
-        /// - Parameters:
-        ///   - Provider: the oauth provider
-        case requestingDeviceCode(Provider)
-
-        /// A device code has been received by the specified provider and it's access token endpoint is
-        /// actively being polled at the device code's interval until it expires, or until an error or access token is returned.
-        /// - Parameters:
-        ///   - Provider: the oauth provider
-        ///   - DeviceCode: the device code
-        case receivedDeviceCode(Provider, DeviceCode)
-
-        /// An authorization has been granted.
-        /// - Parameters:
-        ///   - Authorization: the oauth authorization
-        case authorized(Authorization)
     }
 
     /// A published list of available OAuth providers to choose from.
@@ -224,7 +190,7 @@ private extension OAuth {
     }
 
     /// Subsribes to event publishers.
-    private func subscribe() {
+    func subscribe() {
         // Subscribe to network status events
         networkMonitor.networkStatus.sink { (_) in
             // TODO: Add Handler
@@ -289,7 +255,7 @@ fileprivate extension OAuth {
     /// Builds the access token request. This method will either encode the query items into the
     /// http body (using application/x-www-form-urlencoded) or simply send the query item parameters with the request
     /// based on how the provider is implemented. If you are seeing errors when fetching access tokens from a provider, it may be necessary to
-    /// disable the `encodeHttpBody` parameter to false as server implementaitons across providers varies.
+    /// set the `encodeHttpBody` parameter to false as server implementations vary across providers.
     /// - Parameters:
     ///   - provider: the provider
     ///   - code: the code to exchange
@@ -401,7 +367,7 @@ fileprivate extension OAuth {
     /// Requests a device code from the specified provider.
     /// - Parameters:
     ///   - provider: the provider the device code is being requested from
-    private func requestDeviceCode(provider: Provider) async {
+    func requestDeviceCode(provider: Provider) async {
         // Publish the state
         publish(state: .requestingDeviceCode(provider))
         guard var request = provider.request(grantType: .deviceCode) else { return }
@@ -428,7 +394,7 @@ fileprivate extension OAuth {
     /// - Parameters:
     ///   - provider: the provider to poll
     ///   - deviceCode: the device code to use
-    private func poll(provider: Provider, deviceCode: DeviceCode) async {
+    func poll(provider: Provider, deviceCode: DeviceCode) async {
 
         guard !deviceCode.isExpired, var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
             publish(state: .empty)

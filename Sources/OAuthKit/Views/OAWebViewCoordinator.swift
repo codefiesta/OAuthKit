@@ -34,19 +34,21 @@ public class OAWebViewCoordinator: NSObject {
     ///   - grantType: the grant type to handle
     private func handle(url: URL, provider: OAuth.Provider, grantType: OAuth.GrantType) {
         guard grantType == .authorizationCode else { return }
-        debugPrint("👻", url.absoluteString)
+        guard let redirectURI = provider.redirectURI, url.absoluteString.starts(with: redirectURI) else { return }
         let urlComponents = URLComponents(string: url.absoluteString)
-        if let queryItems = urlComponents?.queryItems {
-            if let code = queryItems.filter({ $0.name == "code"}).first?.value {
-                Task {
-                    let result = await oauth.requestAccessToken(provider: provider, code: code)
-                    switch result {
-                    case .success(let token):
-                        debugPrint("✅ [Received token]", token)
-                    case .failure(let error):
-                        debugPrint("💩 [Error requesting access token]", error)
-                    }
-                }
+        let queryItems = urlComponents?.queryItems ?? []
+        guard queryItems.isNotEmpty else { return }
+        guard let code = queryItems.filter({ $0.name == "code"}).first?.value else { return }
+        debugPrint("🚩", url.absoluteString)
+        // If the url begins with the provider redirectURI and a code
+        // has been sent to it then attempt to exchange the code for an an access token
+        Task {
+            let result = await oauth.requestAccessToken(provider: provider, code: code)
+            switch result {
+            case .success(let token):
+                debugPrint("✅ [Received token]", token)
+            case .failure(let error):
+                debugPrint("💩 [Error requesting access token]", error)
             }
         }
     }

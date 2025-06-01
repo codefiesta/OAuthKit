@@ -38,5 +38,21 @@ struct UtilityTests {
         let sha256Hash = rawString.sha256Hash
         #expect(sha256Hash == expectedResult)
     }
+
+    /// Tests the random byte generation.
+    @Test("Random Byte Generation")
+    func whenGeneratingRandomBytes() async throws {
+        var random = Data.random()
+        #expect(random.count == 32)
+        random = Data.random(count: 64)
+        #expect(random.count == 64)
+    }
+
+    /// Tests the generation of random Base64 URL generation.
+    @Test("Random Base64 URL String Generation")
+    func whenGeneratingRandomBase64URL() async throws {
+        let random = String.randomBase64URLEncoded()
+        #expect(random.count >= 43)
+    }
 }
 

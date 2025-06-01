@@ -32,10 +32,7 @@ extension String {
     ///     * `Base64`: May include `=` padding to ensure the encoded string length is a multiple of 4.
     ///     * `Base64URL`: Omits padding characters.
     var base64URLEncoded: String {
-        Data(self.utf8).base64EncodedString()
-            .replacingOccurrences(of: "+", with: "-")
-            .replacingOccurrences(of: "/", with: "_")
-            .replacingOccurrences(of: "=", with: "")
+        Data(self.utf8).base64URLEncoded
     }
 
     /// Returns the decoded value of this Base64 encoded string.
@@ -53,5 +50,12 @@ extension String {
             result += "="
         }
         return result.base64Decoded
+    }
+
+    /// Generates a cryptographically secure random Base 64 URL encoded string.
+    /// - Parameter count: the byte count
+    /// - Returns: a cryptographically secure random Base 64 URL encoded string
+    static func randomBase64URLEncoded(count: Int = 32) -> String {
+        Data.random(count: count).base64URLEncoded
     }
 }

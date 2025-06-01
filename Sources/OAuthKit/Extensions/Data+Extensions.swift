@@ -15,4 +15,33 @@ extension Data {
         let hashed = SHA256.hash(data: self)
         return hashed.compactMap { String(format: "%02x", $0) }.joined()
     }
+
+    /// Encodes the data as a Base64 URL encoded string.
+    /// Base64 URL encoding is a variant of Base64 encoding that is specifically designed to be safe for use in URLs and filenames.
+    ///
+    /// Key Differences Between Base64 and Base64 URL Encoding:
+    /// 1. **Character Set**
+    ///     * `Base64`: Uses `+` and `/`
+    ///     * `Base64URL`: Uses `-` and `_`
+    /// 2. **Padding**
+    ///     * `Base64`: May include `=` padding to ensure the encoded string length is a multiple of 4.
+    ///     * `Base64URL`: Omits padding characters.
+    var base64URLEncoded: String {
+        base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
+            .trimmingCharacters(in: .whitespaces)
+    }
+
+
+    /// Generates secure random bytes for the specified byte counts.
+    /// - Parameter count: The number of bytes to generate.
+    /// - Returns: an array of cryptographically secure random bytes
+    static func random(count: Int = 32) -> Data {
+        var bytes = [UInt8](repeating: 0, count: count)
+        _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
+        return Data(bytes: &bytes, count: bytes.count)
+    }
+
 }

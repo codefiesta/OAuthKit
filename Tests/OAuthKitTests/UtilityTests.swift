@@ -1,5 +1,5 @@
 //
-//  CryptoTests.swift
+//  UtilityTests.swift
 //  OAuthKit
 //
 //  Created by Kevin McKee
@@ -9,8 +9,8 @@ import Foundation
 @testable import OAuthKit
 import Testing
 
-@Suite("Crypto Tests")
-struct CryptoTests {
+@Suite("Utility Tests")
+struct UtilityTests {
 
     /// Tests the Base64 encoding.
     @Test("Base64 Encoding and Decoding")

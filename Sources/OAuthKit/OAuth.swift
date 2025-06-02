@@ -107,19 +107,28 @@ public final class OAuth: NSObject {
 
 public extension OAuth {
 
+    /// Generates a cryptographically secure random Base 64 URL encoded string.
+    /// - Parameter count: the byte count
+    /// - Returns: a cryptographically secure random Base 64 URL encoded string
+    static func secureRandom(count: Int = 32) -> String {
+        .secureRandom(count: count)
+    }
+
     /// Starts the authorization process for the specified provider.
     /// - Parameters:
     ///   - provider: the provider to begin authorization for
     ///   - grantType: the grant type to execute
-    func authorize(provider: Provider, grantType: GrantType = .authorizationCode) {
+    func authorize(provider: Provider, grantType: GrantType = .authorizationCode(secureRandom(count: 16))) {
         switch grantType {
         case .authorizationCode:
+            state = .authorizing(provider, grantType)
+        case .pkce:
             state = .authorizing(provider, grantType)
         case .deviceCode:
             Task {
                 await requestDeviceCode(provider: provider)
             }
-        case .clientCredentials, .pkce, .refreshToken:
+        case .clientCredentials, .refreshToken:
             break
         }
     }
@@ -129,9 +138,10 @@ public extension OAuth {
     /// - Parameters:
     ///   - provider: the provider the access token is being requested from
     ///   - code: the code to exchange
-    func requestAccessToken(provider: Provider, code: String) {
+    ///   - pkce: the pkce data
+    func requestAccessToken(provider: Provider, code: String, pkce: PKCE? = nil) {
         Task {
-            let result = await requestAccessToken(provider: provider, code: code)
+            let result = await requestAccessToken(provider: provider, code: code, pkce: pkce)
             switch result {
             case .success(let token):
                 debugPrint("✅ [Received token]", token)
@@ -259,15 +269,20 @@ fileprivate extension OAuth {
     /// - Parameters:
     ///   - provider: the provider
     ///   - code: the code to exchange
+    ///   - pkce: the PKCE data to pass along with the request
     /// - Returns: an url request for exchanging a code for an access token.
-    func buildAccessTokenRequest(provider: Provider, code: String) -> URLRequest? {
-        let queryItems: [URLQueryItem] = [
+    func buildAccessTokenRequest(provider: Provider, code: String, pkce: PKCE? = nil) -> URLRequest? {
+        var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "client_id", value: provider.clientID),
             URLQueryItem(name: "client_secret", value: provider.clientSecret),
             URLQueryItem(name: "code", value: code),
             URLQueryItem(name: "redirect_uri", value: provider.redirectURI),
             URLQueryItem(name: "grant_type", value: "authorization_code")
         ]
+
+        if let pkce {
+            queryItems.append(URLQueryItem(name: "code_verifier", value: pkce.codeVerifier))
+        }
 
         guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else { return nil }
         urlComponents.queryItems = queryItems
@@ -293,13 +308,14 @@ fileprivate extension OAuth {
     /// - Parameters:
     ///   - provider: the provider the access token is being requested from
     ///   - code: the code to exchange
+    ///   - pkce: the PKCE data to pass along with the request
     /// - Returns: the exchange result
     @discardableResult
-    func requestAccessToken(provider: Provider, code: String) async -> Result<Token, OAError> {
+    func requestAccessToken(provider: Provider, code: String, pkce: PKCE? = nil) async -> Result<Token, OAError> {
         // Publish the state
         publish(state: .requestingAccessToken(provider))
 
-        guard let request = buildAccessTokenRequest(provider: provider, code: code) else {
+        guard let request = buildAccessTokenRequest(provider: provider, code: code, pkce: pkce) else {
             publish(state: .empty)
             return .failure(.malformedURL)
         }

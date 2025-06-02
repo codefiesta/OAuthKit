@@ -33,16 +33,40 @@ public class OAWebViewCoordinator: NSObject {
     ///   - provider: the oauth provider
     ///   - grantType: the grant type to handle
     private func handle(url: URL, provider: OAuth.Provider, grantType: OAuth.GrantType) {
-        guard grantType == .authorizationCode else { return }
+
         guard let redirectURI = provider.redirectURI, url.absoluteString.starts(with: redirectURI) else { return }
         let urlComponents = URLComponents(string: url.absoluteString)
         let queryItems = urlComponents?.queryItems ?? []
         guard queryItems.isNotEmpty else { return }
         guard let code = queryItems.filter({ $0.name == "code"}).first?.value else { return }
-        debugPrint("Handling url candidate [\(url.absoluteString)], [\(code)]")
-        // If the url begins with the provider redirectURI and a code
-        // has been sent to it then attempt to exchange the code for an an access token
-        oauth.requestAccessToken(provider: provider, code: code)
+        guard let state = queryItems.filter({ $0.name == "state"}).first?.value else { return }
+
+        switch grantType {
+        case .authorizationCode(let authCodeState):
+
+            // Verify the state
+            guard state == authCodeState else {
+                debugPrint("⚠️ State mismatch, expected [\(authCodeState)], received [\(state)]")
+                return
+            }
+
+            debugPrint("⭐️ [AuthorizationCode], [\(url.absoluteString)], [\(code)]")
+            oauth.requestAccessToken(provider: provider, code: code)
+        case .clientCredentials:
+            break
+        case .deviceCode:
+            break
+            case .pkce(let pkce):
+            // Verify the state
+            guard state == pkce.state else {
+                debugPrint("⚠️ State mismatch, expected [\(pkce.state)], received [\(state)]")
+                return
+            }
+            debugPrint("⭐️ [PKCE], [\(url.absoluteString)], [\(code)]")
+            oauth.requestAccessToken(provider: provider, code: code, pkce: pkce)
+        case .refreshToken:
+            break
+        }
     }
 
     /// Handles oauth state changes.

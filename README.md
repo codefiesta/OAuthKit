@@ -3,6 +3,7 @@
 ![Swift 6.0+](https://img.shields.io/badge/Swift-6.0%2B-tomato.svg)
 ![iOS 18.0+](https://img.shields.io/badge/iOS-18.0%2B-crimson.svg)
 ![macOS 15.0+](https://img.shields.io/badge/macOS-15.0%2B-skyblue.svg)
+![tvOS 18.0+](https://img.shields.io/badge/tvOS-18.0%2B-blue.svg)
 ![visionOS 2.0+](https://img.shields.io/badge/visionOS-2.0%2B-magenta.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-indigo.svg)](https://opensource.org/licenses/MIT)
 
@@ -50,8 +51,8 @@ struct ContentView: View {
             switch oauth.state {
             case .empty:
                 providerList
-            case .authorizing(let provider, _):
-                Text("Authorizing [\(provider.id)]")
+            case .authorizing(let provider, let grantType):
+                Text("Authorizing [\(provider.id)] with [\(grantType.rawValue)]")
             case .requestingAccessToken(let provider):
                 Text("Requesting Access Token [\(provider.id)]")
             case .requestingDeviceCode(let provider):
@@ -79,8 +80,8 @@ struct ContentView: View {
     var providerList: some View {
         List(oauth.providers) { provider in
             Button(provider.id) {
-                // Start the authorization flow (use .deviceCode for tvOS)
-                oauth.authorize(provider: provider, grantType: .authorizationCode)
+                // Start the default authorization flow (.authorizationCode)
+                oauth.authorize(provider: provider)
             }
         }
     }
@@ -99,32 +100,69 @@ struct ContentView: View {
     }
 }
 ```
-## tvOS (Device Authorization Grant)
-OAuthKit supports the [OAuth 2.0 Device Authorization Grant](https://alexbilbie.github.io/2016/04/oauth-2-device-flow-grant/), which is used by apps that don't have access to a web browser (like tvOS). To leverage OAuthKit in tvOS apps, simply add the `deviceCodeURL` to your [OAuth.Provider](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth+Provider.swift) and initialize the device authorization grant workflow by calling ```oauth.authorize(provider: provider, grantType: .deviceCode)```
-
-![tvOS-screenshot](https://github.com/user-attachments/assets/14997164-f86a-4ee0-b6b7-8c0d9732c83e)
-
 
 ## OAuthKit Configuration
 By default, the easiest way to configure OAuthKit is to simply drop an `oauth.json` file into your main bundle and it will get automatically loaded into your swift application and available as an [Environment](https://developer.apple.com/documentation/swiftui/environment). You can find an example `oauth.json` file [here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json).
 
 ```swift
-    @Environment(\.oauth)
-    var oauth: OAuth
+@Environment(\.oauth)
+var oauth: OAuth
 ```
 
 If you want to customize your OAuth environment or are using modules in your application, you can also specify which bundle to load configure files from:
 
 ```swift
-    let oauth = OAuth(.module)
+let oauth = OAuth(.module)
 ```
 
 If you are building your OAuth Providers programatically (recommended for production applications via a CI build pipeline for security purposes), you can pass providers and options as well.
 
 ```swift
-    let providers: [OAuth.Provider] = ...
-    let options: [OAuth.Option: Sendable] = [.applicationTag: "com.bundle.identifier"]
-    let oauth: OAuth = OAuth(providers: providers, options: options)
+let providers: [OAuth.Provider] = ...
+let options: [OAuth.Option: Sendable] = [.applicationTag: "com.bundle.identifier"]
+let oauth: OAuth = OAuth(providers: providers, options: options)
+```
+
+## OAuthKit Authorization Flows
+Starting OAuth 2.0 workflows is started by calling `oauth.authorize(provider: provider, grantType: grantType)`. A good resource to help understand the OAuth workflows and show each step of the process of obtaining an access token can be found on the [OAuth 2.0 Playground](https://www.oauth.com/playground/index.html).
+
+### OAuth 2.0 Authorization Code Flow
+
+```swift
+/// Authorization Code is the default workflow with an auto generated state
+oauth.authorize(provider: provider)
+	
+/// Or you can manually configure the Authorization Code state
+let state: String = "ABC-XYZ"
+let grantType: OAuth.GrantType = .authorizationCode(state)
+oauth.authorize(provider: provider, grantType: grantType)
+```
+
+### OAuth 2.0 PKCE Flow
+PKCE ([RFC 7636](https://www.rfc-editor.org/rfc/rfc7636)) is an extension to the [Authorization Code](https://oauth.net/2/grant-types/authorization-code/) flow to prevent CSRF and authorization code injection attacks.
+
+Proof Key for Code Exchange (PKCE) is the recommended flow to use in OAuthKit as this technique involves the client first creating a secret on each authorization request, and then using that secret again when exchanging the authorization code for an access token. This way if the code is intercepted, it will not be useful since the token request relies on the initial secret.
+
+```swift
+let grantType: OAuth.GrantType = .pkce(.init())
+oauth.authorize(provider: provider, grantType: grantType)
+```
+
+### OAuth 2.0 Device Code Flow
+OAuthKit supports the [OAuth 2.0 Device Code Flow Grant](https://alexbilbie.github.io/2016/04/oauth-2-device-flow-grant/), which is used by apps that don't have access to a web browser (like tvOS). To leverage OAuthKit in tvOS apps, simply add the `deviceCodeURL` to your [OAuth.Provider](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth+Provider.swift).
+
+```swift
+let grantType: OAuth.GrantType = .deviceCode
+oauth.authorize(provider: provider, grantType: grantType)
+```
+
+![tvOS-screenshot](https://github.com/user-attachments/assets/14997164-f86a-4ee0-b6b7-8c0d9732c83e)
+
+
+### OAuth 2.0 Client Credentials Flow
+```swift
+let grantType: OAuth.GrantType = .clientCredentials
+oauth.authorize(provider: provider, grantType: grantType)
 ```
 
 

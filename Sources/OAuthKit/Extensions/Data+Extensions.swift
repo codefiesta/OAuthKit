@@ -10,10 +10,20 @@ import Foundation
 
 extension Data {
 
+    /// Returns the SHA-256 Digest of this data block.
+    var sha256: SHA256.Digest {
+        SHA256.hash(data: self)
+    }
+
+    /// Returns the SHA-512 Digest of this data block.
+    var sha512: SHA512.Digest {
+        SHA512.hash(data: self)
+    }
+
     /// Calculates the SHA-256 hash of for this data block.
     var sha256Hash: String {
-        let hashed = SHA256.hash(data: self)
-        return hashed.compactMap { String(format: "%02x", $0) }.joined()
+        let digest = SHA256.hash(data: self)
+        return digest.hex
     }
 
     /// Encodes the data as a Base64 URL encoded string.
@@ -33,7 +43,6 @@ extension Data {
             .replacingOccurrences(of: "=", with: "")
             .trimmingCharacters(in: .whitespaces)
     }
-
 
     /// Generates secure random bytes for the specified byte counts.
     /// - Parameter count: The number of bytes to generate.

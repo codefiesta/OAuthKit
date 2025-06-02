@@ -34,10 +34,10 @@ extension OAuth {
         }
 
         /// Initializer.
-        init() {
-            codeVerifier = String.randomBase64URLEncoded()
-            codeChallenge = codeVerifier.sha256Hash.base64URLEncoded
-            state = String.randomBase64URLEncoded(count: 16)
+        public init() {
+            codeVerifier = String.randomBase64URL()
+            codeChallenge = codeVerifier.sha256.base64URL
+            state = String.randomBase64URL(count: 16)
         }
     }
 }

@@ -111,7 +111,7 @@ public extension OAuth {
     /// - Parameter count: the byte count
     /// - Returns: a cryptographically secure random Base 64 URL encoded string
     static func randomBase64URLEncoded(count: Int = 32) -> String {
-        String.randomBase64URLEncoded(count: count)
+        String.randomBase64URL(count: count)
     }
 
     /// Starts the authorization process for the specified provider.
@@ -122,11 +122,13 @@ public extension OAuth {
         switch grantType {
         case .authorizationCode:
             state = .authorizing(provider, grantType)
+        case .pkce:
+            state = .authorizing(provider, grantType)
         case .deviceCode:
             Task {
                 await requestDeviceCode(provider: provider)
             }
-        case .clientCredentials, .pkce, .refreshToken:
+        case .clientCredentials, .refreshToken:
             break
         }
     }
@@ -139,7 +141,7 @@ public extension OAuth {
     ///   - pkce: the pkce data
     func requestAccessToken(provider: Provider, code: String, pkce: PKCE? = nil) {
         Task {
-            let result = await requestAccessToken(provider: provider, code: code)
+            let result = await requestAccessToken(provider: provider, code: code, pkce: pkce)
             switch result {
             case .success(let token):
                 debugPrint("✅ [Received token]", token)

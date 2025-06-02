@@ -50,7 +50,7 @@ public class OAWebViewCoordinator: NSObject {
                 return
             }
 
-            debugPrint("⭐️ [\(url.absoluteString)], [\(code)]")
+            debugPrint("⭐️ [AuthorizationCode], [\(url.absoluteString)], [\(code)]")
             oauth.requestAccessToken(provider: provider, code: code)
         case .clientCredentials:
             break
@@ -62,7 +62,7 @@ public class OAWebViewCoordinator: NSObject {
                 debugPrint("⚠️ State mismatch, expected [\(pkce.state)], received [\(state)]")
                 return
             }
-            debugPrint("⭐️ [\(url.absoluteString)], [\(code)]")
+            debugPrint("⭐️ [PKCE], [\(url.absoluteString)], [\(code)]")
             oauth.requestAccessToken(provider: provider, code: code, pkce: pkce)
         case .refreshToken:
             break

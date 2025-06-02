@@ -10,8 +10,8 @@ import Foundation
 
 extension UUID {
 
-    /// Calculates the SHA-256 hash of for this UUID.
-    var sha256Hash: String {
-        uuidString.sha256Hash
+    /// Returns the SHA-256 Digest for this UUID.
+    var sha256: SHA256.Digest {
+        uuidString.sha256
     }
 }

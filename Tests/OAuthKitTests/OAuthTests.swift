@@ -40,7 +40,7 @@ final class OAuthTests {
     @Test("Building Authorization Request")
     func whenBuildingAuthorizationRequest() async throws {
         let provider = await oauth.providers[0]
-        let state = String.randomBase64URLEncoded(count: 16)
+        let state = String.randomBase64URL(count: 16)
         let grantType: OAuth.GrantType = .authorizationCode(state)
         let request = provider.request(grantType: grantType)
         #expect(request != nil)

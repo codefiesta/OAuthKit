@@ -39,7 +39,7 @@ extension OAuth {
         case refreshToken
 
         /// The raw string value for a grant type.
-        var rawValue: String {
+        public var rawValue: String {
             switch self {
             case .authorizationCode:
                 return "code"

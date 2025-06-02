@@ -51,8 +51,8 @@ struct ContentView: View {
             switch oauth.state {
             case .empty:
                 providerList
-            case .authorizing(let provider, _):
-                Text("Authorizing [\(provider.id)]")
+            case .authorizing(let provider, let grantType):
+                Text("Authorizing [\(provider.id)] with [\(grantType.rawValue)]")
             case .requestingAccessToken(let provider):
                 Text("Requesting Access Token [\(provider.id)]")
             case .requestingDeviceCode(let provider):

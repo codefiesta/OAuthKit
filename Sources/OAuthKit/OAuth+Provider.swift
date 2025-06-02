@@ -83,7 +83,7 @@ extension OAuth {
             var queryItems = [URLQueryItem]()
 
             switch grantType {
-            case .authorizationCode:
+            case .authorizationCode(let state):
                 guard let components = URLComponents(string: authorizationURL.absoluteString) else {
                     return nil
                 }
@@ -91,6 +91,7 @@ extension OAuth {
                 queryItems.append(URLQueryItem(name: "client_id", value: clientID))
                 queryItems.append(URLQueryItem(name: "redirect_uri", value: redirectURI))
                 queryItems.append(URLQueryItem(name: "response_type", value: "code"))
+                queryItems.append(URLQueryItem(name: "state", value: state))
                 if let scope {
                     queryItems.append(URLQueryItem(name: "scope", value: scope.joined(separator: " ")))
                 }
@@ -105,10 +106,7 @@ extension OAuth {
                 }
             case .clientCredentials:
                 fatalError("TODO: Not implemented")
-            case .pkce:
-
-                let pkce = PKCE()
-
+            case .pkce(let pkce):
                 guard let components = URLComponents(string: authorizationURL.absoluteString) else {
                     return nil
                 }
@@ -118,7 +116,7 @@ extension OAuth {
                 queryItems.append(URLQueryItem(name: "response_type", value: "code"))
                 queryItems.append(URLQueryItem(name: "state", value: pkce.state))
                 queryItems.append(URLQueryItem(name: "code_challenge", value: pkce.codeChallenge))
-                queryItems.append(URLQueryItem(name: "code_challenge_method", value: "S256"))
+                queryItems.append(URLQueryItem(name: "code_challenge_method", value: pkce.codeChallengeMethod))
                 if let scope {
                     queryItems.append(URLQueryItem(name: "scope", value: scope.joined(separator: " ")))
                 }

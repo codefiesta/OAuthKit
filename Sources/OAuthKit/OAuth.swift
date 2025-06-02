@@ -107,11 +107,18 @@ public final class OAuth: NSObject {
 
 public extension OAuth {
 
+    /// Generates a cryptographically secure random Base 64 URL encoded string.
+    /// - Parameter count: the byte count
+    /// - Returns: a cryptographically secure random Base 64 URL encoded string
+    static func randomBase64URLEncoded(count: Int = 32) -> String {
+        String.randomBase64URLEncoded(count: count)
+    }
+
     /// Starts the authorization process for the specified provider.
     /// - Parameters:
     ///   - provider: the provider to begin authorization for
     ///   - grantType: the grant type to execute
-    func authorize(provider: Provider, grantType: GrantType = .authorizationCode) {
+    func authorize(provider: Provider, grantType: GrantType = .authorizationCode(randomBase64URLEncoded(count: 16))) {
         switch grantType {
         case .authorizationCode:
             state = .authorizing(provider, grantType)

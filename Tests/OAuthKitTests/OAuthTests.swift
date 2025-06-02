@@ -40,11 +40,14 @@ final class OAuthTests {
     @Test("Building Authorization Request")
     func whenBuildingAuthorizationRequest() async throws {
         let provider = await oauth.providers[0]
-        let request = provider.request(grantType: .authorizationCode)
+        let state = String.randomBase64URLEncoded(count: 16)
+        let grantType: OAuth.GrantType = .authorizationCode(state)
+        let request = provider.request(grantType: grantType)
         #expect(request != nil)
         #expect(request!.url!.absoluteString.contains("client_id="))
         #expect(request!.url!.absoluteString.contains("redirect_uri=\(provider.redirectURI!)"))
         #expect(request!.url!.absoluteString.contains("response_type=code"))
+        #expect(request!.url!.absoluteString.contains("state=\(state)"))
     }
 
     /// Tests the refresh token request parameters.
@@ -57,5 +60,21 @@ final class OAuthTests {
         #expect(request!.url!.absoluteString.contains("client_id="))
         #expect(request!.url!.absoluteString.contains("grant_type=refresh_token"))
         #expect(request!.url!.absoluteString.contains("refresh_token=\(token.refreshToken!)"))
+    }
+
+    /// Tests the PKCE request parameters.
+    @Test("Building PKCE Request")
+    func whenBuildingPKCERequest() async throws {
+        let provider = await oauth.providers[0]
+        let pkce: OAuth.PKCE = .init()
+        let grantType: OAuth.GrantType = .pkce(pkce)
+        let request = provider.request(grantType: grantType)
+        #expect(request != nil)
+        #expect(request!.url!.absoluteString.contains("client_id="))
+        #expect(request!.url!.absoluteString.contains("redirect_uri=\(provider.redirectURI!)"))
+        #expect(request!.url!.absoluteString.contains("response_type=code"))
+        #expect(request!.url!.absoluteString.contains("state=\(pkce.state)"))
+        #expect(request!.url!.absoluteString.contains("code_challenge=\(pkce.codeChallenge)"))
+        #expect(request!.url!.absoluteString.contains("code_challenge_method=\(pkce.codeChallengeMethod)"))
     }
 }

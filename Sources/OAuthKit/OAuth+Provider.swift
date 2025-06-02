@@ -103,8 +103,25 @@ extension OAuth {
                 if let scope {
                     queryItems.append(URLQueryItem(name: "scope", value: scope.joined(separator: " ")))
                 }
-            case .clientCredentials, .pkce:
+            case .clientCredentials:
                 fatalError("TODO: Not implemented")
+            case .pkce:
+
+                let pkce = PKCE()
+
+                guard let components = URLComponents(string: authorizationURL.absoluteString) else {
+                    return nil
+                }
+                urlComponents = components
+                queryItems.append(URLQueryItem(name: "client_id", value: clientID))
+                queryItems.append(URLQueryItem(name: "redirect_uri", value: redirectURI))
+                queryItems.append(URLQueryItem(name: "response_type", value: "code"))
+                queryItems.append(URLQueryItem(name: "state", value: pkce.state))
+                queryItems.append(URLQueryItem(name: "code_challenge", value: pkce.codeChallenge))
+                queryItems.append(URLQueryItem(name: "code_challenge_method", value: "S256"))
+                if let scope {
+                    queryItems.append(URLQueryItem(name: "scope", value: scope.joined(separator: " ")))
+                }
             case .refreshToken:
                 guard let refreshToken = token?.refreshToken, let components = URLComponents(string: authorizationURL.absoluteString) else {
                     return nil

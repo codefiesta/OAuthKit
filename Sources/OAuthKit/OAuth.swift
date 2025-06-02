@@ -111,7 +111,7 @@ public extension OAuth {
     /// - Parameter count: the byte count
     /// - Returns: a cryptographically secure random Base 64 URL encoded string
     static func secureRandom(count: Int = 32) -> String {
-        .secureRandom(count: count).base64URLDecoded
+        .secureRandom(count: count)
     }
 
     /// Starts the authorization process for the specified provider.

@@ -105,22 +105,22 @@ struct ContentView: View {
 By default, the easiest way to configure OAuthKit is to simply drop an `oauth.json` file into your main bundle and it will get automatically loaded into your swift application and available as an [Environment](https://developer.apple.com/documentation/swiftui/environment). You can find an example `oauth.json` file [here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json).
 
 ```swift
-    @Environment(\.oauth)
-    var oauth: OAuth
+@Environment(\.oauth)
+var oauth: OAuth
 ```
 
 If you want to customize your OAuth environment or are using modules in your application, you can also specify which bundle to load configure files from:
 
 ```swift
-    let oauth = OAuth(.module)
+let oauth = OAuth(.module)
 ```
 
 If you are building your OAuth Providers programatically (recommended for production applications via a CI build pipeline for security purposes), you can pass providers and options as well.
 
 ```swift
-    let providers: [OAuth.Provider] = ...
-    let options: [OAuth.Option: Sendable] = [.applicationTag: "com.bundle.identifier"]
-    let oauth: OAuth = OAuth(providers: providers, options: options)
+let providers: [OAuth.Provider] = ...
+let options: [OAuth.Option: Sendable] = [.applicationTag: "com.bundle.identifier"]
+let oauth: OAuth = OAuth(providers: providers, options: options)
 ```
 
 ## OAuthKit Authorization Flows
@@ -129,13 +129,13 @@ Starting OAuth 2.0 workflows is started by calling `oauth.authorize(provider: pr
 ### OAuth 2.0 Authorization Code Flow
 
 ```swift
-	/// Authorization Code is the default workflow with an auto generated state
-	oauth.authorize(provider: provider)
+/// Authorization Code is the default workflow with an auto generated state
+oauth.authorize(provider: provider)
 	
-	/// Or you can manually configure the Authorization Code state
-	let state: String = "ABC-XYZ"
-	let grantType: OAuth.GrantType = .authorizationCode(state)
-	oauth.authorize(provider: provider, grantType: grantType)
+/// Or you can manually configure the Authorization Code state
+let state: String = "ABC-XYZ"
+let grantType: OAuth.GrantType = .authorizationCode(state)
+oauth.authorize(provider: provider, grantType: grantType)
 ```
 
 ### OAuth 2.0 PKCE Flow
@@ -144,16 +144,16 @@ PKCE ([RFC 7636](https://www.rfc-editor.org/rfc/rfc7636)) is an extension to the
 Proof Key for Code Exchange (PKCE) is the recommended flow to use in OAuthKit as this technique involves the client first creating a secret on each authorization request, and then using that secret again when exchanging the authorization code for an access token. This way if the code is intercepted, it will not be useful since the token request relies on the initial secret.
 
 ```swift
-	let grantType: OAuth.GrantType = .pkce(.init())
-	oauth.authorize(provider: provider, grantType: grantType)
+let grantType: OAuth.GrantType = .pkce(.init())
+oauth.authorize(provider: provider, grantType: grantType)
 ```
 
 ### OAuth 2.0 Device Code Flow
 OAuthKit supports the [OAuth 2.0 Device Code Flow Grant](https://alexbilbie.github.io/2016/04/oauth-2-device-flow-grant/), which is used by apps that don't have access to a web browser (like tvOS). To leverage OAuthKit in tvOS apps, simply add the `deviceCodeURL` to your [OAuth.Provider](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth+Provider.swift).
 
 ```swift
-	let grantType: OAuth.GrantType = .deviceCode
-	oauth.authorize(provider: provider, grantType: grantType)
+let grantType: OAuth.GrantType = .deviceCode
+oauth.authorize(provider: provider, grantType: grantType)
 ```
 
 ![tvOS-screenshot](https://github.com/user-attachments/assets/14997164-f86a-4ee0-b6b7-8c0d9732c83e)
@@ -161,8 +161,8 @@ OAuthKit supports the [OAuth 2.0 Device Code Flow Grant](https://alexbilbie.gith
 
 ### OAuth 2.0 Client Credentials Flow
 ```swift
-	let grantType: OAuth.GrantType = .clientCredentials
-	oauth.authorize(provider: provider, grantType: grantType)
+let grantType: OAuth.GrantType = .clientCredentials
+oauth.authorize(provider: provider, grantType: grantType)
 ```
 
 

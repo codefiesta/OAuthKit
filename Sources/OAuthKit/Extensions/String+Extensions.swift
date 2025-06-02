@@ -10,6 +10,9 @@ import Foundation
 
 extension String {
 
+    /// Denotes an empty string.
+    static let empty = ""
+
     /// Returns the SHA-256 Digest for this string instance
     var sha256: SHA256.Digest {
         Data(self.utf8).sha256
@@ -63,7 +66,8 @@ extension String {
     /// Generates a cryptographically secure random Base 64 URL encoded string.
     /// - Parameter count: the byte count
     /// - Returns: a cryptographically secure random Base 64 URL encoded string
-    static func randomBase64URL(count: Int = 32) -> String {
-        Data.random(count: count).base64URLEncoded
+    static func secureRandom(count: Int = 32) -> String {
+        let data: Data = .secureRandom(count: count)
+        return data.sha256.base64URL
     }
 }

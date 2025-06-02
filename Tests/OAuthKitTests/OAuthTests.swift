@@ -40,7 +40,7 @@ final class OAuthTests {
     @Test("Building Authorization Request")
     func whenBuildingAuthorizationRequest() async throws {
         let provider = await oauth.providers[0]
-        let state = String.randomBase64URL(count: 16)
+        let state: String = .secureRandom(count: 16)
         let grantType: OAuth.GrantType = .authorizationCode(state)
         let request = provider.request(grantType: grantType)
         #expect(request != nil)
@@ -76,5 +76,15 @@ final class OAuthTests {
         #expect(request!.url!.absoluteString.contains("state=\(pkce.state)"))
         #expect(request!.url!.absoluteString.contains("code_challenge=\(pkce.codeChallenge)"))
         #expect(request!.url!.absoluteString.contains("code_challenge_method=\(pkce.codeChallengeMethod)"))
+    }
+
+    /// Tests to make sure the PKCE code verifier and challenge are correct.
+    /// See: https://www.oauth.com/playground/authorization-code-with-pkce.html
+    @Test("Generating PKCE Code Challenge")
+    func whenGeneratingPKCECodeChallenge() async throws {
+        let codeVerifier = "irYm7d4my6egZ-ea5jFnL9XM3CYshCdcbL3OlW0w7HMvcE5d"
+        let codeChallenge = codeVerifier.sha256.base64URL
+        let expectedResult = "W7BYCsNLCgzw-Kf5IZFjhwd-WdPZEhTNNJGQVgOq560"
+        #expect(codeChallenge == expectedResult)
     }
 }

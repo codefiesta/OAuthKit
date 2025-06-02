@@ -57,19 +57,20 @@ struct UtilityTests {
         #expect(result == expectedResult)
     }
 
-    /// Tests the random byte generation.
-    @Test("Random Byte Generation")
-    func whenGeneratingRandomBytes() async throws {
-        var random = Data.random()
+    /// Tests the secure random byte generation.
+    @Test("Secure Random Byte Generation")
+    func whenGeneratingSecureRandomData() async throws {
+        var random: Data = .secureRandom()
         #expect(random.count == 32)
-        random = Data.random(count: 64)
+        random = Data.secureRandom(count: 64)
         #expect(random.count == 64)
     }
 
     /// Tests the generation of random Base64 URL generation.
-    @Test("Random Base64 URL String Generation")
-    func whenGeneratingRandomBase64URL() async throws {
-        let random = String.randomBase64URL()
+    @Test("Secure Random String Generation")
+    func whenGeneratingSecureRandomString() async throws {
+        let random: String = .secureRandom()
+        debugPrint("✅", random)
         #expect(random.count >= 43)
     }
 }

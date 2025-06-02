@@ -35,9 +35,9 @@ extension OAuth {
 
         /// Initializer.
         public init() {
-            codeVerifier = String.randomBase64URL()
+            codeVerifier = .secureRandom()
             codeChallenge = codeVerifier.sha256.base64URL
-            state = String.randomBase64URL(count: 16)
+            state = .secureRandom(count: 16).base64URL
         }
     }
 }

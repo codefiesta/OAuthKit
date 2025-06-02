@@ -10,6 +10,11 @@ import Foundation
 
 extension Data {
 
+    /// Returns the data block as a raw byte array.
+    var bytes: [UInt8] {
+        [UInt8](self)
+    }
+
     /// Returns the SHA-256 Digest of this data block.
     var sha256: SHA256.Digest {
         SHA256.hash(data: self)
@@ -18,12 +23,6 @@ extension Data {
     /// Returns the SHA-512 Digest of this data block.
     var sha512: SHA512.Digest {
         SHA512.hash(data: self)
-    }
-
-    /// Calculates the SHA-256 hash of for this data block.
-    var sha256Hash: String {
-        let digest = SHA256.hash(data: self)
-        return digest.hex
     }
 
     /// Encodes the data as a Base64 URL encoded string.
@@ -47,7 +46,7 @@ extension Data {
     /// Generates secure random bytes for the specified byte counts.
     /// - Parameter count: The number of bytes to generate.
     /// - Returns: an array of cryptographically secure random bytes
-    static func random(count: Int = 32) -> Data {
+    static func secureRandom(count: Int = 32) -> Data {
         var bytes = [UInt8](repeating: 0, count: count)
         _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
         return Data(bytes: &bytes, count: bytes.count)

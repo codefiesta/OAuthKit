@@ -10,11 +10,6 @@ import Foundation
 
 extension Data {
 
-    /// Returns the data block as a raw byte array.
-    var bytes: [UInt8] {
-        [UInt8](self)
-    }
-
     /// Returns the SHA-256 Digest of this data block.
     var sha256: SHA256.Digest {
         SHA256.hash(data: self)

@@ -136,7 +136,8 @@ public extension OAuth {
     /// - Parameters:
     ///   - provider: the provider the access token is being requested from
     ///   - code: the code to exchange
-    func requestAccessToken(provider: Provider, code: String) {
+    ///   - pkce: the pkce data
+    func requestAccessToken(provider: Provider, code: String, pkce: PKCE? = nil) {
         Task {
             let result = await requestAccessToken(provider: provider, code: code)
             switch result {
@@ -266,15 +267,20 @@ fileprivate extension OAuth {
     /// - Parameters:
     ///   - provider: the provider
     ///   - code: the code to exchange
+    ///   - pkce: the PKCE data to pass along with the request
     /// - Returns: an url request for exchanging a code for an access token.
-    func buildAccessTokenRequest(provider: Provider, code: String) -> URLRequest? {
-        let queryItems: [URLQueryItem] = [
+    func buildAccessTokenRequest(provider: Provider, code: String, pkce: PKCE? = nil) -> URLRequest? {
+        var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "client_id", value: provider.clientID),
             URLQueryItem(name: "client_secret", value: provider.clientSecret),
             URLQueryItem(name: "code", value: code),
             URLQueryItem(name: "redirect_uri", value: provider.redirectURI),
             URLQueryItem(name: "grant_type", value: "authorization_code")
         ]
+
+        if let pkce {
+            queryItems.append(URLQueryItem(name: "code_verifier", value: pkce.codeVerifier))
+        }
 
         guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else { return nil }
         urlComponents.queryItems = queryItems
@@ -300,13 +306,14 @@ fileprivate extension OAuth {
     /// - Parameters:
     ///   - provider: the provider the access token is being requested from
     ///   - code: the code to exchange
+    ///   - pkce: the PKCE data to pass along with the request
     /// - Returns: the exchange result
     @discardableResult
-    func requestAccessToken(provider: Provider, code: String) async -> Result<Token, OAError> {
+    func requestAccessToken(provider: Provider, code: String, pkce: PKCE? = nil) async -> Result<Token, OAError> {
         // Publish the state
         publish(state: .requestingAccessToken(provider))
 
-        guard let request = buildAccessTokenRequest(provider: provider, code: code) else {
+        guard let request = buildAccessTokenRequest(provider: provider, code: code, pkce: pkce) else {
             publish(state: .empty)
             return .failure(.malformedURL)
         }

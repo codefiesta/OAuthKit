@@ -25,10 +25,10 @@ extension OAuth {
         /// See: https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
         let codeChallenge: String
 
-        /// The PKCE state code
+        /// The PKCE state code.
         let state: String
 
-        /// Returns the code challenge method
+        /// Returns the code challenge method.
         var codeChallengeMethod: String {
             defaultCodeChallengeMethod
         }

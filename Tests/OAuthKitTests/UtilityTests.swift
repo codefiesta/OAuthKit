@@ -66,11 +66,10 @@ struct UtilityTests {
         #expect(random.count == 64)
     }
 
-    /// Tests the generation of random Base64 URL generation.
+    /// Tests the generation of random string generation.
     @Test("Secure Random String Generation")
     func whenGeneratingSecureRandomString() async throws {
         let random: String = .secureRandom()
-        debugPrint("✅", random)
         #expect(random.count >= 43)
     }
 }

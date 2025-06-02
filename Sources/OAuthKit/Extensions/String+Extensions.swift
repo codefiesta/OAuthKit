@@ -10,9 +10,6 @@ import Foundation
 
 extension String {
 
-    /// Denotes an empty string.
-    static let empty = ""
-
     /// Returns the SHA-256 Digest for this string instance
     var sha256: SHA256.Digest {
         Data(self.utf8).sha256

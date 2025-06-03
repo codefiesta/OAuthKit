@@ -148,9 +148,13 @@ public extension OAuth {
             let result = await requestToken(provider: provider, code: code, pkce: pkce)
             switch result {
             case .success(let token):
-                debugPrint("✅ [Received token]", token)
+                if provider.debug {
+                    debugPrint("➡️ [Received token], [\(token)]")
+                }
             case .failure(let error):
-                debugPrint("💩 [Error requesting access token]", error)
+                if provider.debug {
+                    debugPrint("➡️ [Error requesting access token], [\(error)]")
+                }
             }
         }
     }
@@ -285,12 +289,16 @@ fileprivate extension OAuth {
             return .failure(.malformedURL)
         }
 
-        guard let (data, _) = try? await urlSession.data(for: request) else {
+        guard let (data, response) = try? await urlSession.data(for: request) else {
             publish(state: .empty)
             return .failure(.badResponse)
         }
 
-        debugPrint("⭐️ Raw access token response", String(data: data, encoding: .utf8) ?? "")
+        if provider.debug {
+            let statusCode = response.statusCode() ?? -1
+            let rawData = String(data: data, encoding: .utf8) ?? .empty
+            debugPrint("Status Code: [\(statusCode))] Data: [\(rawData)]")
+        }
 
         // Decode the token
         guard let token = try? decoder.decode(Token.self, from: data) else {
@@ -371,15 +379,17 @@ fileprivate extension OAuth {
     /// - Parameters:
     ///   - provider: the provider the device code is being requested from
     func requestClientCredentials(provider: Provider) async {
-        debugPrint("🚀")
         guard let request = Request.token(provider: provider) else { return }
         guard let (data, response) = try? await urlSession.data(for: request) else {
             publish(state: .empty)
             return
         }
 
-        debugPrint("⭐️", response)
-        debugPrint("⚠️", data.count)
+        if provider.debug {
+            let statusCode = response.statusCode() ?? -1
+            let rawData = String(data: data, encoding: .utf8) ?? .empty
+            debugPrint("Status Code: [\(statusCode))] Data: [\(rawData)]")
+        }
 
         // Decode the token
         guard let token = try? decoder.decode(Token.self, from: data) else {

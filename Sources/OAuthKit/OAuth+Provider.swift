@@ -38,6 +38,8 @@ extension OAuth {
         /// from initiating oauth workflows. Setting this value to a supported user agent string can allow for workarounds.
         /// Be very careful when setting this value as it can have unintended consquences of how servers respond to requests.
         var customUserAgent: String?
+        /// Enables provider debugging. Off by default.
+        var debug: Bool
 
         /// The coding keys.
         enum CodingKeys: String, CodingKey {
@@ -52,6 +54,7 @@ extension OAuth {
             case scope
             case encodeHttpBody
             case customUserAgent
+            case debug
         }
 
         /// Public initializer
@@ -67,6 +70,7 @@ extension OAuth {
         ///   - scope: The oauth scope
         ///   - encodeHttpBody: If the provider should encode the access token parameters into the http body (true by default)
         ///   - customUserAgent: The custom user agent to send with browser requests.
+        ///   - debug: Boolean to pass debugging into to the standard output (false by default)
         public init(id: String,
                     icon: URL? = nil,
                     authorizationURL: URL,
@@ -77,7 +81,8 @@ extension OAuth {
                     redirectURI: String? = nil,
                     scope: [String]? = nil,
                     encodeHttpBody: Bool = true,
-                    customUserAgent: String? = nil) {
+                    customUserAgent: String? = nil,
+                    debug: Bool = false) {
             self.id = id
             self.icon = icon
             self.authorizationURL = authorizationURL
@@ -89,6 +94,7 @@ extension OAuth {
             self.scope = scope
             self.encodeHttpBody = encodeHttpBody
             self.customUserAgent = customUserAgent
+            self.debug = debug
         }
 
         /// Custom decoder initializer.
@@ -107,6 +113,7 @@ extension OAuth {
             scope = try container.decodeIfPresent([String].self, forKey: .scope)
             encodeHttpBody = try container.decodeIfPresent(Bool.self, forKey: .encodeHttpBody) ?? true
             customUserAgent = try container.decodeIfPresent(String.self, forKey: .customUserAgent)
+            debug = try container.decodeIfPresent(Bool.self, forKey: .debug) ?? false
         }
     }
 }

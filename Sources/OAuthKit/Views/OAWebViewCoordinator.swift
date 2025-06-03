@@ -50,7 +50,9 @@ public class OAWebViewCoordinator: NSObject {
                 return
             }
 
-            debugPrint("⭐️ [AuthorizationCode], [\(url.absoluteString)], [\(code)]")
+            if provider.debug {
+                debugPrint("➡️ [AuthorizationCode], [\(url.absoluteString)], [\(code)]")
+            }
             // Exchange the code for a token
             oauth.token(provider: provider, code: code)
         case .clientCredentials:
@@ -63,7 +65,9 @@ public class OAWebViewCoordinator: NSObject {
                 debugPrint("⚠️ State mismatch, expected [\(pkce.state)], received [\(state)]")
                 return
             }
-            debugPrint("⭐️ [PKCE], [\(url.absoluteString)], [\(code)]")
+            if provider.debug {
+                debugPrint("➡️ [PKCE], [\(url.absoluteString)], [\(code)]")
+            }
             // Exchange the code for a token along with the pkce validation data
             oauth.token(provider: provider, code: code, pkce: pkce)
         case .refreshToken:

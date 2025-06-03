@@ -208,7 +208,7 @@ extension OAuth {
                 }
             case .clientCredentials:
                 queryItems.append(URLQueryItem(key: .clientID, value: provider.clientID))
-                queryItems.append(URLQueryItem(key: .redirectUri, value: provider.redirectURI))
+                queryItems.append(URLQueryItem(key: .clientSecret, value: provider.clientSecret))
                 queryItems.append(URLQueryItem(key: .grantType, value: grantType.rawValue))
                 if let scope = provider.scope {
                     queryItems.append(URLQueryItem(key: .scope, value: scope.joined(separator: " ")))

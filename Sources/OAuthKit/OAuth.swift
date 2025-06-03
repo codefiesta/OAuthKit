@@ -128,7 +128,7 @@ public extension OAuth {
             Task {
                 await requestDeviceCode(provider: provider)
             }
-            case .clientCredentials:
+        case .clientCredentials:
             Task {
                 await requestClientCredentials(provider: provider)
             }
@@ -360,9 +360,15 @@ fileprivate extension OAuth {
         publish(state: .requestingDeviceCode(provider))
 
         guard let request = Request.device(provider: provider) else { return }
-        guard let (data, _) = try? await urlSession.data(for: request) else {
+        guard let (data, response) = try? await urlSession.data(for: request) else {
             publish(state: .empty)
             return
+        }
+
+        if provider.debug {
+            let statusCode = response.statusCode() ?? -1
+            let rawData = String(data: data, encoding: .utf8) ?? .empty
+            debugPrint("Status Code: [\(statusCode))] Data: [\(rawData)]")
         }
 
         // Decode the device code

@@ -406,31 +406,6 @@ fileprivate extension OAuth {
             return
         }
 
-//        guard !deviceCode.isExpired, var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
-//            publish(state: .empty)
-//            return
-//        }
-
-
-//        var queryItems: [URLQueryItem] = [
-//            URLQueryItem(key: .clientID, value: provider.clientID),
-//            URLQueryItem(key: .grantType, value: DeviceCode.grantType),
-//            URLQueryItem(key: .deviceCode, value: deviceCode.deviceCode)
-//        ]
-
-//        var queryItems = [URLQueryItem]()
-//        queryItems.append(URLQueryItem(name: "client_id", value: provider.clientID))
-//        queryItems.append(URLQueryItem(name: "client_secret", value: provider.clientSecret))
-//        queryItems.append(URLQueryItem(name: "grant_type", value: DeviceCode.grantType))
-//        queryItems.append(URLQueryItem(name: "device_code", value: deviceCode.deviceCode))
-//        urlComponents.queryItems = queryItems
-//        guard let url = urlComponents.url else {
-//            publish(state: .empty)
-//            return
-//        }
-//        var request = URLRequest(url: url)
-//        request.httpMethod = "POST"
-//        request.setValue("application/json", forHTTPHeaderField: "Accept")
         guard let (data, response) = try? await urlSession.data(for: request) else {
             publish(state: .empty)
             return

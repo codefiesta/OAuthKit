@@ -11,15 +11,10 @@ private let authHeader = "Authorization"
 
 public extension URLRequest {
 
-    /// Attempts to set the authorization header using the access token.
-    /// - Parameter oath: the oauth holder
+    /// Attempts to set the authorization header using the auth token.
+    /// - Parameter oath: the oauth authorization
     @MainActor
-    mutating func addAuthorization(oath: OAuth) {
-        switch oath.state {
-        case .authorized(_, let auth):
-            addValue("\(auth.token.type) \(auth.token.accessToken)", forHTTPHeaderField: authHeader)
-        case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
-            debugPrint("⚠️ [OAuth is not authorized]")
-        }
+    mutating func addAuthorization(authorization: OAuth.Authorization) {
+        addValue("\(authorization.token.type) \(authorization.token.accessToken)", forHTTPHeaderField: authHeader)
     }
 }

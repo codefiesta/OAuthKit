@@ -42,6 +42,11 @@ struct UtilityTests {
         let result = rawString.sha256.hex
         let expectedResult = "554b0a051b6488645455eac6ddaf0978be24494bf037b1692daa9e330257ea3a"
         #expect(result == expectedResult)
+
+        let uuid = UUID()
+        let uuidHex = uuid.sha256.hex
+        let expectedUUIDHex = uuid.uuidString.sha256.hex
+        #expect(uuidHex == expectedUUIDHex)
     }
 
     /// Tests the SHA-256 Base64 string output.

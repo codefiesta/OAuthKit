@@ -40,7 +40,8 @@ extension OAuth {
 
         /// An authorization has been granted.
         /// - Parameters:
+        ///   - Provider: the oauth provider
         ///   - Authorization: the oauth authorization
-        case authorized(Authorization)
+        case authorized(Provider, Authorization)
     }
 }

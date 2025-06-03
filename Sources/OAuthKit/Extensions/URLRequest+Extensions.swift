@@ -7,7 +7,6 @@
 
 import Foundation
 
-private let bearer = "Bearer"
 private let authHeader = "Authorization"
 
 public extension URLRequest {
@@ -17,8 +16,8 @@ public extension URLRequest {
     @MainActor
     mutating func addAuthorization(oath: OAuth) {
         switch oath.state {
-        case .authorized(let auth):
-            addValue("\(bearer) \(auth.token.accessToken)", forHTTPHeaderField: authHeader)
+        case .authorized(_, let auth):
+            addValue("\(auth.token.type) \(auth.token.accessToken)", forHTTPHeaderField: authHeader)
         case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
             debugPrint("⚠️ [OAuth is not authorized]")
         }

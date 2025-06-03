@@ -54,6 +54,43 @@ extension OAuth {
             case customUserAgent
         }
 
+        /// Public initializer
+        /// - Parameters:
+        ///   - id: The provider unique id
+        ///   - icon: The provider icon
+        ///   - authorizationURL: The provider authorization url.
+        ///   - accessTokenURL: The provider access token url.
+        ///   - deviceCodeURL: The provider device code url.
+        ///   - clientID: The client id
+        ///   - clientSecret: The client secret
+        ///   - redirectURI: The redirect uri
+        ///   - scope: The oauth scope
+        ///   - encodeHttpBody: If the provider should encode the access token parameters into the http body (true by default)
+        ///   - customUserAgent: The custom user agent to send with browser requests.
+        public init(id: String,
+                    icon: URL? = nil,
+                    authorizationURL: URL,
+                    accessTokenURL: URL,
+                    deviceCodeURL: URL? = nil,
+                    clientID: String,
+                    clientSecret: String,
+                    redirectURI: String? = nil,
+                    scope: [String]? = nil,
+                    encodeHttpBody: Bool = true,
+                    customUserAgent: String? = nil) {
+            self.id = id
+            self.icon = icon
+            self.authorizationURL = authorizationURL
+            self.accessTokenURL = accessTokenURL
+            self.deviceCodeURL = deviceCodeURL
+            self.clientID = clientID
+            self.clientSecret = clientSecret
+            self.redirectURI = redirectURI
+            self.scope = scope
+            self.encodeHttpBody = encodeHttpBody
+            self.customUserAgent = customUserAgent
+        }
+
         /// Custom decoder initializer.
         /// - Parameters:
         ///   - decoder: the decoder to use
@@ -70,68 +107,6 @@ extension OAuth {
             scope = try container.decodeIfPresent([String].self, forKey: .scope)
             encodeHttpBody = try container.decodeIfPresent(Bool.self, forKey: .encodeHttpBody) ?? true
             customUserAgent = try container.decodeIfPresent(String.self, forKey: .customUserAgent)
-        }
-
-        /// Builds an url request for the specified grant type.
-        /// - Parameters:
-        ///   - grantType: the grant type to build a request for
-        ///   - token: the current access token
-        /// - Returns: an url request or nil
-        public func request(grantType: GrantType, token: Token? = nil) -> URLRequest? {
-
-            var urlComponents = URLComponents()
-            var queryItems = [URLQueryItem]()
-
-            switch grantType {
-            case .authorizationCode(let state):
-                guard let components = URLComponents(string: authorizationURL.absoluteString) else {
-                    return nil
-                }
-                urlComponents = components
-                queryItems.append(URLQueryItem(name: "client_id", value: clientID))
-                queryItems.append(URLQueryItem(name: "redirect_uri", value: redirectURI))
-                queryItems.append(URLQueryItem(name: "response_type", value: "code"))
-                queryItems.append(URLQueryItem(name: "state", value: state))
-                if let scope {
-                    queryItems.append(URLQueryItem(name: "scope", value: scope.joined(separator: " ")))
-                }
-            case .deviceCode:
-                guard let deviceCodeURL, let components = URLComponents(string: deviceCodeURL.absoluteString) else {
-                    return nil
-                }
-                urlComponents = components
-                queryItems.append(URLQueryItem(name: "client_id", value: clientID))
-                if let scope {
-                    queryItems.append(URLQueryItem(name: "scope", value: scope.joined(separator: " ")))
-                }
-            case .clientCredentials:
-                fatalError("TODO: Not implemented")
-            case .pkce(let pkce):
-                guard let components = URLComponents(string: authorizationURL.absoluteString) else {
-                    return nil
-                }
-                urlComponents = components
-                queryItems.append(URLQueryItem(name: "client_id", value: clientID))
-                queryItems.append(URLQueryItem(name: "redirect_uri", value: redirectURI))
-                queryItems.append(URLQueryItem(name: "response_type", value: "code"))
-                queryItems.append(URLQueryItem(name: "state", value: pkce.state))
-                queryItems.append(URLQueryItem(name: "code_challenge", value: pkce.codeChallenge))
-                queryItems.append(URLQueryItem(name: "code_challenge_method", value: pkce.codeChallengeMethod))
-                if let scope {
-                    queryItems.append(URLQueryItem(name: "scope", value: scope.joined(separator: " ")))
-                }
-            case .refreshToken:
-                guard let refreshToken = token?.refreshToken, let components = URLComponents(string: authorizationURL.absoluteString) else {
-                    return nil
-                }
-                urlComponents = components
-                queryItems.append(URLQueryItem(name: "client_id", value: clientID))
-                queryItems.append(URLQueryItem(name: "grant_type", value: grantType.rawValue))
-                queryItems.append(URLQueryItem(name: "refresh_token", value: refreshToken))
-            }
-            urlComponents.queryItems = queryItems
-            guard let url = urlComponents.url else { return nil }
-            return URLRequest(url: url)
         }
     }
 }

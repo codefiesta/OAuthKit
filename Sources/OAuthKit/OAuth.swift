@@ -128,7 +128,11 @@ public extension OAuth {
             Task {
                 await requestDeviceCode(provider: provider)
             }
-        case .clientCredentials, .refreshToken:
+            case .clientCredentials:
+            Task {
+                await requestClientCredentials(provider: provider)
+            }
+        case .refreshToken:
             break
         }
     }
@@ -139,9 +143,9 @@ public extension OAuth {
     ///   - provider: the provider the access token is being requested from
     ///   - code: the code to exchange
     ///   - pkce: the pkce data
-    func requestAccessToken(provider: Provider, code: String, pkce: PKCE? = nil) {
+    func token(provider: Provider, code: String, pkce: PKCE? = nil) {
         Task {
-            let result = await requestAccessToken(provider: provider, code: code, pkce: pkce)
+            let result = await requestToken(provider: provider, code: code, pkce: pkce)
             switch result {
             case .success(let token):
                 debugPrint("✅ [Received token]", token)
@@ -237,6 +241,8 @@ private extension OAuth {
     /// Schedules refresh tasks for the specified authorization.
     /// - Parameter auth: the authentication to schedule a future tasks for
     func schedule(auth: Authorization) {
+        guard let _ = auth.token.refreshToken else { return }
+
         if let options, let autoRefresh = options[.autoRefresh] as? Bool, autoRefresh {
             if let expiration = auth.expiration {
                 let timeInterval = expiration - Date.now
@@ -262,47 +268,6 @@ private extension OAuth {
 
 fileprivate extension OAuth {
 
-    /// Builds the access token request. This method will either encode the query items into the
-    /// http body (using application/x-www-form-urlencoded) or simply send the query item parameters with the request
-    /// based on how the provider is implemented. If you are seeing errors when fetching access tokens from a provider, it may be necessary to
-    /// set the `encodeHttpBody` parameter to false as server implementations vary across providers.
-    /// - Parameters:
-    ///   - provider: the provider
-    ///   - code: the code to exchange
-    ///   - pkce: the PKCE data to pass along with the request
-    /// - Returns: an url request for exchanging a code for an access token.
-    func buildAccessTokenRequest(provider: Provider, code: String, pkce: PKCE? = nil) -> URLRequest? {
-        var queryItems: [URLQueryItem] = [
-            URLQueryItem(name: "client_id", value: provider.clientID),
-            URLQueryItem(name: "client_secret", value: provider.clientSecret),
-            URLQueryItem(name: "code", value: code),
-            URLQueryItem(name: "redirect_uri", value: provider.redirectURI),
-            URLQueryItem(name: "grant_type", value: "authorization_code")
-        ]
-
-        if let pkce {
-            queryItems.append(URLQueryItem(name: "code_verifier", value: pkce.codeVerifier))
-        }
-
-        guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else { return nil }
-        urlComponents.queryItems = queryItems
-        guard var url = urlComponents.url else { return nil }
-
-        // If we're encoding the http body, rebuild the url without the query items
-        if provider.encodeHttpBody {
-            urlComponents = URLComponents()
-            urlComponents.queryItems = queryItems
-            url = provider.accessTokenURL
-        }
-
-        var request = URLRequest(url: url)
-        request.httpBody = provider.encodeHttpBody ? urlComponents.query?.data(using: .utf8) : nil
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-
-        return request
-    }
-
     /// Requests to exchange a code for an access token.
     /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.3
     /// - Parameters:
@@ -311,14 +276,15 @@ fileprivate extension OAuth {
     ///   - pkce: the PKCE data to pass along with the request
     /// - Returns: the exchange result
     @discardableResult
-    func requestAccessToken(provider: Provider, code: String, pkce: PKCE? = nil) async -> Result<Token, OAError> {
+    func requestToken(provider: Provider, code: String, pkce: PKCE? = nil) async -> Result<Token, OAError> {
         // Publish the state
         publish(state: .requestingAccessToken(provider))
 
-        guard let request = buildAccessTokenRequest(provider: provider, code: code, pkce: pkce) else {
+        guard let request = Request.token(provider: provider, code: code, pkce: pkce) else {
             publish(state: .empty)
             return .failure(.malformedURL)
         }
+
         guard let (data, _) = try? await urlSession.data(for: request) else {
             publish(state: .empty)
             return .failure(.badResponse)
@@ -355,13 +321,11 @@ fileprivate extension OAuth {
             }
 
             // If we can't build a refresh request and the token is expired, simply clear the token and state
-            guard var request = provider.request(grantType: .refreshToken, token: auth.token) else {
+            guard let request = Request.refresh(provider: provider, token: auth.token) else {
                 if auth.isExpired { clear() }
                 return
             }
 
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Accept")
             guard let (data, _) = try? await urlSession.data(for: request) else {
                 return publish(state: .empty)
             }
@@ -386,10 +350,8 @@ fileprivate extension OAuth {
     func requestDeviceCode(provider: Provider) async {
         // Publish the state
         publish(state: .requestingDeviceCode(provider))
-        guard var request = provider.request(grantType: .deviceCode) else { return }
 
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        guard let request = Request.device(provider: provider) else { return }
         guard let (data, _) = try? await urlSession.data(for: request) else {
             publish(state: .empty)
             return
@@ -405,6 +367,33 @@ fileprivate extension OAuth {
         publish(state: .receivedDeviceCode(provider, deviceCode))
     }
 
+    /// Makes a client credentials request grant request from the specified provider.
+    /// - Parameters:
+    ///   - provider: the provider the device code is being requested from
+    func requestClientCredentials(provider: Provider) async {
+        debugPrint("🚀")
+        guard let request = Request.token(provider: provider) else { return }
+        guard let (data, response) = try? await urlSession.data(for: request) else {
+            publish(state: .empty)
+            return
+        }
+
+        debugPrint("⭐️", response)
+        debugPrint("⚠️", data.count)
+
+        // Decode the token
+        guard let token = try? decoder.decode(Token.self, from: data) else {
+            return publish(state: .empty)
+        }
+
+        // Store the authorization
+        let authorization = Authorization(issuer: provider.id, token: token)
+        guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
+            return publish(state: .empty)
+        }
+        publish(state: .authorized(authorization))
+    }
+
     /// Polls the oauth provider's access token endpoint until the device code has expired or we've successfully received an auth token.
     /// See: https://oauth.net/2/grant-types/device-code/
     /// - Parameters:
@@ -412,24 +401,36 @@ fileprivate extension OAuth {
     ///   - deviceCode: the device code to use
     func poll(provider: Provider, deviceCode: DeviceCode) async {
 
-        guard !deviceCode.isExpired, var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
+        guard !deviceCode.isExpired, let request = Request.token(provider: provider, deviceCode: deviceCode) else {
             publish(state: .empty)
             return
         }
 
-        var queryItems = [URLQueryItem]()
-        queryItems.append(URLQueryItem(name: "client_id", value: provider.clientID))
-        queryItems.append(URLQueryItem(name: "client_secret", value: provider.clientSecret))
-        queryItems.append(URLQueryItem(name: "grant_type", value: DeviceCode.grantType))
-        queryItems.append(URLQueryItem(name: "device_code", value: deviceCode.deviceCode))
-        urlComponents.queryItems = queryItems
-        guard let url = urlComponents.url else {
-            publish(state: .empty)
-            return
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
+//        guard !deviceCode.isExpired, var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
+//            publish(state: .empty)
+//            return
+//        }
+
+
+//        var queryItems: [URLQueryItem] = [
+//            URLQueryItem(key: .clientID, value: provider.clientID),
+//            URLQueryItem(key: .grantType, value: DeviceCode.grantType),
+//            URLQueryItem(key: .deviceCode, value: deviceCode.deviceCode)
+//        ]
+
+//        var queryItems = [URLQueryItem]()
+//        queryItems.append(URLQueryItem(name: "client_id", value: provider.clientID))
+//        queryItems.append(URLQueryItem(name: "client_secret", value: provider.clientSecret))
+//        queryItems.append(URLQueryItem(name: "grant_type", value: DeviceCode.grantType))
+//        queryItems.append(URLQueryItem(name: "device_code", value: deviceCode.deviceCode))
+//        urlComponents.queryItems = queryItems
+//        guard let url = urlComponents.url else {
+//            publish(state: .empty)
+//            return
+//        }
+//        var request = URLRequest(url: url)
+//        request.httpMethod = "POST"
+//        request.setValue("application/json", forHTTPHeaderField: "Accept")
         guard let (data, response) = try? await urlSession.data(for: request) else {
             publish(state: .empty)
             return

@@ -35,7 +35,7 @@ struct CodableTests {
     @Test("Encoding and Decoding Tokens")
     func whenEncodingDecodingTokens() async throws {
 
-        let token: OAuth.Token = .init(accessToken: UUID().uuidString, refreshToken: UUID().uuidString, expiresIn: 3600, state: "xyz", type: "bearer")
+        let token: OAuth.Token = .init(accessToken: UUID().uuidString, refreshToken: UUID().uuidString, expiresIn: 3600, scope: "openid", type: "bearer")
 
         let data = try encoder.encode(token)
         let decoded: OAuth.Token = try decoder.decode(OAuth.Token.self, from: data)

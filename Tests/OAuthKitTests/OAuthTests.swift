@@ -54,7 +54,7 @@ final class OAuthTests {
     @Test("Building Refresh Token Request")
     func whenBuildingRefreshTokenRequest() async throws {
         let provider = await oauth.providers[0]
-        let token: OAuth.Token = .init(accessToken: UUID().uuidString, refreshToken: UUID().uuidString, expiresIn: 3600, state: nil, type: "bearer")
+        let token: OAuth.Token = .init(accessToken: UUID().uuidString, refreshToken: UUID().uuidString, expiresIn: 3600, scope: nil, type: "bearer")
         let request = OAuth.Request.refresh(provider: provider, token: token)
         #expect(request != nil)
         #expect(request!.url!.absoluteString.contains("client_id="))

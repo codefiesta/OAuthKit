@@ -12,9 +12,9 @@ private let authHeader = "Authorization"
 public extension URLRequest {
 
     /// Attempts to set the authorization header using the auth token.
-    /// - Parameter oath: the oauth authorization
+    /// - Parameter auth: the oauth authorization
     @MainActor
-    mutating func addAuthorization(authorization: OAuth.Authorization) {
-        addValue("\(authorization.token.type) \(authorization.token.accessToken)", forHTTPHeaderField: authHeader)
+    mutating func addAuthorization(auth: OAuth.Authorization) {
+        addValue("\(auth.token.type) \(auth.token.accessToken)", forHTTPHeaderField: authHeader)
     }
 }

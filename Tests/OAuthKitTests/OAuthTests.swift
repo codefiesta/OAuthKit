@@ -189,7 +189,7 @@ final class OAuthTests {
         let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
         #expect(auth.expiration != nil)
         #expect(auth.isExpired == false)
-        urlRequest.addAuthorization(authorization: auth)
+        urlRequest.addAuthorization(auth: auth)
 
         let header = urlRequest.value(forHTTPHeaderField: "Authorization")
         #expect(header != nil)

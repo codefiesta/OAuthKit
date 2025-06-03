@@ -124,7 +124,13 @@ let oauth: OAuth = OAuth(providers: providers, options: options)
 ```
 
 ## OAuthKit Authorization Flows
-Starting OAuth 2.0 workflows is started by calling `oauth.authorize(provider: provider, grantType: grantType)`. A good resource to help understand the OAuth workflows and show each step of the process of obtaining an access token can be found on the [OAuth 2.0 Playground](https://www.oauth.com/playground/index.html).
+OAuth 2.0 workflows are started by calling the following:
+
+```swift
+oauth.authorize(provider: provider, grantType: grantType)
+``` 
+
+A good resource to help understand the detailed steps involved in OAuth 2.0 workflows can be found on the [OAuth 2.0 Playground](https://www.oauth.com/playground/index.html).
 
 ### OAuth 2.0 Authorization Code Flow
 
@@ -160,6 +166,9 @@ oauth.authorize(provider: provider, grantType: grantType)
 
 
 ### OAuth 2.0 Client Credentials Flow
+
+The OAuth 2.0 Client Credentials flow is a mechanism where a client application authenticates itself to an authorization server using its own credentials rather than a user's credentials. This flow is primarily used in server-to-server communication, where a service or application needs to access a protected resource without involving a user.
+
 ```swift
 let grantType: OAuth.GrantType = .clientCredentials
 oauth.authorize(provider: provider, grantType: grantType)

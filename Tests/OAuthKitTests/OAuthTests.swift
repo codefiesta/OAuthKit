@@ -54,7 +54,7 @@ final class OAuthTests {
     @Test("Building Refresh Token Request")
     func whenBuildingRefreshTokenRequest() async throws {
         let provider = await oauth.providers[0]
-        let token: OAuth.Token = .init(accessToken: UUID().uuidString, refreshToken: UUID().uuidString, expiresIn: 3600, scope: nil, type: "bearer")
+        let token: OAuth.Token = .init(accessToken: UUID().uuidString, refreshToken: UUID().uuidString, expiresIn: 3600, scope: nil, type: "Bearer")
         let request = OAuth.Request.refresh(provider: provider, token: token)
         #expect(request != nil)
         #expect(request!.url!.absoluteString.contains("client_id="))
@@ -87,4 +87,40 @@ final class OAuthTests {
         let expectedResult = "W7BYCsNLCgzw-Kf5IZFjhwd-WdPZEhTNNJGQVgOq560"
         #expect(codeChallenge == expectedResult)
     }
+
+    /// Tests to make sure the grant type raw values are frozen and haven't been changed during development.
+    @Test("Grant Type Raw Value Checking")
+    func whenCheckingGrantType() async throws {
+        var grantType: OAuth.GrantType = .authorizationCode(.empty)
+        #expect(grantType.rawValue == "authorization_code")
+        grantType = .clientCredentials
+        #expect(grantType.rawValue == "client_credentials")
+        grantType = .deviceCode
+        #expect(grantType.rawValue == "device_code")
+        grantType = .pkce(.init())
+        #expect(grantType.rawValue == "pkce")
+        grantType = .refreshToken
+        #expect(grantType.rawValue == "refresh_token")
+    }
+
+    /// Tests the adding of 
+    @Test("Adding Authorization Header to URLRequest")
+    @MainActor
+    func whenAddingAuthHeader() async throws {
+        let provider = oauth.providers[0]
+        let string = "https://github.com/codefiesta/OAuthKit"
+        let url = URL(string: string)
+        var urlRequest = URLRequest(url: url!)
+
+        let token: OAuth.Token = .init(accessToken: UUID().uuidString, refreshToken: nil, expiresIn: 3600, scope: nil, type: "Bearer")
+        let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
+
+        oauth.state = .authorized(provider, auth)
+        urlRequest.addAuthorization(oath: oauth)
+
+        let header = urlRequest.value(forHTTPHeaderField: "Authorization")
+        #expect(header != nil)
+        #expect(header == "\(token.type) \(token.accessToken)")
+    }
+
 }

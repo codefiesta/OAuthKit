@@ -42,7 +42,6 @@ extension OAuth {
         ///   - grantType: the grant type
         /// - Returns: an `/authorization` url request
         static func auth(provider: Provider, grantType: GrantType) -> URLRequest? {
-
             guard var urlComponents = URLComponents(string: provider.authorizationURL.absoluteString) else {
                 return nil
             }
@@ -82,11 +81,9 @@ extension OAuth {
         ///   - pkce: the pkce data
         /// - Returns: a `/token` url request
         static func token(provider: Provider, code: String, pkce: PKCE? = nil) -> URLRequest? {
-
             guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
                 return nil
             }
-
             let queryItems = buildQueryItems(provider: provider, code: code, pkce: pkce)
             urlComponents.queryItems = queryItems
 
@@ -228,9 +225,7 @@ extension OAuth {
         ///   - token: the token to refresh
         /// - Returns: the `/token` url query items
         private static func buildQueryItems(provider: Provider, token: Token) -> [URLQueryItem]? {
-
             var queryItems = [URLQueryItem]()
-
             guard let refreshToken = token.refreshToken else { return nil }
             queryItems.append(URLQueryItem(key: .clientID, value: provider.clientID))
             queryItems.append(URLQueryItem(key: .grantType, value: GrantType.refreshToken.rawValue))

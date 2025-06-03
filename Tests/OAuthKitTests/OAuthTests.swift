@@ -42,7 +42,7 @@ final class OAuthTests {
         let provider = await oauth.providers[0]
         let state: String = .secureRandom(count: 16)
         let grantType: OAuth.GrantType = .authorizationCode(state)
-        let request = provider.request(grantType: grantType)
+        let request = OAuth.Request.auth(provider: provider, grantType: grantType)
         #expect(request != nil)
         #expect(request!.url!.absoluteString.contains("client_id="))
         #expect(request!.url!.absoluteString.contains("redirect_uri=\(provider.redirectURI!)"))
@@ -55,7 +55,7 @@ final class OAuthTests {
     func whenBuildingRefreshTokenRequest() async throws {
         let provider = await oauth.providers[0]
         let token: OAuth.Token = .init(accessToken: UUID().uuidString, refreshToken: UUID().uuidString, expiresIn: 3600, state: nil, type: "bearer")
-        let request = provider.request(grantType: .refreshToken, token: token)
+        let request = OAuth.Request.refresh(provider: provider, token: token)
         #expect(request != nil)
         #expect(request!.url!.absoluteString.contains("client_id="))
         #expect(request!.url!.absoluteString.contains("grant_type=refresh_token"))
@@ -68,7 +68,7 @@ final class OAuthTests {
         let provider = await oauth.providers[0]
         let pkce: OAuth.PKCE = .init()
         let grantType: OAuth.GrantType = .pkce(pkce)
-        let request = provider.request(grantType: grantType)
+        let request = OAuth.Request.auth(provider: provider, grantType: grantType)
         #expect(request != nil)
         #expect(request!.url!.absoluteString.contains("client_id="))
         #expect(request!.url!.absoluteString.contains("redirect_uri=\(provider.redirectURI!)"))

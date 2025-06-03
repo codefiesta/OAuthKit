@@ -15,6 +15,23 @@ struct CodableTests {
     private let encoder: JSONEncoder = .init()
     private let decoder: JSONDecoder = .init()
 
+    @Test("Encoding and Decoding Providers")
+    func whenEncodingDecodingProviders() async throws {
+
+        let provider: OAuth.Provider = .init(id: "GitHub",
+                                             authorizationURL: URL(string: "https://github.com/login/oauth/authorize")!,
+                                             accessTokenURL: URL(string: "https://github.com/login/oauth/access_token")!,
+                                             clientID: "CLIENT_ID",
+                                             clientSecret: "CLIENT_SECRET",
+                                             scope: ["email"],
+                                             customUserAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Safari/605.1.15",
+                                             debug: true)
+
+        let data = try encoder.encode(provider)
+        let decoded: OAuth.Provider = try decoder.decode(OAuth.Provider.self, from: data)
+        #expect(provider == decoded)
+    }
+
     @Test("Encoding and Decoding Tokens")
     func whenEncodingDecodingTokens() async throws {
 

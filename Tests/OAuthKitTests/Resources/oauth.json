@@ -10,7 +10,8 @@
         "scope": [
             "user",
             "repo"
-        ]
+        ],
+        "debug": true
     },
     {
         "id": "Google",

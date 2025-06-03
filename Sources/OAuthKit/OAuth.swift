@@ -133,7 +133,9 @@ public extension OAuth {
                 await requestClientCredentials(provider: provider)
             }
         case .refreshToken:
-            break
+            Task {
+                await refreshToken(provider: provider)
+            }
         }
     }
 
@@ -202,7 +204,7 @@ private extension OAuth {
     func restore() async {
         for provider in providers {
             if let authorization: OAuth.Authorization = try? keychain.get(key: provider.id), !authorization.isExpired {
-                publish(state: .authorized(authorization))
+                publish(state: .authorized(provider, authorization))
             }
         }
     }
@@ -219,8 +221,8 @@ private extension OAuth {
     /// - Parameter state: the new state information to publish out on the main thread.
     func publish(state: State) {
         switch state {
-        case .authorized(let auth):
-            schedule(auth: auth)
+        case .authorized(let provider, let auth):
+            schedule(provider: provider, auth: auth)
         case .receivedDeviceCode(let provider, let deviceCode):
             schedule(provider: provider, deviceCode: deviceCode)
         case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode:
@@ -243,24 +245,27 @@ private extension OAuth {
     }
 
     /// Schedules refresh tasks for the specified authorization.
-    /// - Parameter auth: the authentication to schedule a future tasks for
-    func schedule(auth: Authorization) {
+    /// - Parameters:
+    ///   - provider: the oauth provider
+    ///   - auth: the authentication to schedule a future tasks for
+    func schedule(provider: Provider, auth: Authorization) {
+        // Don't bother scheduling a task for tokens that can't refresh
         guard let _ = auth.token.refreshToken else { return }
 
-        if let options, let autoRefresh = options[.autoRefresh] as? Bool, autoRefresh {
+        if let options, let autoRefreshEnabled = options[.autoRefresh] as? Bool, autoRefreshEnabled {
             if let expiration = auth.expiration {
                 let timeInterval = expiration - Date.now
                 if timeInterval > 0 {
-                    // Schedule the refresh task
+                    // Schedule the auto refresh task
                     let task = Task.delayed(timeInterval: timeInterval) { [weak self] in
                         guard let self else { return }
-                        await self.refresh()
+                        await self.refreshToken(provider: provider)
                     }
                     tasks.append(task)
                 } else {
                     // Execute the task immediately
                     Task {
-                        await refresh()
+                        await refreshToken(provider: provider)
                     }
                 }
             }
@@ -297,7 +302,7 @@ fileprivate extension OAuth {
         if provider.debug {
             let statusCode = response.statusCode() ?? -1
             let rawData = String(data: data, encoding: .utf8) ?? .empty
-            debugPrint("Status Code: [\(statusCode))] Data: [\(rawData)]")
+            debugPrint("Response: [\(statusCode))]", "Data: [\(rawData)]")
         }
 
         // Decode the token
@@ -313,43 +318,47 @@ fileprivate extension OAuth {
             return .failure(.keychain)
         }
 
-        publish(state: .authorized(authorization))
+        publish(state: .authorized(provider, authorization))
         return .success(token)
     }
 
-    /// Attempts to refresh the current access token.
+    /// Refreshes the token for the specified provider.
     /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-6
-    func refresh() async {
-        switch state {
-        case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
+    /// - Parameters:
+    ///   - provider: the provider to request a refresh token for
+    func refreshToken(provider: Provider) async {
+        guard let auth: OAuth.Authorization = try? keychain.get(key: provider.id) else {
             return
-        case .authorized(let auth):
-            guard let provider = providers.filter({ $0.id == auth.issuer }).first else {
-                return
-            }
-
-            // If we can't build a refresh request and the token is expired, simply clear the token and state
-            guard let request = Request.refresh(provider: provider, token: auth.token) else {
-                if auth.isExpired { clear() }
-                return
-            }
-
-            guard let (data, _) = try? await urlSession.data(for: request) else {
-                return publish(state: .empty)
-            }
-
-            // Decode the token
-            guard let token = try? decoder.decode(Token.self, from: data) else {
-                return publish(state: .empty)
-            }
-
-            // Store the authorization
-            let authorization = Authorization(issuer: provider.id, token: token)
-            guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
-                return publish(state: .empty)
-            }
-            publish(state: .authorized(authorization))
         }
+
+        // If we can't build a refresh request simply bail as no refresh token
+        // was returned in the original auth request
+        guard let request = Request.refresh(provider: provider, token: auth.token) else {
+            if auth.isExpired { clear() }
+            return
+        }
+
+        guard let (data, response) = try? await urlSession.data(for: request) else {
+            return publish(state: .empty)
+        }
+
+        if provider.debug {
+            let statusCode = response.statusCode() ?? -1
+            let rawData = String(data: data, encoding: .utf8) ?? .empty
+            debugPrint("Response: [\(statusCode))]", "Data: [\(rawData)]")
+        }
+
+        // Decode the token
+        guard let token = try? decoder.decode(Token.self, from: data) else {
+            return publish(state: .empty)
+        }
+
+        // Store the authorization
+        let authorization = Authorization(issuer: provider.id, token: token)
+        guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
+            return publish(state: .empty)
+        }
+        publish(state: .authorized(provider, authorization))
     }
 
     /// Requests a device code from the specified provider.
@@ -368,7 +377,7 @@ fileprivate extension OAuth {
         if provider.debug {
             let statusCode = response.statusCode() ?? -1
             let rawData = String(data: data, encoding: .utf8) ?? .empty
-            debugPrint("Status Code: [\(statusCode))] Data: [\(rawData)]")
+            debugPrint("Response: [\(statusCode))]", "Data: [\(rawData)]")
         }
 
         // Decode the device code
@@ -394,7 +403,7 @@ fileprivate extension OAuth {
         if provider.debug {
             let statusCode = response.statusCode() ?? -1
             let rawData = String(data: data, encoding: .utf8) ?? .empty
-            debugPrint("Status Code: [\(statusCode))] Data: [\(rawData)]")
+            debugPrint("Response: [\(statusCode))]", "Data: [\(rawData)]")
         }
 
         // Decode the token
@@ -407,7 +416,7 @@ fileprivate extension OAuth {
         guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
             return publish(state: .empty)
         }
-        publish(state: .authorized(authorization))
+        publish(state: .authorized(provider, authorization))
     }
 
     /// Polls the oauth provider's access token endpoint until the device code has expired or we've successfully received an auth token.
@@ -427,6 +436,12 @@ fileprivate extension OAuth {
             return
         }
 
+        if provider.debug {
+            let statusCode = response.statusCode() ?? -1
+            let rawData = String(data: data, encoding: .utf8) ?? .empty
+            debugPrint("Response: [\(statusCode))]", "Data: [\(rawData)]")
+        }
+
         /// If we received something other than a 200 response or we can't decode the token then restart the polling
         guard response.isOK, let token = try? decoder.decode(Token.self, from: data) else {
             // Reschedule the polling task
@@ -439,7 +454,7 @@ fileprivate extension OAuth {
         guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
             return publish(state: .empty)
         }
-        publish(state: .authorized(authorization))
+        publish(state: .authorized(provider, authorization))
     }
 }
 

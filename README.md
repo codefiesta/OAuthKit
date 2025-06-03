@@ -57,8 +57,8 @@ struct ContentView: View {
                 Text("Requesting Access Token [\(provider.id)]")
             case .requestingDeviceCode(let provider):
                 Text("Requesting Device Code [\(provider.id)]")
-            case .authorized(let auth):
-                Button("Authorized [\(auth.provider.id)]") {
+            case .authorized(let provider, _):
+                Button("Authorized [\(provider.id)]") {
                     oauth.clear()
                 }
             case .receivedDeviceCode(_, let deviceCode):
@@ -174,6 +174,8 @@ let grantType: OAuth.GrantType = .clientCredentials
 oauth.authorize(provider: provider, grantType: grantType)
 ```
 
+## OAuth 2.0 Provider Debugging
+Standard `debugPrint` to the standard output is disabled by default. If you need to inspect response data received from [providers](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth+Provider.swift), you can toggle the `debug` value to true. You can see an [example here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json).
 
 ## Security Best Practices
 Although OAuthKit will automatically try to load the `oauth.json` file found inside your main bundle (or bundle passed to the initializer) for convenience purposes, it is good policy to **NEVER** check in **clientID** or **clientSecret** values into source control. Also, it is possible for someone to [inspect and reverse engineer](https://www.nowsecure.com/blog/2021/09/08/basics-of-reverse-engineering-ios-mobile-apps/) the contents of your app and look at any files inside your app bundle which means you could potentially expose these secrets in the `oauth.json` file. The most secure way to protect OAuth secrets is to build your Providers programatically and bake [secret values](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions) into your code via your CI pipeline.
@@ -184,6 +186,7 @@ Although OAuthKit will automatically try to load the `oauth.json` file found ins
 	* **Important**: When creating a Google OAuth2 application from the [Google API Console](https://console.developers.google.com/) create an OAuth 2.0 Client type of Web Application (not iOS).
 * [LinkedIn](https://developer.linkedin.com/)
 	* **Important**: When creating a LinkedIn OAuth2 provider, you will need to explicitly set the `encodeHttpBody` property to false otherwise the /token request will fail. Unfortunately, OAuth providers vary in the way they decode the parameters of that request (either encoded into the httpBody or as query parameters). See sample [oauth.json](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json).
+	* LinkedIn currently doesn't support **PKCE**.
 * [Instagram](https://developers.facebook.com/docs/instagram-basic-display-api/guides/getting-access-tokens-and-permissions)
 * [Microsoft](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow)
     * **Important**: When registering an application inside the [Microsoft Azure Portal](https://portal.azure.com/) it's important to choose a **Redirect URI** as **Web** otherwise the `/token` endpoint will return an error when sending the `client_secret` in the body payload.

@@ -29,7 +29,6 @@ final class OAWebViewTests {
     /// Initializer.
     init() async throws {
         oauth = .init(.module)
-        // Override the url session
         oauth.urlSession = urlSession
     }
 

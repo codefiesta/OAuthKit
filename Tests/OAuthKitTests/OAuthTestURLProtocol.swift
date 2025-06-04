@@ -57,7 +57,7 @@ private actor OAuthTestRequestHandler {
     }
 }
 
-/// OAuth Test URL Protocol that intercepts test request and returns mocked response data
+/// OAuth Test URL Protocol that intercepts test request and returns mocked response data.
 class OAuthTestURLProtocol: URLProtocol, @unchecked Sendable {
 
     /// The handler responsible for returning mocked test response data
@@ -89,5 +89,4 @@ class OAuthTestURLProtocol: URLProtocol, @unchecked Sendable {
 
     /// Stops the loading of a request.
     override func stopLoading() {}
-
 }

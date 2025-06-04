@@ -106,11 +106,32 @@ struct UtilityTests {
         #expect(random.count == 64)
     }
 
+    /// Tests the encoding of data as Base 64 URL encoded.
+    @Test("Data Base64 URL Encoding")
+    func whenEncodingDataBase64URL() async throws {
+        let rawString = "https://github.com/codefiesta/OAuthKit"
+        let data: Data = rawString.data(using: .utf8)!
+        let encoded: String = data.base64URLEncoded
+        let expected = "aHR0cHM6Ly9naXRodWIuY29tL2NvZGVmaWVzdGEvT0F1dGhLaXQ"
+        #expect(encoded == expected)
+    }
+
     /// Tests the generation of random string generation.
     @Test("Secure Random String Generation")
     func whenGeneratingSecureRandomString() async throws {
         let random: String = .secureRandom()
         #expect(random.count >= 43)
+    }
+
+    /// Tests the scheduling of tasks
+    @Test("Scheduling Tasks")
+    func whenSchedulingTasks() async throws {
+        let timeInterval: TimeInterval = 0
+        let task: Task = .delayed(timeInterval: timeInterval) {
+            return true
+        }
+        let executed = try await task.value
+        #expect(executed)
     }
 }
 

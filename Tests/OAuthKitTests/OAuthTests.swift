@@ -20,8 +20,8 @@ final class OAuthTests {
     }
 
     /// Tests the init method using a custom bundle.
-    @Test("Initializing providers")
-    func whenInitializing() async throws {
+    @Test("Initialized")
+    func whenInitialized() async throws {
         let providers = oauth.providers
         #expect(providers.isNotEmpty)
     }

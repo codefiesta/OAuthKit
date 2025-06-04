@@ -6,7 +6,7 @@
 ![tvOS 18.0+](https://img.shields.io/badge/tvOS-18.0%2B-blue.svg)
 ![visionOS 2.0+](https://img.shields.io/badge/visionOS-2.0%2B-magenta.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-indigo.svg)](https://opensource.org/licenses/MIT)
-![Code Coverage](https://img.shields.io/badge/Coverage-62%25-white.svg)
+![Code Coverage](https://img.shields.io/badge/Coverage-64%25-white.svg)
 
 # OAuthKit
 

@@ -35,7 +35,11 @@ final class OAuthTests {
         let providers = oauth.providers
         #expect(providers.isNotEmpty)
 
-        let oauth2: OAuth = .init(providers: providers)
+        let options: [OAuth.Option: Sendable] = [
+            .autoRefresh: false,
+            .applicationTag: "com.codefiesta.oauthkit.example"
+        ]
+        let oauth2: OAuth = .init(providers: providers, options: options)
         #expect(oauth2.providers == providers)
     }
 

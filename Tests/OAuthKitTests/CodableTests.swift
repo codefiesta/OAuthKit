@@ -54,6 +54,8 @@ struct CodableTests {
         #expect(deviceCode.verificationUri == decoded.verificationUri)
         #expect(deviceCode.verificationUriComplete == decoded.verificationUriComplete)
         #expect(deviceCode.expiresIn == decoded.expiresIn)
+        #expect(deviceCode.isExpired == false)
+        #expect(deviceCode.expiration != nil)
         #expect(deviceCode.interval == decoded.interval)
     }
 

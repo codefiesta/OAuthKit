@@ -58,10 +58,7 @@ public final class OAuth: NSObject {
 
     /// The url session to use for communicating with providers.
     @ObservationIgnored
-    private lazy var urlSession: URLSession = {
-        .init(configuration: .ephemeral)
-    }()
-
+    public var urlSession: URLSession = .init(configuration: .ephemeral)
     @ObservationIgnored
     private var tasks = [Task<(), any Error>]()
     @ObservationIgnored

@@ -106,6 +106,18 @@ struct UtilityTests {
         #expect(random.count == 64)
     }
 
+    /// Tests  URL as Base 64 encoding.
+    @Test("URL Base64 Encoding")
+    func whenEncodingDataBase64() async throws {
+        let rawString = "https://github.com/codefiesta/OAuthKit"
+        let encoded: String = rawString.base64
+        let decoded = encoded.base64Decoded
+
+        let url = URL(string: rawString)!
+        #expect(encoded == url.base64)
+        #expect(rawString == decoded)
+    }
+
     /// Tests the encoding of data as Base 64 URL encoded.
     @Test("Data Base64 URL Encoding")
     func whenEncodingDataBase64URL() async throws {
@@ -114,6 +126,9 @@ struct UtilityTests {
         let encoded: String = data.base64URLEncoded
         let expected = "aHR0cHM6Ly9naXRodWIuY29tL2NvZGVmaWVzdGEvT0F1dGhLaXQ"
         #expect(encoded == expected)
+
+        let url = URL(string: rawString)!
+        #expect(encoded == url.base64URL)
     }
 
     /// Tests the generation of random string generation.

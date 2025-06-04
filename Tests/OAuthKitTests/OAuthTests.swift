@@ -19,7 +19,7 @@ final class OAuthTests {
     private lazy var urlSession: URLSession = {
         let configuration: URLSessionConfiguration = .ephemeral
         configuration.protocolClasses = [OAuthTestURLProtocol.self]
-        return .init(configuration: .ephemeral)
+        return .init(configuration: configuration)
     }()
 
     /// Initializer.

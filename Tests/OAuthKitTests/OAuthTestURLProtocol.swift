@@ -14,7 +14,7 @@ private let httpVersion = "HTTP/1.1"
 /// Builds and responds to mock test requests.
 private actor OAuthTestRequestHandler {
 
-    /// Returns an URL response for the given request and status code
+    /// Returns a mocked URL response for the given request and status code
     /// - Parameters:
     ///   - request: the request
     ///   - statusCode: the status code to return
@@ -23,24 +23,25 @@ private actor OAuthTestRequestHandler {
         HTTPURLResponse(url: request.url!, statusCode: statusCode, httpVersion: httpVersion, headerFields: nil)!
     }
 
-    /// Returns data for the given request.
+    /// Returns mock test data for the given request.
     /// - Parameter request: the request
     /// - Returns: the data to respond with
     private func data(request: URLRequest) -> Data {
+
         guard let url = request.url else {
             return .init()
-        }
-
-        // Returns oauth access token data
-        if url.absoluteString.contains("token") {
-            let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: nil, expiresIn: 3600, scope: nil, type: "Bearer")
-            return try! JSONEncoder().encode(token)
         }
 
         // Returns device code data
         if url.absoluteString.contains("device") {
             let deviceCode: OAuth.DeviceCode = .init(deviceCode: .secureRandom(), userCode: "0A17-B332", verificationUri: "https://github.com/codefiesta/OAuthKit", expiresIn: 2, interval: 1)
             return try! JSONEncoder().encode(deviceCode)
+        }
+
+        // Returns oauth access token data
+        if url.absoluteString.contains("token") {
+            let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: nil, expiresIn: 3600, scope: nil, type: "Bearer")
+            return try! JSONEncoder().encode(token)
         }
 
         return .init()

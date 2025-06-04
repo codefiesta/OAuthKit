@@ -21,12 +21,12 @@ extension URL {
     }
 
     /// Returns a Base64 encoded string representation for this URL
-    var base64Encoded: String {
+    var base64: String {
         absoluteString.base64
     }
 
     /// Returns a Base64 URL encoded string representation for this URL.
-    var base64URLEncoded: String {
+    var base64URL: String {
         absoluteString.base64URL
     }
 }

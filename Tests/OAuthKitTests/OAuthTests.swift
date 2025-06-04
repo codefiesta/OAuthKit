@@ -14,16 +14,29 @@ final class OAuthTests {
 
     let oauth: OAuth
 
+    /// The mock url session that overrides the protocol classes with `OAuthTestURLProtocol`
+    /// that will intercept all outbound requests and return mocked test data.
+    private lazy var urlSession: URLSession = {
+        let configuration: URLSessionConfiguration = .ephemeral
+        configuration.protocolClasses = [OAuthTestURLProtocol.self]
+        return .init(configuration: .ephemeral)
+    }()
+
     /// Initializer.
     init() async throws {
         oauth = .init(.module)
+        // Override the url session
+        oauth.urlSession = urlSession
     }
 
-    /// Tests the init method using a custom bundle.
-    @Test("Initialized")
+    /// Tests the custom oauth init methods
+    @Test("When Initialized")
     func whenInitialized() async throws {
         let providers = oauth.providers
         #expect(providers.isNotEmpty)
+
+        let oauth2: OAuth = .init(providers: providers)
+        #expect(oauth2.providers == providers)
     }
 
     /// Tests the custom date extension operator.
@@ -63,6 +76,7 @@ final class OAuthTests {
         #expect(stringData!.contains("client_id="))
         #expect(stringData!.contains("client_secret="))
         #expect(stringData!.contains("grant_type=client_credentials"))
+        oauth.authorize(provider: provider, grantType: .clientCredentials)
     }
 
     /// Tests the `/device`code  request parameters.
@@ -74,6 +88,7 @@ final class OAuthTests {
         #expect(request!.url!.absoluteString.contains("client_id=\(provider.clientID)"))
         #expect(request!.url!.absoluteString.contains("client_secret=\(provider.clientSecret)"))
         #expect(request!.url!.absoluteString.contains("grant_type=device_code"))
+        oauth.authorize(provider: provider, grantType: .deviceCode)
     }
 
     /// Tests the building of device code token requests.
@@ -103,6 +118,7 @@ final class OAuthTests {
         #expect(stringData!.contains("code=\(code)"))
         #expect(stringData!.contains("redirect_uri=\(provider.redirectURI!)"))
         #expect(stringData!.contains("grant_type=authorization_code"))
+        oauth.token(provider: provider, code: code, pkce: nil)
     }
 
     /// Tests the building of PKCE token requests.
@@ -122,6 +138,7 @@ final class OAuthTests {
         #expect(stringData!.contains("redirect_uri=\(provider.redirectURI!)"))
         #expect(stringData!.contains("grant_type=authorization_code"))
         #expect(stringData!.contains("code_verifier=\(pkce.codeVerifier)"))
+        oauth.token(provider: provider, code: code, pkce: pkce)
     }
 
     /// Tests the refresh token request parameters.
@@ -134,6 +151,7 @@ final class OAuthTests {
         #expect(request!.url!.absoluteString.contains("client_id="))
         #expect(request!.url!.absoluteString.contains("grant_type=refresh_token"))
         #expect(request!.url!.absoluteString.contains("refresh_token=\(token.refreshToken!)"))
+        oauth.authorize(provider: provider, grantType: .refreshToken)
     }
 
     /// Tests the PKCE request parameters.

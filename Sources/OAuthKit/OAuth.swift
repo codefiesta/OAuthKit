@@ -125,6 +125,7 @@ public extension OAuth {
         case .pkce:
             state = .authorizing(provider, grantType)
         case .deviceCode:
+            state = .requestingDeviceCode(provider)
             Task {
                 await requestDeviceCode(provider: provider)
             }
@@ -163,11 +164,9 @@ public extension OAuth {
 
     /// Removes all tokens and clears the OAuth state
     func clear() {
-        Task {
-            debugPrint("⚠️ [Clearing oauth state]")
-            keychain.clear()
-            publish(state: .empty)
-        }
+        debugPrint("⚠️ [Clearing oauth state]")
+        keychain.clear()
+        state = .empty
     }
 }
 
@@ -365,9 +364,6 @@ fileprivate extension OAuth {
     /// - Parameters:
     ///   - provider: the provider the device code is being requested from
     func requestDeviceCode(provider: Provider) async {
-        // Publish the state
-        publish(state: .requestingDeviceCode(provider))
-
         guard let request = Request.device(provider: provider) else { return }
         guard let (data, response) = try? await urlSession.data(for: request) else {
             publish(state: .empty)

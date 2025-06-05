@@ -29,10 +29,10 @@ jobs:
     - name: Test
       run: swift test --enable-code-coverage
     - id: coverage
-      uses: codefiesta/swift-test-coverage-summary@0405f7390b62915f1c6a4a691ce0bb2fe4b659ca
+      uses: codefiesta/swift-coverage-action@75116633eeff58d34784216254ddf74e2d031d45
     - name: badge
       # Only run the badge update if we are pushing to main
-      if: github.ref == 'refs/heads/main'
+      # if: github.ref == 'refs/heads/main'
       uses: schneegans/dynamic-badges-action@v1.7.0
       with:
         auth: ${{secrets.GIST_SECRET}}

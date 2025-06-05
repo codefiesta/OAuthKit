@@ -33,3 +33,5 @@ jobs:
         label: Coverage
         message: ${{steps.coverage.outputs.percentage}}%
         color: white
+        forceUpdate: true
+

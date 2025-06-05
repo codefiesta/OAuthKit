@@ -23,7 +23,7 @@ jobs:
     - name: Test
       run: swift test --enable-code-coverage
     - id: coverage
-    - uses: codefiesta/swift-test-coverage-summary@65797b611badad8dcc8a1840e29ae9c1688e8dc3
+      uses: codefiesta/swift-test-coverage-summary@65797b611badad8dcc8a1840e29ae9c1688e8dc3
 #    - name: Badge
 #    - uses: RubbaBoy/BYOB@v1.3.0
 #    - with:

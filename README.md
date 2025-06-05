@@ -6,9 +6,10 @@
 ![tvOS 18.0+](https://img.shields.io/badge/tvOS-18.0%2B-blue.svg)
 ![visionOS 2.0+](https://img.shields.io/badge/visionOS-2.0%2B-magenta.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-indigo.svg)](https://opensource.org/licenses/MIT)
-![Code Coverage](https://img.shields.io/badge/Coverage-81%25-white.svg)
+![Code Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/codefiesta/87655b6e3c89b9198287b2fefbfa641f/raw/oauthkit-coverage.json)
 
 # OAuthKit
+
 
 OAuthKit is a modern, event-driven Swift Package that leverages the [Combine](https://developer.apple.com/documentation/combine) Framework to publish [OAuth 2.0](https://oauth.net/2/) events which allows application developers to easily configure OAuth Providers and focus on making great applications instead of focusing on the details of authorization flows.
 

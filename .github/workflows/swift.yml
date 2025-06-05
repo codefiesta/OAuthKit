@@ -12,10 +12,8 @@ on:
 jobs:
 
   build:
-
     env:
       XCODE_VERSION: 'Xcode_16.3'
-
     runs-on: macos-15
 
     steps:
@@ -30,3 +28,17 @@ jobs:
       run: swift build -v
     - name: Test
       run: swift test --enable-code-coverage
+    - id: coverage
+      uses: codefiesta/swift-coverage-action@0.0.1
+    - name: badge
+      # Only run the badge update if we are pushing to main
+      if: github.ref == 'refs/heads/main'
+      uses: schneegans/dynamic-badges-action@v1.7.0
+      with:
+        auth: ${{secrets.GIST_SECRET}}
+        gistID: 87655b6e3c89b9198287b2fefbfa641f
+        filename: oauthkit-coverage.json
+        label: Coverage
+        message: ${{steps.coverage.outputs.percentage}}%
+        color: white
+        forceUpdate: true

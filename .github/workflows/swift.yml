@@ -26,3 +26,19 @@ jobs:
       run: swiftlint lint --strict --quiet
     - name: Build
       run: swift build -v
+    - name: Test
+      run: swift test --enable-code-coverage
+    - id: coverage
+      uses: codefiesta/swift-test-coverage-summary@0405f7390b62915f1c6a4a691ce0bb2fe4b659ca
+    - name: badge
+      # Only run the badge update if we are pushing to main
+      if: github.ref == 'refs/heads/main'
+      uses: schneegans/dynamic-badges-action@v1.7.0
+      with:
+        auth: ${{secrets.GIST_SECRET}}
+        gistID: aff52838ae4b2f0175c4c703700bc133
+        filename: coverage.json
+        label: Coverage
+        message: ${{steps.coverage.outputs.percentage}}%
+        color: white
+        forceUpdate: true

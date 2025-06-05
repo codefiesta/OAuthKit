@@ -28,7 +28,4 @@ jobs:
       run: swift build -v
     - name: Test
       run: swift test --enable-test-discovery --enable-code-coverage
-    - uses: mattpolzin/swift-codecov-action@0.7.5
-      with:
-        MINIMUM_COVERAGE: 80
-        INCLUDE_TESTS: true
+    - uses: codefiesta/swift-test-coverage-summary

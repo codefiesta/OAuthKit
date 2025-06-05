@@ -11,7 +11,7 @@ on:
 
 jobs:
 
-  test:
+  code-coverage:
     env:
       XCODE_VERSION: 'Xcode_16.3'
     runs-on: macos-15

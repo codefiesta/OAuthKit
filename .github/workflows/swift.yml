@@ -28,4 +28,4 @@ jobs:
       run: swift build -v
     - name: Test
       run: swift test --enable-code-coverage
-    - uses: codefiesta/swift-test-coverage-summary@0.0.0
+    - uses: codefiesta/swift-test-coverage-summary@f9c9a994c6acceb039dcd8ebfa1df2bac3949608

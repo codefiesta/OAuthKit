@@ -36,8 +36,8 @@ jobs:
       uses: schneegans/dynamic-badges-action@v1.7.0
       with:
         auth: ${{secrets.GIST_SECRET}}
-        gistID: 5fb2f17e21fdf5850f218dd599381209
-        filename: coverage.json
+        gistID: 87655b6e3c89b9198287b2fefbfa641f
+        filename: oauthkit-coverage.json
         label: Coverage
         message: ${{steps.coverage.outputs.percentage}}%
         color: white

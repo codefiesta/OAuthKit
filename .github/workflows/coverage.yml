@@ -23,7 +23,7 @@ jobs:
     - name: Test
       run: swift test --enable-code-coverage
     - id: coverage
-      uses: codefiesta/swift-test-coverage-summary@e71b50c016db9272698a09b9a11d76400663e356
+      uses: codefiesta/swift-test-coverage-summary@0405f7390b62915f1c6a4a691ce0bb2fe4b659ca
     - name: badge
       uses: schneegans/dynamic-badges-action@v1.7.0
       with:

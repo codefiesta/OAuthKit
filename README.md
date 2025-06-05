@@ -6,7 +6,7 @@
 ![tvOS 18.0+](https://img.shields.io/badge/tvOS-18.0%2B-blue.svg)
 ![visionOS 2.0+](https://img.shields.io/badge/visionOS-2.0%2B-magenta.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-indigo.svg)](https://opensource.org/licenses/MIT)
-![Code Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/codefiesta/aff52838ae4b2f0175c4c703700bc133/raw/coverage.json)
+![Code Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/codefiesta/87655b6e3c89b9198287b2fefbfa641f/raw/oauthkit-coverage.json)
 
 # OAuthKit
 

@@ -32,6 +32,16 @@ final class OAWebViewTests {
         oauth.urlSession = urlSession
     }
 
+    /// Tests the oauth environment values are correct.
+    /// This is kind of a lame test but but provides code coverage for that extension.
+    @Test("OAuth EnvironmentValues")
+    func testEnvironmentValues() async throws {
+        var values: EnvironmentValues = .init()
+        values.oauth = oauth
+        let environmentOAuth = values.oauth
+        #expect(environmentOAuth == oauth)
+    }
+
     /// Tests the OAWebViewCoordinator coordinator policy decision.
     /// TODO: This is fairly limited at the moment because we will receive errors
     /// about accessing the `oauth` environment outside of being installed on a view.

@@ -83,6 +83,11 @@ public final class OAuth: NSObject {
         super.init()
         self.options = options
         self.providers = providers
+        // Set the keychain
+        if let options, let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
+            // Override the keychain to use the custom application tag
+            self.keychain = .init(applicationTag)
+        }
         Task {
             await start()
         }
@@ -96,6 +101,11 @@ public final class OAuth: NSObject {
         super.init()
         self.options = options
         self.providers = loadProviders(bundle)
+        // Set the keychain
+        if let options, let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
+            // Override the keychain to use the custom application tag
+            self.keychain = .init(applicationTag)
+        }
         Task {
             await start()
         }
@@ -123,15 +133,15 @@ public extension OAuth {
             state = .authorizing(provider, grantType)
         case .deviceCode:
             state = .requestingDeviceCode(provider)
-            Task {
+            Task(priority: .high) {
                 await requestDeviceCode(provider: provider)
             }
         case .clientCredentials:
-            Task {
+            Task(priority: .high) {
                 await requestClientCredentials(provider: provider)
             }
         case .refreshToken:
-            Task {
+            Task(priority: .high) {
                 await refreshToken(provider: provider)
             }
         }
@@ -185,13 +195,6 @@ private extension OAuth {
 
     /// Performs post init operations.
     func start() async {
-        // Initialize with custom options
-        if let options {
-            // Use the custom application tag
-            if let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
-                self.keychain = Keychain(applicationTag)
-            }
-        }
         subscribe()
         await restore()
     }

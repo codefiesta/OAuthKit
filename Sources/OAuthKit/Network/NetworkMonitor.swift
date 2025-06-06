@@ -32,7 +32,7 @@ private let queueLabel = "oauthkit.NetworkMonitor"
     init() {
         pathMonitor.pathUpdateHandler = { [weak self] path in
             guard let self else { return }
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self.handle(path: path)
             }
         }

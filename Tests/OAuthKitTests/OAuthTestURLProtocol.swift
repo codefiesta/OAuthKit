@@ -40,7 +40,7 @@ private actor OAuthTestRequestHandler {
 
         // Returns oauth access token data
         if url.absoluteString.contains("token") {
-            let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: nil, expiresIn: 3600, scope: nil, type: "Bearer")
+            let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 3600, scope: nil, type: "Bearer")
             return try! JSONEncoder().encode(token)
         }
 

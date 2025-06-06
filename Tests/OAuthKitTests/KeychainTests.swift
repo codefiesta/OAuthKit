@@ -10,19 +10,19 @@ import Testing
 
 @Suite("Keychain Tests", .tags(.keychain))
 final class KeychainTests {
-    
+
     let keychain: Keychain
 
     deinit {
         keychain.clear()
     }
-    
+
     /// Initializer.
     init() async throws {
         let tag: String = "oauthkit.test." + .secureRandom()
         keychain = .init(tag)
     }
-    
+
     @Test("Storing keychain values")
     func whenStoring() async throws {
         let key = "Github"

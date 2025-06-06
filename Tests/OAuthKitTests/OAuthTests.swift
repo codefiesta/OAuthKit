@@ -6,8 +6,8 @@
 //
 import Foundation
 @testable import OAuthKit
-import Testing
 import Observation
+import Testing
 
 @MainActor
 @Suite("OAuth Tests", .tags(.oauth))
@@ -31,7 +31,7 @@ final class OAuthTests {
         oauth = .init(.module, options: options)
         // Override the url session
         oauth.urlSession = urlSession
-        
+
         let keychain: Keychain = .init(applicationTag)
         withObservationTracking {
             _ = oauth.state

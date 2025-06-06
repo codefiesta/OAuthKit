@@ -7,12 +7,14 @@
 import Foundation
 @testable import OAuthKit
 import Testing
+import Observation
 
 @MainActor
 @Suite("OAuth Tests", .tags(.oauth))
 final class OAuthTests {
 
     let oauth: OAuth
+    let applicationTag: String
 
     /// The mock url session that overrides the protocol classes with `OAuthTestURLProtocol`
     /// that will intercept all outbound requests and return mocked test data.
@@ -24,9 +26,23 @@ final class OAuthTests {
 
     /// Initializer.
     init() async throws {
-        oauth = .init(.module)
+        applicationTag = "oauthkit.test." + .secureRandom()
+        let options: [OAuth.Option: Sendable] = [.applicationTag: applicationTag, .autoRefresh: true]
+        oauth = .init(.module, options: options)
         // Override the url session
         oauth.urlSession = urlSession
+        
+        let keychain: Keychain = .init(applicationTag)
+        withObservationTracking {
+            _ = oauth.state
+        } onChange: {
+            keychain.clear()
+        }
+    }
+
+    deinit {
+        let keychain: Keychain = .init(applicationTag)
+        keychain.clear()
     }
 
     /// Tests the custom oauth init methods
@@ -99,7 +115,7 @@ final class OAuthTests {
     @Test("Building Device Code Token Requests")
     func whenBuildingDeviceCodeTokenRequests() async throws {
         let provider = oauth.providers[0]
-        let deviceCode: OAuth.DeviceCode = .init(deviceCode: UUID().uuidString, userCode: "ABC-XYZ", verificationUri: "https://example.com/device", expiresIn: 1800, interval: 5)
+        let deviceCode: OAuth.DeviceCode = .init(deviceCode: .secureRandom(), userCode: "ABC-XYZ", verificationUri: "https://example.com/device", expiresIn: 1800, interval: 5)
         let request = OAuth.Request.token(provider: provider, deviceCode: deviceCode)
         #expect(request != nil)
         #expect(request!.url!.absoluteString.contains("client_id=\(provider.clientID)"))
@@ -122,6 +138,7 @@ final class OAuthTests {
         #expect(stringData!.contains("code=\(code)"))
         #expect(stringData!.contains("redirect_uri=\(provider.redirectURI!)"))
         #expect(stringData!.contains("grant_type=authorization_code"))
+        debugPrint("🌈", applicationTag)
         oauth.token(provider: provider, code: code, pkce: nil)
     }
 
@@ -142,6 +159,7 @@ final class OAuthTests {
         #expect(stringData!.contains("redirect_uri=\(provider.redirectURI!)"))
         #expect(stringData!.contains("grant_type=authorization_code"))
         #expect(stringData!.contains("code_verifier=\(pkce.codeVerifier)"))
+        debugPrint("❤️", applicationTag)
         oauth.token(provider: provider, code: code, pkce: pkce)
     }
 
@@ -149,12 +167,17 @@ final class OAuthTests {
     @Test("Building Refresh Token Request")
     func whenBuildingRefreshTokenRequest() async throws {
         let provider = oauth.providers[0]
-        let token: OAuth.Token = .init(accessToken: UUID().uuidString, refreshToken: UUID().uuidString, expiresIn: 3600, scope: nil, type: "Bearer")
+        let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: "ABC", expiresIn: 3600, scope: nil, type: "Bearer")
         let request = OAuth.Request.refresh(provider: provider, token: token)
         #expect(request != nil)
         #expect(request!.url!.absoluteString.contains("client_id="))
         #expect(request!.url!.absoluteString.contains("grant_type=refresh_token"))
         #expect(request!.url!.absoluteString.contains("refresh_token=\(token.refreshToken!)"))
+
+        // Set the authorization for this provider so the refresh token authorization will proceed
+        let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
+        let keychain: Keychain = .init(applicationTag)
+        try! keychain.set(auth, for: provider.id)
         oauth.authorize(provider: provider, grantType: .refreshToken)
     }
 
@@ -207,7 +230,7 @@ final class OAuthTests {
         let url = URL(string: string)
         var urlRequest = URLRequest(url: url!)
 
-        let token: OAuth.Token = .init(accessToken: UUID().uuidString, refreshToken: nil, expiresIn: 3600, scope: nil, type: "Bearer")
+        let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: nil, expiresIn: 3600, scope: nil, type: "Bearer")
         let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
         #expect(auth.expiration != nil)
         #expect(auth.isExpired == false)

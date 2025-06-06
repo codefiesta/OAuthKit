@@ -154,7 +154,7 @@ public extension OAuth {
     ///   - code: the code to exchange
     ///   - pkce: the pkce data
     func token(provider: Provider, code: String, pkce: PKCE? = nil) {
-        Task {
+        Task(priority: .high) {
             let result = await requestToken(provider: provider, code: code, pkce: pkce)
             switch result {
             case .success(let token):

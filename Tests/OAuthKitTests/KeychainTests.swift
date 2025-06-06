@@ -10,14 +10,21 @@ import Testing
 
 @Suite("Keychain Tests", .tags(.keychain))
 final class KeychainTests {
+    
+    let keychain: Keychain
 
     deinit {
-        Keychain.default.clear()
+        keychain.clear()
     }
-
+    
+    /// Initializer.
+    init() async throws {
+        let tag: String = "oauthkit.test." + .secureRandom()
+        keychain = .init(tag)
+    }
+    
     @Test("Storing keychain values")
     func whenStoring() async throws {
-        let keychain: Keychain = .init("oauth-token.test")
         let key = "Github"
         let token: OAuth.Token = .init(accessToken: "1234", refreshToken: nil, expiresIn: 3600, scope: "email", type: "Bearer")
 
@@ -32,9 +39,10 @@ final class KeychainTests {
         #expect(token.scope == found.scope)
         #expect(token.type == found.type)
 
-        let keys = keychain.keys.filter{ $0.contains("oauth")}
+        let keys = keychain.keys
+
         debugPrint("🔐", keys)
-        #expect(keys.count > 0)
+        #expect(keys.count == 1)
 
         let deleted = keychain.delete(key: key)
         #expect(deleted == true)

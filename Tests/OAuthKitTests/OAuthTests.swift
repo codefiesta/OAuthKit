@@ -169,7 +169,11 @@ final class OAuthTests {
         #expect(request!.url!.absoluteString.contains("client_id="))
         #expect(request!.url!.absoluteString.contains("grant_type=refresh_token"))
         #expect(request!.url!.absoluteString.contains("refresh_token=\(token.refreshToken!)"))
+        let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
+        try! keychain.set(auth, for: provider.id)
         oauth.authorize(provider: provider, grantType: .refreshToken)
+        let result = await waitForAuthorization()
+        #expect(result == true)
     }
 
     /// Tests the PKCE request parameters.

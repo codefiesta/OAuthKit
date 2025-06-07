@@ -88,9 +88,7 @@ public final class OAuth: NSObject {
             // Override the keychain to use the custom application tag
             self.keychain = .init(applicationTag)
         }
-        Task {
-            await start()
-        }
+        start()
     }
 
     /// Common Initializer that attempts to load an `oauth.json` file from the specified bundle.
@@ -106,9 +104,7 @@ public final class OAuth: NSObject {
             // Override the keychain to use the custom application tag
             self.keychain = .init(applicationTag)
         }
-        Task {
-            await start()
-        }
+        start()
     }
 }
 
@@ -194,13 +190,13 @@ private extension OAuth {
     }
 
     /// Performs post init operations.
-    func start() async {
+    func start() {
         subscribe()
-        await restore()
+        restore()
     }
 
     /// Restores state from storage.
-    func restore() async {
+    func restore() {
         for provider in providers {
             if let authorization: OAuth.Authorization = try? keychain.get(key: provider.id), !authorization.isExpired {
                 publish(state: .authorized(provider, authorization))

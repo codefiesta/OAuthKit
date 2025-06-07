@@ -11,7 +11,7 @@ import Foundation
 extension OAuth {
 
     /// Provides a testing utility to stream an oauth state until it's received an authorization.
-    /// This is necessary because often a unit test will die as an  asynchronous request is received that
+    /// This is necessary because a unit test can potentially die as an asynchronous request is received that
     /// inserts an authorization record into the keychain. This allows us to keep the keychain clean and not get littered with test records.
     @MainActor
     class Monitor {

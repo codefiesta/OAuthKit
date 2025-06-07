@@ -35,20 +35,20 @@ final class OAuthTests {
         oauth.urlSession = urlSession
     }
 
-    /// Streams the oauth status until we receive an authorization.
-    /// This should only be used on test methods that expect an authorization to be inserted into the keychain.
-    private func waitForAuthorization() async -> Bool {
-        let monitor: OAuth.Monitor = .init(oauth: oauth)
-        for await state in monitor.stream {
-            switch state {
-            case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
-                break
-            case .authorized(_, _):
-                keychain.clear()
-                return true
-            }
-        }
-        return false
+    /// Tests the initialization with providers.
+    @Test("When Initializing")
+    func whenInitializing() async throws {
+        let appTag: String = .secureRandom()
+        let options: [OAuth.Option: Sendable] = [.applicationTag: appTag, .autoRefresh: true]
+        let providers: [OAuth.Provider] = [
+            .init(id: .secureRandom(),
+                  authorizationURL: URL(string: "http://github.com/codefiesta/auth")!,
+                  accessTokenURL: URL(string: "http://github.com/codefiesta/token")!,
+                  clientID: .secureRandom(),
+                  clientSecret: .secureRandom())
+        ]
+        let customOAuth: OAuth = .init(providers: providers, options: options)
+        #expect(customOAuth.providers.count == 1)
     }
 
     /// Tests the custom date extension operator.
@@ -263,5 +263,21 @@ final class OAuthTests {
     func whenGeneratingOAuthSecureRandomState() async throws {
         let random = OAuth.secureRandom()
         #expect(random.count >= 43)
+    }
+
+    /// Streams the oauth status until we receive an authorization.
+    /// This should only be used on test methods that expect an authorization to be inserted into the keychain.
+    private func waitForAuthorization() async -> Bool {
+        let monitor: OAuth.Monitor = .init(oauth: oauth)
+        for await state in monitor.stream {
+            switch state {
+            case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
+                break
+            case .authorized(_, _):
+                keychain.clear()
+                return true
+            }
+        }
+        return false
     }
 }

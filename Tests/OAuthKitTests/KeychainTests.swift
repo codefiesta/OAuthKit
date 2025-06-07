@@ -40,7 +40,6 @@ final class KeychainTests {
         #expect(token.type == found.type)
 
         let keys = keychain.keys
-
         debugPrint("🔐", keys)
         #expect(keys.count == 1)
 

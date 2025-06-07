@@ -344,7 +344,7 @@ fileprivate extension OAuth {
         }
 
         // Decode the token
-        guard let token = try? decoder.decode(Token.self, from: data) else {
+        guard response.isOK, let token = try? decoder.decode(Token.self, from: data) else {
             return publish(state: .empty)
         }
 

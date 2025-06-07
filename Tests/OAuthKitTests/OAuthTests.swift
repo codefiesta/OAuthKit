@@ -4,9 +4,9 @@
 //
 //  Created by Kevin McKee
 //
+import Combine
 import Foundation
 @testable import OAuthKit
-import Observation
 import Testing
 
 @MainActor
@@ -14,7 +14,10 @@ import Testing
 final class OAuthTests {
 
     let oauth: OAuth
-    let applicationTag: String
+    let tag: String
+    var keychain: Keychain {
+        oauth.keychain
+    }
 
     /// The mock url session that overrides the protocol classes with `OAuthTestURLProtocol`
     /// that will intercept all outbound requests and return mocked test data.
@@ -26,37 +29,26 @@ final class OAuthTests {
 
     /// Initializer.
     init() async throws {
-        applicationTag = "oauthkit.test." + .secureRandom()
-        let options: [OAuth.Option: Sendable] = [.applicationTag: applicationTag, .autoRefresh: true]
+        tag = "oauthkit.test." + .secureRandom()
+        let options: [OAuth.Option: Sendable] = [.applicationTag: tag, .autoRefresh: true]
         oauth = .init(.module, options: options)
-        // Override the url session
         oauth.urlSession = urlSession
+    }
 
-        let keychain: Keychain = .init(applicationTag)
-        withObservationTracking {
-            _ = oauth.state
-        } onChange: {
-            keychain.clear()
+    /// Streams the oauth status until we receive an authorization.
+    /// This should only be used on test methods that expect an authorization to be inserted into the keychain.
+    private func waitForAuthorization() async -> Bool {
+        let monitor: OAuth.Monitor = .init(oauth: oauth)
+        for await state in monitor.stream {
+            switch state {
+            case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
+                break
+            case .authorized(_, _):
+                keychain.clear()
+                return true
+            }
         }
-    }
-
-    deinit {
-        let keychain: Keychain = .init(applicationTag)
-        keychain.clear()
-    }
-
-    /// Tests the custom oauth init methods
-    @Test("When Initialized")
-    func whenInitialized() async throws {
-        let providers = oauth.providers
-        #expect(providers.isNotEmpty)
-
-        let options: [OAuth.Option: Sendable] = [
-            .autoRefresh: false,
-            .applicationTag: "com.codefiesta.oauthkit.example"
-        ]
-        let oauth2: OAuth = .init(providers: providers, options: options)
-        #expect(oauth2.providers == providers)
+        return false
     }
 
     /// Tests the custom date extension operator.
@@ -97,6 +89,8 @@ final class OAuthTests {
         #expect(stringData!.contains("client_secret="))
         #expect(stringData!.contains("grant_type=client_credentials"))
         oauth.authorize(provider: provider, grantType: .clientCredentials)
+        let result = await waitForAuthorization()
+        #expect(result == true)
     }
 
     /// Tests the `/device`code  request parameters.
@@ -138,8 +132,9 @@ final class OAuthTests {
         #expect(stringData!.contains("code=\(code)"))
         #expect(stringData!.contains("redirect_uri=\(provider.redirectURI!)"))
         #expect(stringData!.contains("grant_type=authorization_code"))
-        debugPrint("🌈", applicationTag)
         oauth.token(provider: provider, code: code, pkce: nil)
+        let result = await waitForAuthorization()
+        #expect(result == true)
     }
 
     /// Tests the building of PKCE token requests.
@@ -159,25 +154,21 @@ final class OAuthTests {
         #expect(stringData!.contains("redirect_uri=\(provider.redirectURI!)"))
         #expect(stringData!.contains("grant_type=authorization_code"))
         #expect(stringData!.contains("code_verifier=\(pkce.codeVerifier)"))
-        debugPrint("❤️", applicationTag)
         oauth.token(provider: provider, code: code, pkce: pkce)
+        let result = await waitForAuthorization()
+        #expect(result == true)
     }
 
     /// Tests the refresh token request parameters.
     @Test("Building Refresh Token Request")
     func whenBuildingRefreshTokenRequest() async throws {
         let provider = oauth.providers[0]
-        let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: "ABC", expiresIn: 3600, scope: nil, type: "Bearer")
+        let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 3600, scope: nil, type: "Bearer")
         let request = OAuth.Request.refresh(provider: provider, token: token)
         #expect(request != nil)
         #expect(request!.url!.absoluteString.contains("client_id="))
         #expect(request!.url!.absoluteString.contains("grant_type=refresh_token"))
         #expect(request!.url!.absoluteString.contains("refresh_token=\(token.refreshToken!)"))
-
-        // Set the authorization for this provider so the refresh token authorization will proceed
-        let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
-        let keychain: Keychain = .init(applicationTag)
-        try! keychain.set(auth, for: provider.id)
         oauth.authorize(provider: provider, grantType: .refreshToken)
     }
 

@@ -66,7 +66,7 @@ public final class OAuth: NSObject {
     @ObservationIgnored
     private let networkMonitor = NetworkMonitor()
     @ObservationIgnored
-    private var keychain: Keychain = .default
+    var keychain: Keychain = .default
 
     /// Combine subscribers.
     @ObservationIgnored

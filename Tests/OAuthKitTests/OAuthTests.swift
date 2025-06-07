@@ -4,6 +4,7 @@
 //
 //  Created by Kevin McKee
 //
+import Combine
 import Foundation
 @testable import OAuthKit
 import Testing
@@ -13,6 +14,10 @@ import Testing
 final class OAuthTests {
 
     let oauth: OAuth
+    let tag: String
+    var keychain: Keychain {
+        oauth.keychain
+    }
 
     /// The mock url session that overrides the protocol classes with `OAuthTestURLProtocol`
     /// that will intercept all outbound requests and return mocked test data.
@@ -24,23 +29,26 @@ final class OAuthTests {
 
     /// Initializer.
     init() async throws {
-        oauth = .init(.module)
-        // Override the url session
+        tag = "oauthkit.test." + .secureRandom()
+        let options: [OAuth.Option: Sendable] = [.applicationTag: tag, .autoRefresh: true]
+        oauth = .init(.module, options: options)
         oauth.urlSession = urlSession
     }
 
-    /// Tests the custom oauth init methods
-    @Test("When Initialized")
-    func whenInitialized() async throws {
-        let providers = oauth.providers
-        #expect(providers.isNotEmpty)
-
-        let options: [OAuth.Option: Sendable] = [
-            .autoRefresh: false,
-            .applicationTag: "com.codefiesta.oauthkit.example"
+    /// Tests the initialization with providers.
+    @Test("When Initializing")
+    func whenInitializing() async throws {
+        let appTag: String = .secureRandom()
+        let options: [OAuth.Option: Sendable] = [.applicationTag: appTag, .autoRefresh: true]
+        let providers: [OAuth.Provider] = [
+            .init(id: .secureRandom(),
+                  authorizationURL: URL(string: "http://github.com/codefiesta/auth")!,
+                  accessTokenURL: URL(string: "http://github.com/codefiesta/token")!,
+                  clientID: .secureRandom(),
+                  clientSecret: .secureRandom())
         ]
-        let oauth2: OAuth = .init(providers: providers, options: options)
-        #expect(oauth2.providers == providers)
+        let customOAuth: OAuth = .init(providers: providers, options: options)
+        #expect(customOAuth.providers.count == 1)
     }
 
     /// Tests the custom date extension operator.
@@ -81,6 +89,8 @@ final class OAuthTests {
         #expect(stringData!.contains("client_secret="))
         #expect(stringData!.contains("grant_type=client_credentials"))
         oauth.authorize(provider: provider, grantType: .clientCredentials)
+        let result = await waitForAuthorization()
+        #expect(result == true)
     }
 
     /// Tests the `/device`code  request parameters.
@@ -99,7 +109,7 @@ final class OAuthTests {
     @Test("Building Device Code Token Requests")
     func whenBuildingDeviceCodeTokenRequests() async throws {
         let provider = oauth.providers[0]
-        let deviceCode: OAuth.DeviceCode = .init(deviceCode: UUID().uuidString, userCode: "ABC-XYZ", verificationUri: "https://example.com/device", expiresIn: 1800, interval: 5)
+        let deviceCode: OAuth.DeviceCode = .init(deviceCode: .secureRandom(), userCode: "ABC-XYZ", verificationUri: "https://example.com/device", expiresIn: 1800, interval: 5)
         let request = OAuth.Request.token(provider: provider, deviceCode: deviceCode)
         #expect(request != nil)
         #expect(request!.url!.absoluteString.contains("client_id=\(provider.clientID)"))
@@ -123,6 +133,8 @@ final class OAuthTests {
         #expect(stringData!.contains("redirect_uri=\(provider.redirectURI!)"))
         #expect(stringData!.contains("grant_type=authorization_code"))
         oauth.token(provider: provider, code: code, pkce: nil)
+        let result = await waitForAuthorization()
+        #expect(result == true)
     }
 
     /// Tests the building of PKCE token requests.
@@ -143,19 +155,25 @@ final class OAuthTests {
         #expect(stringData!.contains("grant_type=authorization_code"))
         #expect(stringData!.contains("code_verifier=\(pkce.codeVerifier)"))
         oauth.token(provider: provider, code: code, pkce: pkce)
+        let result = await waitForAuthorization()
+        #expect(result == true)
     }
 
     /// Tests the refresh token request parameters.
     @Test("Building Refresh Token Request")
     func whenBuildingRefreshTokenRequest() async throws {
         let provider = oauth.providers[0]
-        let token: OAuth.Token = .init(accessToken: UUID().uuidString, refreshToken: UUID().uuidString, expiresIn: 3600, scope: nil, type: "Bearer")
+        let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 3600, scope: nil, type: "Bearer")
         let request = OAuth.Request.refresh(provider: provider, token: token)
         #expect(request != nil)
         #expect(request!.url!.absoluteString.contains("client_id="))
         #expect(request!.url!.absoluteString.contains("grant_type=refresh_token"))
         #expect(request!.url!.absoluteString.contains("refresh_token=\(token.refreshToken!)"))
+        let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
+        try! keychain.set(auth, for: provider.id)
         oauth.authorize(provider: provider, grantType: .refreshToken)
+        let result = await waitForAuthorization()
+        #expect(result == true)
     }
 
     /// Tests the PKCE request parameters.
@@ -207,7 +225,7 @@ final class OAuthTests {
         let url = URL(string: string)
         var urlRequest = URLRequest(url: url!)
 
-        let token: OAuth.Token = .init(accessToken: UUID().uuidString, refreshToken: nil, expiresIn: 3600, scope: nil, type: "Bearer")
+        let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: nil, expiresIn: 3600, scope: nil, type: "Bearer")
         let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
         #expect(auth.expiration != nil)
         #expect(auth.isExpired == false)
@@ -245,5 +263,21 @@ final class OAuthTests {
     func whenGeneratingOAuthSecureRandomState() async throws {
         let random = OAuth.secureRandom()
         #expect(random.count >= 43)
+    }
+
+    /// Streams the oauth status until we receive an authorization.
+    /// This should only be used on test methods that expect an authorization to be inserted into the keychain.
+    private func waitForAuthorization() async -> Bool {
+        let monitor: OAuth.Monitor = .init(oauth: oauth)
+        for await state in monitor.stream {
+            switch state {
+            case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
+                break
+            case .authorized(_, _):
+                keychain.clear()
+                return true
+            }
+        }
+        return false
     }
 }

@@ -59,7 +59,7 @@ class Keychain: @unchecked Sendable {
             }
         }
 
-        return results.sorted{ $0 < $1}
+        return results.filter{ $0.starts(with: applicationTag)}.sorted{ $0 < $1}
     }
 
     /// Sets the value for the specified key.
@@ -127,15 +127,13 @@ class Keychain: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
 
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecReturnAttributes as String: true,
-            kSecAttrApplicationTag as String: applicationTag,
-            kSecMatchLimit as String: kSecMatchLimitAll
-        ]
-        let _ = SecItemDelete(query as CFDictionary)
-        // TODO: Handle errSecInvalidOwnerEdit
-        return true
+        var results: [Bool] = []
+        for key in keys {
+            results.append(deleteNoLock(key))
+        }
+
+        guard results.isNotEmpty else { return true }
+        return results.allSatisfy{ $0 == true }
     }
 
     /// Deletes the value for the specified key.

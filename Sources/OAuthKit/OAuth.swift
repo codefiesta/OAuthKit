@@ -66,7 +66,7 @@ public final class OAuth: NSObject {
     @ObservationIgnored
     private let networkMonitor = NetworkMonitor()
     @ObservationIgnored
-    private var keychain: Keychain = .default
+    var keychain: Keychain = .default
 
     /// Combine subscribers.
     @ObservationIgnored
@@ -83,9 +83,12 @@ public final class OAuth: NSObject {
         super.init()
         self.options = options
         self.providers = providers
-        Task {
-            await start()
+        // Set the keychain
+        if let options, let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
+            // Override the keychain to use the custom application tag
+            self.keychain = .init(applicationTag)
         }
+        start()
     }
 
     /// Common Initializer that attempts to load an `oauth.json` file from the specified bundle.
@@ -96,9 +99,12 @@ public final class OAuth: NSObject {
         super.init()
         self.options = options
         self.providers = loadProviders(bundle)
-        Task {
-            await start()
+        // Set the keychain
+        if let options, let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
+            // Override the keychain to use the custom application tag
+            self.keychain = .init(applicationTag)
         }
+        start()
     }
 }
 
@@ -123,15 +129,15 @@ public extension OAuth {
             state = .authorizing(provider, grantType)
         case .deviceCode:
             state = .requestingDeviceCode(provider)
-            Task {
+            Task(priority: .high) {
                 await requestDeviceCode(provider: provider)
             }
         case .clientCredentials:
-            Task {
+            Task(priority: .high) {
                 await requestClientCredentials(provider: provider)
             }
         case .refreshToken:
-            Task {
+            Task(priority: .high) {
                 await refreshToken(provider: provider)
             }
         }
@@ -144,7 +150,7 @@ public extension OAuth {
     ///   - code: the code to exchange
     ///   - pkce: the pkce data
     func token(provider: Provider, code: String, pkce: PKCE? = nil) {
-        Task {
+        Task(priority: .high) {
             let result = await requestToken(provider: provider, code: code, pkce: pkce)
             switch result {
             case .success(let token):
@@ -184,20 +190,13 @@ private extension OAuth {
     }
 
     /// Performs post init operations.
-    func start() async {
-        // Initialize with custom options
-        if let options {
-            // Use the custom application tag
-            if let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
-                self.keychain = Keychain(applicationTag)
-            }
-        }
+    func start() {
         subscribe()
-        await restore()
+        restore()
     }
 
     /// Restores state from storage.
-    func restore() async {
+    func restore() {
         for provider in providers {
             if let authorization: OAuth.Authorization = try? keychain.get(key: provider.id), !authorization.isExpired {
                 publish(state: .authorized(provider, authorization))
@@ -345,7 +344,7 @@ fileprivate extension OAuth {
         }
 
         // Decode the token
-        guard let token = try? decoder.decode(Token.self, from: data) else {
+        guard response.isOK, let token = try? decoder.decode(Token.self, from: data) else {
             return publish(state: .empty)
         }
 

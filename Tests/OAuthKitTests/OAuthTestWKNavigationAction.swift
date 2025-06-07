@@ -27,12 +27,6 @@ final class OAuthTestWKNavigationAction: WKNavigationAction {
         super.init()
     }
 
-    /// Initializer with url
-    /// - Parameter url: the url
-    convenience init(url: URL) {
-        self.init(urlRequest: URLRequest(url: url))
-    }
-
     /// Returns the received decision policy
     /// - Parameter policy: the navigation action policy
     func decisionHandler(_ policy: WKNavigationActionPolicy) {

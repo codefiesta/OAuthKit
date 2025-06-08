@@ -97,7 +97,7 @@ struct ContentView: View {
             break
         case .authorizing, .receivedDeviceCode:
             openWindow(id: "oauth")
-        case .authorized(_):
+        case .authorized:
             dismissWindow(id: "oauth")
         }
     }

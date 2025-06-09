@@ -77,7 +77,7 @@ extension OAuth {
                     accessTokenURL: URL,
                     deviceCodeURL: URL? = nil,
                     clientID: String,
-                    clientSecret: String,
+                    clientSecret: String?,
                     redirectURI: String? = nil,
                     scope: [String]? = nil,
                     encodeHttpBody: Bool = true,

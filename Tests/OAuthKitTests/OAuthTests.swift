@@ -99,7 +99,7 @@ final class OAuthTests {
         let request = OAuth.Request.device(provider: provider)
         #expect(request != nil)
         #expect(request!.url!.absoluteString.contains("client_id=\(provider.clientID)"))
-        #expect(request!.url!.absoluteString.contains("client_secret=\(provider.clientSecret)"))
+        #expect(request!.url!.absoluteString.contains("client_secret=\(provider.clientSecret!)"))
         #expect(request!.url!.absoluteString.contains("grant_type=device_code"))
         oauth.authorize(provider: provider, grantType: .deviceCode)
     }
@@ -127,7 +127,7 @@ final class OAuthTests {
         #expect(request != nil)
         #expect(data != nil)
         #expect(stringData!.contains("client_id=\(provider.clientID)"))
-        #expect(stringData!.contains("client_secret=\(provider.clientSecret)"))
+        #expect(stringData!.contains("client_secret=\(provider.clientSecret!)"))
         #expect(stringData!.contains("code=\(code)"))
         #expect(stringData!.contains("redirect_uri=\(provider.redirectURI!)"))
         #expect(stringData!.contains("grant_type=authorization_code"))
@@ -148,7 +148,9 @@ final class OAuthTests {
         #expect(request != nil)
         #expect(data != nil)
         #expect(stringData!.contains("client_id=\(provider.clientID)"))
-        #expect(stringData!.contains("client_secret=\(provider.clientSecret)"))
+        if let clientSecret = provider.clientSecret {
+            #expect(stringData!.contains("client_secret=\(clientSecret)"))
+        }
         #expect(stringData!.contains("code=\(code)"))
         #expect(stringData!.contains("redirect_uri=\(provider.redirectURI!)"))
         #expect(stringData!.contains("grant_type=authorization_code"))

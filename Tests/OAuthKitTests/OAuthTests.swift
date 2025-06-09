@@ -4,7 +4,6 @@
 //
 //  Created by Kevin McKee
 //
-import Combine
 import Foundation
 @testable import OAuthKit
 import Testing

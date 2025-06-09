@@ -25,7 +25,7 @@ extension OAuth {
         /// The unique client identifier tforinteracting with this providers oauth server.
         var clientID: String
         /// The client's secret known only to the client and the providers oauth server. It is essential the client's password.
-        var clientSecret: String
+        var clientSecret: String?
         /// The provider redirect uri.
         var redirectURI: String?
         /// The provider scopes.
@@ -108,7 +108,7 @@ extension OAuth {
             accessTokenURL = try container.decode(URL.self, forKey: .accessTokenURL)
             deviceCodeURL = try container.decodeIfPresent(URL.self, forKey: .deviceCodeURL)
             clientID = try container.decode(String.self, forKey: .clientID)
-            clientSecret = try container.decode(String.self, forKey: .clientSecret)
+            clientSecret = try container.decodeIfPresent(String.self, forKey: .clientSecret)
             redirectURI = try container.decodeIfPresent(String.self, forKey: .redirectURI)
             scope = try container.decodeIfPresent([String].self, forKey: .scope)
             encodeHttpBody = try container.decodeIfPresent(Bool.self, forKey: .encodeHttpBody) ?? true

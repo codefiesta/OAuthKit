@@ -11,7 +11,7 @@
 # OAuthKit
 <img src="https://github.com/user-attachments/assets/039ee445-42af-433d-9793-56fc36330952" height="100" align="left"/>
 
-OAuthKit is a modern, event-driven Swift Package that leverages the [Observation](https://developer.apple.com/documentation/observation) and [Combine](https://developer.apple.com/documentation/combine) Frameworks to publish [OAuth 2.0](https://oauth.net/2/) events which allows application developers to easily configure OAuth Providers and focus on making great applications instead of focusing on the details of authorization flows.
+OAuthKit is a modern, event-driven Swift Package that leverages the [Observation](https://developer.apple.com/documentation/observation) and [Combine](https://developer.apple.com/documentation/combine) Frameworks to implement the observer design pattern and publish [OAuth 2.0](https://oauth.net/2/) events which allows application developers to easily configure OAuth Providers and focus on making great applications instead of focusing on the details of authorization flows.
 <br clear="left"/>
 
 ## OAuthKit Usage

@@ -11,7 +11,7 @@
 # OAuthKit
 <img src="https://github.com/user-attachments/assets/039ee445-42af-433d-9793-56fc36330952" height="100" align="left"/>
 
-OAuthKit is a modern, event-driven Swift Package that leverages the [Combine](https://developer.apple.com/documentation/combine) Framework to publish [OAuth 2.0](https://oauth.net/2/) events which allows application developers to easily configure OAuth Providers and focus on making great applications instead of focusing on the details of authorization flows.
+OAuthKit is a contemporary, event-driven Swift Package that utilizes the [Observation](https://developer.apple.com/documentation/observation) and [Combine](https://developer.apple.com/documentation/combine) Frameworks to implement the observer design pattern and publish [OAuth 2.0](https://oauth.net/2/) events. This enables application developers to effortlessly configure OAuth Providers and concentrate on developing exceptional applications rather than being preoccupied with the intricacies of authorization flows.
 <br clear="left"/>
 
 ## OAuthKit Usage
@@ -184,7 +184,12 @@ Standard `debugPrint` to the standard output is disabled by default. If you need
 You can find a sample application integrated with OAuthKit [here](https://github.com/codefiesta/OAuthSample).
 
 ## Security Best Practices
-Although OAuthKit will automatically try to load the `oauth.json` file found inside your main bundle (or bundle passed to the initializer) for convenience purposes, it is good policy to **NEVER** check in **clientID** or **clientSecret** values into source control. Also, it is possible for someone to [inspect and reverse engineer](https://www.nowsecure.com/blog/2021/09/08/basics-of-reverse-engineering-ios-mobile-apps/) the contents of your app and look at any files inside your app bundle which means you could potentially expose these secrets in the `oauth.json` file. The most secure way to protect OAuth secrets is to build your Providers programatically and bake [secret values](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions) into your compiled byte code via your CI pipeline.
+1. Use the [PKCE](https://github.com/codefiesta/OAuthKit?tab=readme-ov-file#oauth-20-pkce-flow) workflow if possible in your public applications.
+2. Never check in **clientID** or **clientSecret** values into source control. Although the **clientID** is public and the **clientSecret** is sensitive and private it is still widely regarded that *both* of these values should be always be treated as confidential.
+3. Don't include `oauth.json` files in your publicly distributed applications. It is possible for someone to [inspect and reverse engineer](https://www.nowsecure.com/blog/2021/09/08/basics-of-reverse-engineering-ios-mobile-apps/) the contents of your app and look at any files inside your app bundle which means you could potentially expose any confidential values contained in this file.
+4. Build OAuth Providers Programmatically via your CI Build Pipeline. Most continuous integration and delivery platforms have the ability to generate source code during build workflows that can get compiled into Swift byte code. It's should be feasible to write a step in the CI pipeline that generates a .swift file that provides access to a list of OAuth.Provider objects that have their confidential values set from the secure CI platform secret keys. This swift code can then compiled into the application as byte code. In practical terms, the security and obfuscation inherent in compiled languages make extracting confidential values difficult (but not impossible).
+5. OAuth 2.0 providers shouldn't provide the ability for publicly distributed applications to initiate [Client Credentials](https://github.com/codefiesta/OAuthKit?tab=readme-ov-file#oauth-20-client-credentials-flow) workflows since it is possible for someone to extract your secrets.
+
 
 ## OAuth 2.0 Providers
 * [Github](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps)

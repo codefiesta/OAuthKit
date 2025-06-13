@@ -19,7 +19,7 @@ public struct OAWebView {
 
     /// Initializer with the speciifed oauth object,
     /// - Parameter oauth: the oauth object to use
-    public init(oauth: OAuth = .init(.main)) {
+    public init(oauth: OAuth) {
         self.oauth = oauth
     }
 

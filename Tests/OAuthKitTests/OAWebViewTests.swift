@@ -86,11 +86,5 @@ final class OAWebViewTests {
         policy = await coordinator.webView(wkWebView, decidePolicyFor: navigationAction)
         #expect(policy == .allow)
     }
-
-//    @Test("Coordinator State Updates")
-//    func whenCoordinatorHandlesUpdates() async throws {
-//        let coordinator: OAWebViewCoordinator = webView.makeCoordinator()
-//        coordinator.update(state: <#T##OAuth.State#>)
-//    }
 }
 #endif

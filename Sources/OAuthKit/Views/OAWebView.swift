@@ -14,12 +14,14 @@ import WebKit
 @MainActor
 public struct OAWebView {
 
-    @Environment(\.oauth)
-    var oauth: OAuth
+    let oauth: OAuth
     let view = WKWebView()
 
-    /// Public Initializer.
-    public init() { }
+    /// Initializer with the speciifed oauth object,
+    /// - Parameter oauth: the oauth object to use
+    public init(oauth: OAuth = .init(.main)) {
+        self.oauth = oauth
+    }
 
     public func makeWebView(context: Context) -> WKWebView {
         view.navigationDelegate = context.coordinator

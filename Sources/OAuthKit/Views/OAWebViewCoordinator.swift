@@ -13,17 +13,23 @@ import WebKit
 @MainActor
 public class OAWebViewCoordinator: NSObject {
 
-    var webView: OAWebView
+    var webView: OAWebView?
 
     /// The oauth reference.
-    var oauth: OAuth {
-        webView.oauth
-    }
+    let oauth: OAuth
 
     /// Initializer
     /// - Parameter webView: the webview that is being coordinated.
     init(_ webView: OAWebView) {
         self.webView = webView
+        self.oauth = webView.oauth
+        super.init()
+    }
+
+    /// Initializer. Primarily used for testing.
+    /// - Parameter oauth: the oauth object to use.
+    init(oauth: OAuth) {
+        self.oauth = oauth
         super.init()
     }
 
@@ -83,17 +89,17 @@ public class OAWebViewCoordinator: NSObject {
             break
         case .authorizing(let provider, let grantType):
             // Override the custom user agent for the provider and tell the browser to load the request
-            webView.view.customUserAgent = provider.customUserAgent
+            webView?.view.customUserAgent = provider.customUserAgent
             // Tell the webView to load the authorization request
             guard let request = OAuth.Request.auth(provider: provider, grantType: grantType) else { return }
-            webView.view.load(request)
+            webView?.view.load(request)
         case .receivedDeviceCode(let provider, let deviceCode):
             // Override the custom user agent for the provider and tell the browser to load the request
-            webView.view.customUserAgent = provider.customUserAgent
+            webView?.view.customUserAgent = provider.customUserAgent
             // Tell the webView to load the device code verification request
             guard let url = URL(string: deviceCode.verificationUri) else { return }
             let request = URLRequest(url: url)
-            webView.view.load(request)
+            webView?.view.load(request)
         }
     }
 }

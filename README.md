@@ -83,7 +83,7 @@ struct ContentView: View {
     var providerList: some View {
         List(oauth.providers) { provider in
             Button(provider.id) {
-                // Start the default authorization flow (.authorizationCode)
+                // Start the default PKCE flow (.pkce)
                 oauth.authorize(provider: provider)
             }
         }

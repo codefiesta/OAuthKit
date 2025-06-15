@@ -55,10 +55,6 @@ public class OAWebViewCoordinator: NSObject {
             }
             // Exchange the code for a token
             oauth.token(provider: provider, code: code)
-        case .clientCredentials:
-            break
-        case .deviceCode:
-            break
         case .pkce(let pkce):
             // Verify the state
             guard state == pkce.state else {
@@ -70,7 +66,7 @@ public class OAWebViewCoordinator: NSObject {
             }
             // Exchange the code for a token along with the pkce validation data
             oauth.token(provider: provider, code: code, pkce: pkce)
-        case .refreshToken:
+        case .clientCredentials, .deviceCode, .refreshToken:
             break
         }
     }

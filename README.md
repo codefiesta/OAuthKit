@@ -25,15 +25,19 @@ import SwiftUI
 @main
 struct OAuthApp: App {
 
+    /// The observable oauth object 
+    let oauth: OAuth = .init(.main)
+    
     /// Build the scene body
     var body: some Scene {
 
         WindowGroup {
             ContentView()
         }
+        .environment(\.oauth, oauth)
         
         WindowGroup(id: "oauth") {
-            OAWebView()
+            OAWebView(oauth: oauth)
         }
     }
 } 

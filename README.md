@@ -83,7 +83,7 @@ struct ContentView: View {
     var providerList: some View {
         List(oauth.providers) { provider in
             Button(provider.id) {
-                // Start the default authorization flow (.authorizationCode)
+                // Start the default PKCE flow (.pkce)
                 oauth.authorize(provider: provider)
             }
         }
@@ -137,12 +137,9 @@ A good resource to help understand the detailed steps involved in OAuth 2.0 work
 
 ### OAuth 2.0 Authorization Code Flow
 
-```swift
-/// Authorization Code is the default workflow with an auto generated state
-oauth.authorize(provider: provider)
-	
-/// Or you can manually configure the Authorization Code state
-let state: String = "ABC-XYZ"
+```swift	
+/// Generate a state and set the GrantType
+let state: String = .secureRandom(32) // See String+Extensions
 let grantType: OAuth.GrantType = .authorizationCode(state)
 oauth.authorize(provider: provider, grantType: grantType)
 ```
@@ -150,9 +147,13 @@ oauth.authorize(provider: provider, grantType: grantType)
 ### OAuth 2.0 PKCE Flow
 PKCE ([RFC 7636](https://www.rfc-editor.org/rfc/rfc7636)) is an extension to the [Authorization Code](https://oauth.net/2/grant-types/authorization-code/) flow to prevent CSRF and authorization code injection attacks.
 
-Proof Key for Code Exchange (PKCE) is the recommended flow to use in OAuthKit as this technique involves the client first creating a secret on each authorization request, and then using that secret again when exchanging the authorization code for an access token. This way if the code is intercepted, it will not be useful since the token request relies on the initial secret.
+Proof Key for Code Exchange (PKCE) is the default and recommended flow to use in OAuthKit as this technique involves the client first creating a secret on each authorization request, and then using that secret again when exchanging the authorization code for an access token. This way if the code is intercepted, it will not be useful since the token request relies on the initial secret.
 
 ```swift
+/// PKCE is the default workflow with an auto generated pkce object
+oauth.authorize(provider: provider)
+
+// Or you can specify the workflow to use PKCE and inject your own values
 let grantType: OAuth.GrantType = .pkce(.init())
 oauth.authorize(provider: provider, grantType: grantType)
 ```

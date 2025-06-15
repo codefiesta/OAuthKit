@@ -120,7 +120,7 @@ public extension OAuth {
     /// - Parameters:
     ///   - provider: the provider to begin authorization for
     ///   - grantType: the grant type to execute
-    func authorize(provider: Provider, grantType: GrantType = .authorizationCode(secureRandom(count: 16))) {
+    func authorize(provider: Provider, grantType: GrantType = .pkce(.init())) {
         switch grantType {
         case .authorizationCode:
             state = .authorizing(provider, grantType)

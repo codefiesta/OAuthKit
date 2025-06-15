@@ -25,6 +25,7 @@ import SwiftUI
 @main
 struct OAuthApp: App {
 
+    /// The observable oauth object 
     let oauth: OAuth = .init(.main)
     
     /// Build the scene body

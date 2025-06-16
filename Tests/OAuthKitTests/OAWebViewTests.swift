@@ -26,6 +26,9 @@ final class OAWebViewTests {
 
     let oauth: OAuth
     let webView: OAWebView
+    var provider: OAuth.Provider {
+        oauth.providers.filter{ $0.id == "GitHub" }.first!
+    }
 
     /// Initializer.
     init() async throws {
@@ -59,8 +62,6 @@ final class OAWebViewTests {
         var navigationAction: WKNavigationAction = OAuthTestWKNavigationAction(urlRequest: urlRequest)
         var policy = await coordinator.webView(wkWebView, decidePolicyFor: navigationAction)
         #expect(policy == .cancel)
-
-        let provider = oauth.providers[0]
 
         // 2) Authorization Code Expectations
         let state: String = .secureRandom()
@@ -97,7 +98,6 @@ final class OAWebViewTests {
         let wkWebView = webView.view
 
         var urlRequest: URLRequest = .init(url: URL(string: "https://github.com/codefiesta/OAuthKit")!)
-        let provider = oauth.providers[0]
 
         // 2) Authorization Code Expectations
         let state: String = .secureRandom()

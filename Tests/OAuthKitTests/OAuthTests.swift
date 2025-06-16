@@ -17,6 +17,9 @@ final class OAuthTests {
     var keychain: Keychain {
         oauth.keychain
     }
+    var provider: OAuth.Provider {
+        oauth.providers.filter{ $0.id == "GitHub" }.first!
+    }
 
     /// The mock url session that overrides the protocol classes with `OAuthTestURLProtocol`
     /// that will intercept all outbound requests and return mocked test data.
@@ -64,7 +67,6 @@ final class OAuthTests {
     /// Tests the authorization request parameters.
     @Test("Building Authorization Request")
     func whenBuildingAuthorizationRequest() async throws {
-        let provider = oauth.providers[0]
         let state: String = .secureRandom(count: 16)
         let grantType: OAuth.GrantType = .authorizationCode(state)
         let request = OAuth.Request.auth(provider: provider, grantType: grantType)
@@ -78,7 +80,6 @@ final class OAuthTests {
     /// Tests the building of client credential token requests.
     @Test("Building Client Credentials Token Requests")
     func whenBuildingClientCredentialsTokenRequests() async throws {
-        let provider = oauth.providers[0]
         let request = OAuth.Request.token(provider: provider)
         let data = request?.httpBody
         let stringData = String(data: data!, encoding: .utf8)
@@ -95,7 +96,6 @@ final class OAuthTests {
     /// Tests the `/device`code  request parameters.
     @Test("Building Device Code Request")
     func whenBuildingDeviceCodeRequest() async throws {
-        let provider = oauth.providers[0]
         let request = OAuth.Request.device(provider: provider)
         #expect(request != nil)
         #expect(request!.url!.absoluteString.contains("client_id=\(provider.clientID)"))
@@ -107,7 +107,6 @@ final class OAuthTests {
     /// Tests the building of device code token requests.
     @Test("Building Device Code Token Requests")
     func whenBuildingDeviceCodeTokenRequests() async throws {
-        let provider = oauth.providers[0]
         let deviceCode: OAuth.DeviceCode = .init(deviceCode: .secureRandom(), userCode: "ABC-XYZ", verificationUri: "https://example.com/device", expiresIn: 1800, interval: 5)
         let request = OAuth.Request.token(provider: provider, deviceCode: deviceCode)
         #expect(request != nil)
@@ -119,7 +118,6 @@ final class OAuthTests {
     /// Tests the building of token requests.
     @Test("Building Token Requests")
     func whenBuildingTokenRequests() async throws {
-        let provider = oauth.providers[0]
         let code: String = .secureRandom()
         let request = OAuth.Request.token(provider: provider, code: code, pkce: nil)
         let data = request?.httpBody
@@ -139,7 +137,6 @@ final class OAuthTests {
     /// Tests the building of PKCE token requests.
     @Test("Building PKCE Token Requests")
     func whenBuildingPKCETokenRequests() async throws {
-        let provider = oauth.providers[0]
         let code: String = .secureRandom()
         let pkce: OAuth.PKCE = .init()
         let request = OAuth.Request.token(provider: provider, code: code, pkce: pkce)
@@ -163,7 +160,6 @@ final class OAuthTests {
     /// Tests the refresh token request parameters.
     @Test("Building Refresh Token Request")
     func whenBuildingRefreshTokenRequest() async throws {
-        let provider = oauth.providers[0]
         let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 3600, scope: nil, type: "Bearer")
         let request = OAuth.Request.refresh(provider: provider, token: token)
         #expect(request != nil)
@@ -180,7 +176,6 @@ final class OAuthTests {
     /// Tests the PKCE request parameters.
     @Test("Building PKCE Request")
     func whenBuildingPKCERequest() async throws {
-        let provider = oauth.providers[0]
         let pkce: OAuth.PKCE = .init()
         let grantType: OAuth.GrantType = .pkce(pkce)
         let request = OAuth.Request.auth(provider: provider, grantType: grantType)
@@ -221,7 +216,6 @@ final class OAuthTests {
     /// Tests the adding of the Authorization header to an URLRequest.
     @Test("Adding Authorization Header to URLRequest")
     func whenAddingAuthHeader() async throws {
-        let provider = oauth.providers[0]
         let string = "https://github.com/codefiesta/OAuthKit"
         let url = URL(string: string)
         var urlRequest = URLRequest(url: url!)
@@ -240,7 +234,6 @@ final class OAuthTests {
     /// Tests OAuth State changes
     @Test("OAuth State Changes")
     func whenOAuthState() async throws {
-        let provider = oauth.providers[0]
         let state: String = .secureRandom(count: 16)
 
         // Authorization Code

@@ -1,5 +1,33 @@
 [
     {
+        "id": "Box",
+        "authorizationURL": "https://account.box.com/api/oauth2/authorize",
+        "accessTokenURL": "https://api.box.com/oauth2/token",
+        "clientID": "CLIENT_ID",
+        "clientSecret": "CLIENT_SECRET",
+        "redirectURI": "https://github.com/codefiesta/",
+        "scope": [
+            "root_readwrite"
+        ],
+        "debug": true,
+    },
+    {
+        "id": "Dropbox",
+        "authorizationURL": "https://www.dropbox.com/oauth2/authorize",
+        "accessTokenURL": "https://api.dropboxapi.com/oauth2/token",
+        "clientID": "CLIENT_ID",
+        "clientSecret": "CLIENT_SECRET",
+        "redirectURI": "https://github.com/codefiesta/",
+        "scope": [
+            "email",
+            "profile",
+            "openid",
+            "files.metadata.write",
+            "files.content.write",
+        ],
+        "debug": true,
+    },
+    {
         "id": "GitHub",
         "authorizationURL": "https://github.com/login/oauth/authorize",
         "accessTokenURL": "https://github.com/login/oauth/access_token",

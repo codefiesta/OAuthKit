@@ -197,6 +197,8 @@ You can find a sample application integrated with OAuthKit [here](https://github
 
 
 ## OAuth 2.0 Providers
+* [Box](https://developer.box.com/guides/authentication/oauth2/)
+* [Dropbox](https://developers.dropbox.com/oauth-guide)
 * [Github](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps)
 * [Google](https://developers.google.com/identity/protocols/oauth2)
 	* **Important**: When creating a Google OAuth2 application from the [Google API Console](https://console.developers.google.com/) create an OAuth 2.0 Client type of Web Application (not iOS).

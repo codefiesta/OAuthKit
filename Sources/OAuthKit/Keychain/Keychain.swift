@@ -35,7 +35,6 @@ class Keychain: @unchecked Sendable {
 
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrApplicationTag as String: applicationTag,
             kSecReturnAttributes as String: true,
             kSecMatchLimit as String: kSecMatchLimitAll
         ]
@@ -77,7 +76,6 @@ class Keychain: @unchecked Sendable {
         let data = try encoder.encode(value)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrApplicationTag as String: applicationTag,
             kSecAttrAccount as String: account,
             kSecValueData as String: data
         ]
@@ -98,7 +96,6 @@ class Keychain: @unchecked Sendable {
 
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrApplicationTag as String: applicationTag,
             kSecMatchLimit as String: kSecMatchLimitOne,
             kSecAttrAccount as String: account,
             kSecReturnData as String: true
@@ -153,7 +150,6 @@ class Keychain: @unchecked Sendable {
     private func deleteNoLock(_ key: String) -> Bool {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrApplicationTag as String: applicationTag,
             kSecAttrAccount as String: key
         ]
         let status = SecItemDelete(query as CFDictionary)

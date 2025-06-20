@@ -45,9 +45,7 @@ class Keychain: @unchecked Sendable {
             SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer(pointer))
         }
 
-        guard status == noErr else {
-            return []
-        }
+        guard status == noErr else { return [] }
 
         var results = [String]()
 

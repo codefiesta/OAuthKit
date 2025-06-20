@@ -42,9 +42,7 @@ extension OAuth {
         ///   - grantType: the grant type
         /// - Returns: an `/authorization` url request
         static func auth(provider: Provider, grantType: GrantType) -> URLRequest? {
-            guard var urlComponents = URLComponents(string: provider.authorizationURL.absoluteString) else {
-                return nil
-            }
+            guard var urlComponents = URLComponents(string: provider.authorizationURL.absoluteString) else { return nil }
             guard let queryItems = buildQueryItems(provider: provider, grantType: grantType) else { return nil }
             urlComponents.queryItems = queryItems
             guard let url = urlComponents.url else { return nil }
@@ -57,9 +55,7 @@ extension OAuth {
         ///   - token: the auth token to refresh
         /// - Returns: an `/authorization` url request
         static func refresh(provider: Provider, token: Token) -> URLRequest? {
-            guard var urlComponents = URLComponents(string: provider.authorizationURL.absoluteString) else {
-                return nil
-            }
+            guard var urlComponents = URLComponents(string: provider.authorizationURL.absoluteString) else { return nil }
             guard let queryItems = buildQueryItems(provider: provider, token: token) else { return nil }
             urlComponents.queryItems = queryItems
             guard let url = urlComponents.url else { return nil }
@@ -81,9 +77,7 @@ extension OAuth {
         ///   - pkce: the pkce data
         /// - Returns: a `/token` url request
         static func token(provider: Provider, code: String, pkce: PKCE? = nil) -> URLRequest? {
-            guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
-                return nil
-            }
+            guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else { return nil }
             let queryItems = buildQueryItems(provider: provider, code: code, pkce: pkce)
             urlComponents.queryItems = queryItems
 
@@ -125,12 +119,8 @@ extension OAuth {
         ///   - provider: the oauth provider
         /// - Returns: the url request
         static func token(provider: Provider) -> URLRequest? {
-            guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
-                return nil
-            }
-            guard let queryItems = buildQueryItems(provider: provider, grantType: .clientCredentials) else {
-                return nil
-            }
+            guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else { return nil }
+            guard let queryItems = buildQueryItems(provider: provider, grantType: .clientCredentials) else { return nil }
             urlComponents.queryItems = queryItems
 
             guard var url = urlComponents.url else { return nil }
@@ -186,9 +176,6 @@ extension OAuth {
                 queryItems.append(URLQueryItem(key: .redirectUri, value: provider.redirectURI))
                 queryItems.append(URLQueryItem(key: .responseType, value: responseTypeCode))
                 queryItems.append(URLQueryItem(key: .state, value: state))
-                if let scope = provider.scope {
-                    queryItems.append(URLQueryItem(key: .scope, value: scope.joined(separator: " ")))
-                }
             case .pkce(let pkce):
                 queryItems.append(URLQueryItem(key: .clientID, value: provider.clientID))
                 queryItems.append(URLQueryItem(key: .redirectUri, value: provider.redirectURI))
@@ -196,25 +183,19 @@ extension OAuth {
                 queryItems.append(URLQueryItem(key: .state, value: pkce.state))
                 queryItems.append(URLQueryItem(key: .codeChallenge, value: pkce.codeChallenge))
                 queryItems.append(URLQueryItem(key: .codeChallengeMethod, value: pkce.codeChallengeMethod))
-                if let scope = provider.scope {
-                    queryItems.append(URLQueryItem(key: .scope, value: scope.joined(separator: " ")))
-                }
             case .deviceCode:
                 queryItems.append(URLQueryItem(key: .clientID, value: provider.clientID))
                 queryItems.append(URLQueryItem(key: .clientSecret, value: provider.clientSecret))
                 queryItems.append(URLQueryItem(key: .grantType, value: grantType.rawValue))
-                if let scope = provider.scope {
-                    queryItems.append(URLQueryItem(key: .scope, value: scope.joined(separator: " ")))
-                }
             case .clientCredentials:
                 queryItems.append(URLQueryItem(key: .clientID, value: provider.clientID))
                 queryItems.append(URLQueryItem(key: .clientSecret, value: provider.clientSecret))
                 queryItems.append(URLQueryItem(key: .grantType, value: grantType.rawValue))
-                if let scope = provider.scope {
-                    queryItems.append(URLQueryItem(key: .scope, value: scope.joined(separator: " ")))
-                }
             case .refreshToken:
                 return nil
+            }
+            if let scope = provider.scope {
+                queryItems.append(URLQueryItem(key: .scope, value: scope.joined(separator: " ")))
             }
             return queryItems
         }

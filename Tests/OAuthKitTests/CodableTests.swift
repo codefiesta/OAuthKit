@@ -35,7 +35,7 @@ struct CodableTests {
     @Test("Encoding and Decoding Tokens")
     func whenEncodingDecodingTokens() async throws {
 
-        let token: OAuth.Token = .init(accessToken: UUID().uuidString, refreshToken: UUID().uuidString, expiresIn: 3600, scope: "openid", type: "bearer")
+        let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 3600, scope: "openid", type: "bearer")
 
         let data = try encoder.encode(token)
         let decoded: OAuth.Token = try decoder.decode(OAuth.Token.self, from: data)
@@ -45,7 +45,7 @@ struct CodableTests {
     @Test("Encoding and Decoding Device Codes")
     func whenDecodingDeviceCodes() async throws {
 
-        let deviceCode: OAuth.DeviceCode = .init(deviceCode: UUID().uuidString, userCode: "ABC-XYZ", verificationUri: "https://example.com/device", expiresIn: 1800, interval: 5)
+        let deviceCode: OAuth.DeviceCode = .init(deviceCode: .secureRandom(), userCode: "ABC-XYZ", verificationUri: "https://example.com/device", expiresIn: 1800, interval: 5)
 
         let data = try encoder.encode(deviceCode)
         let decoded: OAuth.DeviceCode = try decoder.decode(OAuth.DeviceCode.self, from: data)

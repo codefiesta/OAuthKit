@@ -33,7 +33,7 @@ private actor OAuthTestRequestHandler {
         }
 
         // Returns device code data
-        if url.absoluteString.contains("device") {
+        if url.absoluteString.contains("grant_type=device_code") {
             let deviceCode: OAuth.DeviceCode = .init(deviceCode: .secureRandom(), userCode: "0A17-B332", verificationUri: "https://github.com/codefiesta/OAuthKit", expiresIn: 2, interval: 1)
             return try! JSONEncoder().encode(deviceCode)
         }

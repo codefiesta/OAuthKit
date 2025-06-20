@@ -267,7 +267,7 @@ private extension OAuth {
 
 // MARK: URLRequests
 
-fileprivate extension OAuth {
+extension OAuth {
 
     /// Requests to exchange a code for an access token.
     /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.3

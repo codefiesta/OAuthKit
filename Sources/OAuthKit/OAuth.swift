@@ -31,22 +31,14 @@ public final class OAuth: NSObject {
     /// Keys and values used to specify loading or runtime options.
     public struct Option: Hashable, Equatable, RawRepresentable, Sendable {
 
+        /// The option raw value.
         public var rawValue: String
 
+        /// Initializer
+        /// - Parameter rawValue: the option raw value
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
-    }
-
-    /// Provides an enum representation for token storage options.
-    /// Future enhancement - all tokens are currently stored inside the Keychain.
-    public enum Storage: String {
-        /// Tokens are stored inside Keychain (recommended).
-        case keychain
-        /// Tokens are stored inside SwiftData.
-        case swiftdata
-        /// Tokens are stored in memory only.
-        case memory
     }
 
     /// A published list of available OAuth providers to choose from.
@@ -66,6 +58,12 @@ public final class OAuth: NSObject {
     private let networkMonitor = NetworkMonitor()
     @ObservationIgnored
     var keychain: Keychain = .default
+
+    /// Convenience var for accessing the autoRefresh option.
+    @ObservationIgnored
+    private var autoRefresh: Bool {
+        options?[.autoRefresh] as? Bool ?? false
+    }
 
     /// Combine subscribers.
     @ObservationIgnored
@@ -246,7 +244,7 @@ private extension OAuth {
         // Don't bother scheduling a task for tokens that can't refresh
         guard let _ = auth.token.refreshToken else { return }
 
-        if let options, let autoRefreshEnabled = options[.autoRefresh] as? Bool, autoRefreshEnabled {
+        if autoRefresh {
             if let expiration = auth.expiration {
                 let timeInterval = expiration - Date.now
                 if timeInterval > 0 {
@@ -269,7 +267,7 @@ private extension OAuth {
 
 // MARK: URLRequests
 
-fileprivate extension OAuth {
+extension OAuth {
 
     /// Requests to exchange a code for an access token.
     /// See: https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.3

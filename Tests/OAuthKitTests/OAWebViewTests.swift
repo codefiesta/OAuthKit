@@ -25,14 +25,21 @@ final class OAWebViewTests {
     }()
 
     let oauth: OAuth
+    let tag: String
     let webView: OAWebView
     var provider: OAuth.Provider {
         oauth.providers.filter{ $0.id == "GitHub" }.first!
     }
 
+    var keychain: Keychain {
+        oauth.keychain
+    }
+
     /// Initializer.
     init() async throws {
-        oauth = .init(.module)
+        tag = "oauthkit.test." + .secureRandom()
+        let options: [OAuth.Option: Sendable] = [.applicationTag: tag, .autoRefresh: false]
+        oauth = .init(.module, options: options)
         webView = .init(oauth: oauth)
         oauth.urlSession = urlSession
     }
@@ -86,6 +93,8 @@ final class OAWebViewTests {
         navigationAction = OAuthTestWKNavigationAction(urlRequest: urlRequest)
         policy = await coordinator.webView(wkWebView, decidePolicyFor: navigationAction)
         #expect(policy == .allow)
+        let result = await waitForAuthorization()
+        #expect(result == true)
     }
 
     /// Tests to make sure the coordinator doesn't being requesting access tokens when we've detected state mismatches.
@@ -120,7 +129,22 @@ final class OAWebViewTests {
         policy = await coordinator.webView(wkWebView, decidePolicyFor: navigationAction)
         #expect(policy == .allow)
         #expect(oauth.state != .requestingAccessToken(provider))
+    }
 
+    /// Streams the oauth status until we receive an authorization.
+    /// This should only be used on test methods that expect an authorization to be inserted into the keychain.
+    private func waitForAuthorization() async -> Bool {
+        let monitor: OAuth.Monitor = .init(oauth: oauth)
+        for await state in monitor.stream {
+            switch state {
+            case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
+                break
+            case .authorized(_, _):
+                keychain.clear()
+                return true
+            }
+        }
+        return false
     }
 }
 #endif

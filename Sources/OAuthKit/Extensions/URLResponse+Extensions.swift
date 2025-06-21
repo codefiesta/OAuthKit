@@ -11,18 +11,14 @@ public extension URLResponse {
 
     /// Returns true if the response status code is in the 200's.
     var isOK: Bool {
-        if let code = statusCode()  {
-            return 200...299 ~= code
-        }
-        return false
+        guard let code = statusCode() else { return false }
+        return 200...299 ~= code
     }
 
     /// Extracts the status code from the response.
     func statusCode() -> Int? {
-        if let httpResponse = self as? HTTPURLResponse {
-            return httpResponse.statusCode
-        }
-        return nil
+        guard let httpResponse = self as? HTTPURLResponse else { return nil }
+        return httpResponse.statusCode
     }
 }
 

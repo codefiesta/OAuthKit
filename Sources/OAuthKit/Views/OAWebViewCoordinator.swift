@@ -97,9 +97,7 @@ public class OAWebViewCoordinator: NSObject {
 extension OAWebViewCoordinator: WKNavigationDelegate {
 
     public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
-        guard let url = navigationAction.request.url else {
-            return .cancel
-        }
+        guard let url = navigationAction.request.url else { return .cancel }
         switch oauth.state {
         case .empty, .requestingAccessToken, .authorized, .requestingDeviceCode, .receivedDeviceCode:
             break

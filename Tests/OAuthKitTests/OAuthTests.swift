@@ -188,6 +188,15 @@ final class OAuthTests {
         #expect(request!.url!.absoluteString.contains("code_challenge_method=\(pkce.codeChallengeMethod)"))
     }
 
+    /// Tests OAuth Secure Random State Generation
+    @Test("OAuth Polling for Device Code Authorization")
+    private func whenPollingForDeviceCodeAuthorization() async throws {
+        let deviceCode: OAuth.DeviceCode = .init(deviceCode: .secureRandom(), userCode: .secureRandom(), verificationUri: "https://example.com", expiresIn: 200, interval: 0)
+        await oauth.poll(provider: provider, deviceCode: deviceCode)
+        let result = await waitForAuthorization()
+        #expect(result == true)
+    }
+
     /// Tests to make sure the PKCE code verifier and challenge are correct.
     /// See: https://www.oauth.com/playground/authorization-code-with-pkce.html
     @Test("Generating PKCE Code Challenge")

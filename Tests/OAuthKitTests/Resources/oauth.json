@@ -1,5 +1,20 @@
 [
     {
+        "id": "Auth0",
+        "authorizationURL": "https://domain/authorize",
+        "accessTokenURL": "https://domain/oauth/token",
+        "deviceCodeURL": "https://domain/oauth/device/code",
+        "clientID": "CLIENT_ID",
+        "clientSecret": "CLIENT_SECRET",
+        "redirectURI": "https://github.com/codefiesta/",
+        "scope": [
+            "email",
+            "profile",
+            "openid"
+        ],
+        "debug": true,
+    },
+    {
         "id": "Box",
         "authorizationURL": "https://account.box.com/api/oauth2/authorize",
         "accessTokenURL": "https://api.box.com/oauth2/token",

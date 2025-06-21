@@ -197,6 +197,7 @@ You can find a sample application integrated with OAuthKit [here](https://github
 
 
 ## OAuth 2.0 Providers
+* [Auth0 / Okta](https://developer.okta.com/signup/)
 * [Box](https://developer.box.com/guides/authentication/oauth2/)
 * [Dropbox](https://developers.dropbox.com/oauth-guide)
 * [Github](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps)

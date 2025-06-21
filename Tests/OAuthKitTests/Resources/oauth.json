@@ -1,9 +1,9 @@
 [
     {
         "id": "Auth0",
-        "authorizationURL": "https://{domain}/authorize",
-        "accessTokenURL": "https://{domain}/oauth/token",
-        "deviceCodeURL": "https://{domain}/oauth/device/code",
+        "authorizationURL": "https://domain/authorize",
+        "accessTokenURL": "https://domain/oauth/token",
+        "deviceCodeURL": "https://domain/oauth/device/code",
         "clientID": "CLIENT_ID",
         "clientSecret": "CLIENT_SECRET",
         "redirectURI": "https://github.com/codefiesta/",

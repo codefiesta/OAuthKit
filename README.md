@@ -197,6 +197,8 @@ You can find a sample application integrated with OAuthKit [here](https://github
 
 
 ## OAuth 2.0 Providers
+OAuthKit should work with any standard OAuth2 provider. Below is a list of tested providers along with their OAuth2 documentation links. If you’re interested in seeing support or examples for a provider not listed here, please open an issue on our [here](https://github.com/codefiesta/OAuthKit/issues).
+
 * [Auth0 / Okta](https://developer.okta.com/signup/)
 * [Box](https://developer.box.com/guides/authentication/oauth2/)
 * [Dropbox](https://developers.dropbox.com/oauth-guide)
@@ -211,5 +213,6 @@ You can find a sample application integrated with OAuthKit [here](https://github
     * **Important**: When registering an application inside the [Microsoft Azure Portal](https://portal.azure.com/) it's important to choose a **Redirect URI** as **Web** otherwise the `/token` endpoint will return an error when sending the `client_secret` in the body payload.
 * [Slack](https://api.slack.com/authentication/oauth-v2)
     * **Important**: Slack will block unknown browsers from initiating OAuth workflows. See sample [oauth.json](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json) for setting the `customUserAgent` as a workaround.
+* [Stripe](https://docs.stripe.com/stripe-apps/api-authentication/oauth)
 * [Twitter](https://developer.x.com/en/docs/authentication/oauth-2-0)
 	* **Unsupported**: Although OAuthKit *should* work with Twitter/X OAuth2 APIs without any modification, **@codefiesta** has chosen not to support any [Elon Musk](https://www.natesilver.net/p/elon-musk-polls-popularity-nate-silver-bulletin) backed ventures due to his facist, racist, and divisive behavior that epitomizes out-of-touch wealth and greed. **@codefiesta** will not raise objections to other developers who wish to contribute to OAuthKit in order to support Twitter OAuth2.

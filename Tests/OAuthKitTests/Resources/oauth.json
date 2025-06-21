@@ -96,6 +96,22 @@
         ]
     },
     {
+        "id": "Stripe",
+        "authorizationURL": "https://marketplace.stripe.com/oauth/v2/authorize",
+        "accessTokenURL": "https://api.stripe.com/v1/oauth/token",
+        "clientID": "CLIENT_ID",
+        "clientSecret": "CLIENT_SECRET",
+        "redirectURI": "https://dashboard.stripe.com/test/apps-oauth/com.example.app.id",
+        "scope": [
+            "connected_account_read",
+            "balance_read",
+            "charge_read",
+            "customer_read",
+            "order_read"
+        ],
+        "debug": true
+    },
+    {
         "id": "LinkedIn",
         "authorizationURL": "https://www.linkedin.com/oauth/v2/authorization",
         "accessTokenURL": "https://www.linkedin.com/oauth/v2/accessToken",

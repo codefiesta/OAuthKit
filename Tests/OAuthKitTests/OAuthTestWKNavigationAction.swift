@@ -5,7 +5,7 @@
 //  Created by Kevin McKee
 //
 
-#if !os(tvOS)
+#if !os(tvOS) && !os(watchOS)
 import WebKit
 
 /// OAuth Test WKNavigationAction that can be used for testing

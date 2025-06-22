@@ -5,7 +5,7 @@
 //  Created by Kevin McKee
 //
 
-#if !os(tvOS)
+#if !os(tvOS) && !os(watchOS)
 import Foundation
 @testable import OAuthKit
 import SwiftUI

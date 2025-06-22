@@ -15,12 +15,15 @@ import WebKit
 public struct OAWebView {
 
     let oauth: OAuth
-    let view = WKWebView()
+    let view: WKWebView
 
     /// Initializer with the speciifed oauth object,
     /// - Parameter oauth: the oauth object to use
     public init(oauth: OAuth) {
         self.oauth = oauth
+        let configuration = WKWebViewConfiguration()
+        configuration.websiteDataStore = oauth.useNonPersistentWebDataStore ? WKWebsiteDataStore.nonPersistent() : WKWebsiteDataStore.default()
+        self.view = WKWebView(frame: .zero, configuration: configuration)
     }
 
     public func makeWebView(context: Context) -> WKWebView {

@@ -65,6 +65,12 @@ public final class OAuth: NSObject {
         options?[.autoRefresh] as? Bool ?? false
     }
 
+    /// Convenience var for accessing the useNonPersistentWebDataStore option.
+    @ObservationIgnored
+    var useNonPersistentWebDataStore: Bool {
+        options?[.useNonPersistentWebDataStore] as? Bool ?? false
+    }
+
     /// Combine subscribers.
     @ObservationIgnored
     private var subscribers = Set<AnyCancellable>()
@@ -458,5 +464,9 @@ public extension OAuth.Option {
     /// A key used for custom application identifiers to improve token tagging.
     static let applicationTag: OAuth.Option = .init(rawValue: "applicationTag")
 
+    /// A key used for setting the WKWebsiteDataStore to `nonPersistent()` in the OAWebView.
+    /// This is disabled by default, but this can be turned on to allow developers to use an ephemeral webkit datastore
+    /// that effectively forces a new login attempt every time an authorization flow is started.
+    static let useNonPersistentWebDataStore: OAuth.Option = .init(rawValue: "useNonPersistentWebDataStore")
 }
 

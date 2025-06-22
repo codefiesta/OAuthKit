@@ -22,7 +22,7 @@ extension OAuth {
         var accessTokenURL: URL
         /// The provider device code url that can be used for devices without browsers (like tvOS).
         var deviceCodeURL: URL?
-        /// The unique client identifier tforinteracting with this providers oauth server.
+        /// The unique client identifier for interacting with this providers oauth server.
         var clientID: String
         /// The client's secret known only to the client and the providers oauth server. It is essential the client's password.
         var clientSecret: String?

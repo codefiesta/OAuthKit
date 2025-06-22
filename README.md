@@ -131,7 +131,7 @@ let oauth: OAuth = .init(providers: providers, options: options)
 ```
 
 ## OAuthKit Authorization Flows
-OAuth 2.0 workflows are started by calling the following:
+OAuth 2.0 workflows are started by calling the [oauth.authorize(provider:grantType:)](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L127) method.
 
 ```swift
 oauth.authorize(provider: provider, grantType: grantType)

@@ -4,7 +4,8 @@
 ![iOS 18.0+](https://img.shields.io/badge/iOS-18.0%2B-crimson.svg)
 ![macOS 15.0+](https://img.shields.io/badge/macOS-15.0%2B-skyblue.svg)
 ![tvOS 18.0+](https://img.shields.io/badge/tvOS-18.0%2B-blue.svg)
-![visionOS 2.0+](https://img.shields.io/badge/visionOS-2.0%2B-magenta.svg)
+![visionOS 2.0+](https://img.shields.io/badge/visionOS-2.0%2B-violet.svg)
+![watchOS 11.0+](https://img.shields.io/badge/watchOS-11.0%2B-magenta.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-indigo.svg)](https://opensource.org/licenses/MIT)
 ![Code Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/codefiesta/87655b6e3c89b9198287b2fefbfa641f/raw/oauthkit-coverage.json)
 
@@ -16,7 +17,7 @@ OAuthKit is a contemporary, event-driven Swift Package that utilizes the [Observ
 
 ## OAuthKit Usage
 
-The following is an example of the simplest usage of using OAuthKit in macOS:
+The following is an example of the simplest usage of using OAuthKit across multiple platforms (iOS, macOS, visionOS, tvOS, watchOS):
 
 ```swift
 import OAuthKit
@@ -36,19 +37,23 @@ struct OAuthApp: App {
         }
         .environment(\.oauth, oauth)
         
+        #if canImport(WebKit)
         WindowGroup(id: "oauth") {
             OAWebView(oauth: oauth)
         }
+        #endif
     }
 } 
 
 struct ContentView: View {
     
+    #if canImport(WebKit)
     @Environment(\.openWindow)
     var openWindow
     
     @Environment(\.dismissWindow)
     private var dismissWindow
+    #endif
     
     @Environment(\.oauth)
     var oauth: OAuth
@@ -70,7 +75,8 @@ struct ContentView: View {
                 }
             case .receivedDeviceCode(_, let deviceCode):
                 Text("To login, visit")
-                Text(deviceCode.verificationUri).foregroundStyle(.blue)
+                Text(.init("[\(deviceCode.verificationUri)](\(deviceCode.verificationUri))"))
+                    .foregroundStyle(.blue)
                 Text("and enter the following code:")
                 Text(deviceCode.userCode)
                     .padding()
@@ -87,10 +93,23 @@ struct ContentView: View {
     var providerList: some View {
         List(oauth.providers) { provider in
             Button(provider.id) {
-                // Start the default PKCE flow (.pkce)
-                oauth.authorize(provider: provider)
+                authorize(provider: provider)
             }
         }
+    }
+
+    /// Starts the authorization process for the specified provider.
+    /// - Parameter provider: the provider to begin authorization for
+    private func authorize(provider: OAuth.Provider) {
+        #if canImport(WebKit)
+        // Use the PKCE grantType for iOS, macOS, visionOS
+        let grantType: OAuth.GrantType = .pkce(.init())
+        #else
+        // Use the Device Code grantType for tvOS, watchOS
+        let grantType: OAuth.GrantType = .deviceCode
+        #endif
+        // Start the authorization flow
+        oauth.authorize(provider: provider, grantType: grantType)
     }
     
     /// Reacts to oauth state changes by opening or closing authorization windows.
@@ -100,9 +119,13 @@ struct ContentView: View {
         case .empty, .requestingAccessToken, .requestingDeviceCode:
             break
         case .authorizing, .receivedDeviceCode:
+            #if canImport(WebKit)
             openWindow(id: "oauth")
+            #endif
         case .authorized(_, _):
+            #if canImport(WebKit)
             dismissWindow(id: "oauth")
+            #endif
         }
     }
 }

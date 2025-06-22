@@ -32,9 +32,10 @@ final class OAuthTests {
     /// Initializer.
     init() async throws {
         tag = "oauthkit.test." + .secureRandom()
-        let options: [OAuth.Option: Sendable] = [.applicationTag: tag, .autoRefresh: true]
+        let options: [OAuth.Option: Sendable] = [.applicationTag: tag, .autoRefresh: true, .useNonPersistentWebDataStore: true]
         oauth = .init(.module, options: options)
         oauth.urlSession = urlSession
+        #expect(oauth.useNonPersistentWebDataStore == true)
     }
 
     /// Tests the initialization with providers.
@@ -51,6 +52,7 @@ final class OAuthTests {
         ]
         let customOAuth: OAuth = .init(providers: providers, options: options)
         #expect(customOAuth.providers.count == 1)
+        #expect(customOAuth.useNonPersistentWebDataStore == false)
     }
 
     /// Tests the custom date extension operator.

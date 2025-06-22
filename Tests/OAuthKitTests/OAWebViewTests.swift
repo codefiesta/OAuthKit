@@ -38,10 +38,11 @@ final class OAWebViewTests {
     /// Initializer.
     init() async throws {
         tag = "oauthkit.test." + .secureRandom()
-        let options: [OAuth.Option: Sendable] = [.applicationTag: tag, .autoRefresh: false]
+        let options: [OAuth.Option: Sendable] = [.applicationTag: tag, .autoRefresh: false, .useNonPersistentWebDataStore: true]
         oauth = .init(.module, options: options)
         webView = .init(oauth: oauth)
         oauth.urlSession = urlSession
+        #expect(oauth.useNonPersistentWebDataStore == true)
     }
 
     /// Tests the oauth environment values are correct.

@@ -5,7 +5,7 @@
 //  Created by Kevin McKee on 5/16/24.
 //
 
-#if !os(tvOS) && !os(watchOS)
+#if canImport(WebKit)
 import Combine
 import SwiftUI
 import WebKit

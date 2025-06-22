@@ -119,15 +119,15 @@ var oauth: OAuth
 If you want to customize your OAuth environment or are using modules in your application, you can also specify which bundle to load configure files from:
 
 ```swift
-let oauth = OAuth(.module)
+let oauth: OAuth = .init(.module)
 ```
 
 If you are building your OAuth Providers programatically (recommended for production applications via a CI build pipeline for security purposes), you can pass providers and options as well.
 
 ```swift
 let providers: [OAuth.Provider] = ...
-let options: [OAuth.Option: Sendable] = [.applicationTag: "com.bundle.identifier"]
-let oauth: OAuth = OAuth(providers: providers, options: options)
+let options: [OAuth.Option: Sendable] = [.applicationTag: "com.bundle.identifier", .autoRefresh: true, .useNonPersistentWebDataStore: true]
+let oauth: OAuth = .init(providers: providers, options: options)
 ```
 
 ## OAuthKit Authorization Flows

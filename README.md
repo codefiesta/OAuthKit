@@ -206,7 +206,7 @@ oauth.authorize(provider: provider, grantType: grantType)
 ```
 
 ## OAuth 2.0 Provider Debugging
-Standard `debugPrint` to the standard output is disabled by default. If you need to inspect response data received from [providers](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth+Provider.swift), you can toggle the `debug` value to true. You can see an [example here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json).
+Debugging output with [debugPrint(\_:separator:terminator:)](https://developer.apple.com/documentation/swift/debugprint(_:separator:terminator:)) into the standard output is disabled by default. If you need to inspect response data received from [providers](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth+Provider.swift), you can toggle the `debug` value to true. You can see an [example here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json).
 
 ## OAuthKit Sample Application
 You can find a sample application integrated with OAuthKit [here](https://github.com/codefiesta/OAuthSample).

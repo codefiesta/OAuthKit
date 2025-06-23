@@ -163,7 +163,7 @@ oauth.authorize(provider: provider, grantType: grantType)
 A good resource to help understand the detailed steps involved in OAuth 2.0 workflows can be found on the [OAuth 2.0 Playground](https://www.oauth.com/playground/index.html).
 
 ### OAuth 2.0 Authorization Code Flow
-The Authorization Code grant type is used by confidential and public clients to exchange an authorization code for an access token. It is recommended that all clients use the [PKCE](#oauth-20-pkce-flow) extension with this flow as well to provide better security.
+The [Authorization Code](https://oauth.net/2/grant-types/authorization-code/) grant type is used by confidential and public clients to exchange an authorization code for an access token. It is recommended that all clients use the [PKCE](#oauth-20-pkce-flow) extension with this flow as well to provide better security.
 
 ```swift	
 // Generate a state and set the GrantType
@@ -175,7 +175,7 @@ oauth.authorize(provider: provider, grantType: grantType)
 ### OAuth 2.0 PKCE Flow
 PKCE ([RFC 7636](https://www.rfc-editor.org/rfc/rfc7636)) is an extension to the [Authorization Code](https://oauth.net/2/grant-types/authorization-code/) flow to prevent CSRF and authorization code injection attacks.
 
-Proof Key for Code Exchange (PKCE) is the default and recommended flow to use in OAuthKit as this technique involves the client first creating a secret on each authorization request, and then using that secret again when exchanging the authorization code for an access token. This way if the code is intercepted, it will not be useful since the token request relies on the initial secret.
+Proof Key for Code Exchange ([PKCE](https://oauth.net/2/pkce/)) is the default and recommended flow to use in OAuthKit as this technique involves the client first creating a secret on each authorization request, and then using that secret again when exchanging the authorization code for an access token. This way if the code is intercepted, it will not be useful since the token request relies on the initial secret.
 
 ```swift
 // PKCE is the default workflow with an auto generated pkce object

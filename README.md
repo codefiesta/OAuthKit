@@ -58,6 +58,7 @@ struct ContentView: View {
     @Environment(\.oauth)
     var oauth: OAuth
 
+    /// The view body that reacts to oauth state changes
     var body: some View {
         VStack {
             switch oauth.state {
@@ -108,6 +109,7 @@ struct ContentView: View {
         // Use the Device Code grantType for tvOS, watchOS
         let grantType: OAuth.GrantType = .deviceCode
         #endif
+
         // Start the authorization flow
         oauth.authorize(provider: provider, grantType: grantType)
     }
@@ -115,18 +117,16 @@ struct ContentView: View {
     /// Reacts to oauth state changes by opening or closing authorization windows.
     /// - Parameter state: the published state change
     private func handle(state: OAuth.State) {
+        #if canImport(WebKit)
         switch state {
         case .empty, .requestingAccessToken, .requestingDeviceCode:
             break
         case .authorizing, .receivedDeviceCode:
-            #if canImport(WebKit)
             openWindow(id: "oauth")
-            #endif
         case .authorized(_, _):
-            #if canImport(WebKit)
             dismissWindow(id: "oauth")
-            #endif
         }
+        #endif
     }
 }
 ```
@@ -163,9 +163,10 @@ oauth.authorize(provider: provider, grantType: grantType)
 A good resource to help understand the detailed steps involved in OAuth 2.0 workflows can be found on the [OAuth 2.0 Playground](https://www.oauth.com/playground/index.html).
 
 ### OAuth 2.0 Authorization Code Flow
+The [Authorization Code](https://oauth.net/2/grant-types/authorization-code/) grant type is used by confidential and public clients to exchange an authorization code for an access token. It is recommended that all clients use the [PKCE](#oauth-20-pkce-flow) extension with this flow as well to provide better security.
 
 ```swift	
-/// Generate a state and set the GrantType
+// Generate a state and set the GrantType
 let state: String = .secureRandom(32) // See String+Extensions
 let grantType: OAuth.GrantType = .authorizationCode(state)
 oauth.authorize(provider: provider, grantType: grantType)
@@ -174,10 +175,10 @@ oauth.authorize(provider: provider, grantType: grantType)
 ### OAuth 2.0 PKCE Flow
 PKCE ([RFC 7636](https://www.rfc-editor.org/rfc/rfc7636)) is an extension to the [Authorization Code](https://oauth.net/2/grant-types/authorization-code/) flow to prevent CSRF and authorization code injection attacks.
 
-Proof Key for Code Exchange (PKCE) is the default and recommended flow to use in OAuthKit as this technique involves the client first creating a secret on each authorization request, and then using that secret again when exchanging the authorization code for an access token. This way if the code is intercepted, it will not be useful since the token request relies on the initial secret.
+Proof Key for Code Exchange ([PKCE](https://oauth.net/2/pkce/)) is the default and recommended flow to use in OAuthKit as this technique involves the client first creating a secret on each authorization request, and then using that secret again when exchanging the authorization code for an access token. This way if the code is intercepted, it will not be useful since the token request relies on the initial secret.
 
 ```swift
-/// PKCE is the default workflow with an auto generated pkce object
+// PKCE is the default workflow with an auto generated pkce object
 oauth.authorize(provider: provider)
 
 // Or you can specify the workflow to use PKCE and inject your own values
@@ -186,7 +187,7 @@ oauth.authorize(provider: provider, grantType: grantType)
 ```
 
 ### OAuth 2.0 Device Code Flow
-OAuthKit supports the [OAuth 2.0 Device Code Flow Grant](https://alexbilbie.github.io/2016/04/oauth-2-device-flow-grant/), which is used by apps that don't have access to a web browser (like tvOS). To leverage OAuthKit in tvOS apps, simply add the `deviceCodeURL` to your [OAuth.Provider](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth+Provider.swift).
+OAuthKit supports the [OAuth 2.0 Device Code Flow Grant](https://alexbilbie.github.io/2016/04/oauth-2-device-flow-grant/), which is used by apps that don't have access to a web browser (like tvOS or watchOS). To leverage OAuthKit in tvOS or watchOS apps, simply add the `deviceCodeURL` to your [OAuth.Provider](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth+Provider.swift).
 
 ```swift
 let grantType: OAuth.GrantType = .deviceCode
@@ -194,7 +195,6 @@ oauth.authorize(provider: provider, grantType: grantType)
 ```
 
 ![tvOS-screenshot](https://github.com/user-attachments/assets/14997164-f86a-4ee0-b6b7-8c0d9732c83e)
-
 
 ### OAuth 2.0 Client Credentials Flow
 
@@ -206,7 +206,7 @@ oauth.authorize(provider: provider, grantType: grantType)
 ```
 
 ## OAuth 2.0 Provider Debugging
-Standard `debugPrint` to the standard output is disabled by default. If you need to inspect response data received from [providers](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth+Provider.swift), you can toggle the `debug` value to true. You can see an [example here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json).
+Debugging output with [debugPrint(\_:separator:terminator:)](https://developer.apple.com/documentation/swift/debugprint(_:separator:terminator:)) into the standard output is disabled by default. If you need to inspect response data received from [providers](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth+Provider.swift), you can toggle the `debug` value to true. You can see an [example here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json).
 
 ## OAuthKit Sample Application
 You can find a sample application integrated with OAuthKit [here](https://github.com/codefiesta/OAuthSample).

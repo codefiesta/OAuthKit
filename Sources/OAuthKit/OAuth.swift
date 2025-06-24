@@ -6,12 +6,15 @@
 //
 import Combine
 import Foundation
+import LocalAuthentication
 import Observation
 
 /// The default file name that holds the list of providers.
 private let defaultResourceName = "oauth"
 /// The default file extension.
 private let defaultExtension = "json"
+/// The default reason for local authentication with biometrics or companion device.
+private let defaultAuthenticationWithBiometricsOrCompanionReason = "unlock keychain"
 
 /// Provides an enum of oauth errors.
 public enum OAError: Error {
@@ -53,23 +56,28 @@ public final class OAuth: NSObject {
     @ObservationIgnored
     private var tasks = [Task<(), any Error>]()
     @ObservationIgnored
-    private var options: [Option: Sendable]?
-    @ObservationIgnored
     private let networkMonitor = NetworkMonitor()
     @ObservationIgnored
     var keychain: Keychain = .default
 
-    /// Convenience var for accessing the autoRefresh option.
+    #if os(macOS) || os(iOS) || os(visionOS)
     @ObservationIgnored
-    private var autoRefresh: Bool {
-        options?[.autoRefresh] as? Bool ?? false
-    }
+    var context: LAContext = .init()
+    #endif
 
-    /// Convenience var for accessing the useNonPersistentWebDataStore option.
+    /// Configuration option determining if tokens should be auto refreshed or not.
     @ObservationIgnored
-    var useNonPersistentWebDataStore: Bool {
-        options?[.useNonPersistentWebDataStore] as? Bool ?? false
-    }
+    private var autoRefresh: Bool = false
+
+    /// Configuration option determining if the WKWebsiteDataStore used during authorization flows should use an ephemeral datastore.
+    /// Set to true if you wish to implement private browsing and force a new login attempt every time an authorization flow is started.
+    @ObservationIgnored
+    var useNonPersistentWebDataStore: Bool = false
+
+    /// Configuration option determining if the keychain should be protected with biometrics until sucessful local authentication.
+    /// If set to true, the device owner will need to be authenticated by biometry or a companion device before the keychain items can be accessed.
+    @ObservationIgnored
+    var requireAuthenticationWithBiometricsOrCompanion: Bool = false
 
     /// Combine subscribers.
     @ObservationIgnored
@@ -79,35 +87,24 @@ public final class OAuth: NSObject {
     @ObservationIgnored
     private let decoder: JSONDecoder = .init()
 
-    /// Initializes the OAuth service with the specified providers.
+    /// Initializes the OAuth service with the specified providers and configuration options.
     /// - Parameters:
     ///   - providers: the list of oauth providers
-    public init(providers: [Provider] = [Provider](), options: [Option: Sendable]? = nil) {
+    ///   - options: the configuration options to apply
+    public init(providers: [Provider] = [Provider](), options: [Option: Any]? = nil) {
         super.init()
-        self.options = options
         self.providers = providers
-        // Set the keychain
-        if let options, let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
-            // Override the keychain to use the custom application tag
-            self.keychain = .init(applicationTag)
-        }
-        start()
+        configure(options)
     }
 
     /// Common Initializer that attempts to load an `oauth.json` file from the specified bundle.
     /// - Parameters:
     ///   - bundle: the bundle to load the oauth provider configuration information from.
-    ///   - options: the initialization options to apply
-    public init(_ bundle: Bundle, options: [Option: Sendable]? = nil) {
+    ///   - options: the configuration options to apply
+    public init(_ bundle: Bundle, options: [Option: Any]? = nil) {
         super.init()
-        self.options = options
         self.providers = loadProviders(bundle)
-        // Set the keychain
-        if let options, let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
-            // Override the keychain to use the custom application tag
-            self.keychain = .init(applicationTag)
-        }
-        start()
+        configure(options)
     }
 }
 
@@ -192,19 +189,92 @@ private extension OAuth {
         return providers
     }
 
-    /// Performs post init operations.
-    func start() {
+    /// Loads authorizations from the keychain.
+    func loadAuthorizations() {
+        for provider in providers {
+            if let authorization: OAuth.Authorization = try? keychain.get(key: provider.id) {
+                publish(state: .authorized(provider, authorization))
+            }
+        }
+    }
+
+    /// Configures the oauth client from options.
+    /// - Parameter options: the options to apply to this oauth client
+    func configure(_ options: [Option: Any]?) {
+        // Override from options
+        if let options {
+
+            // Override token auto refresh
+            if let autoRefresh = options[.autoRefresh] as? Bool {
+                self.autoRefresh = autoRefresh
+            }
+
+            // Ephemeral web data store
+            if let useNonPersistentWebDataStore = options[.useNonPersistentWebDataStore] as? Bool {
+                self.useNonPersistentWebDataStore = useNonPersistentWebDataStore
+            }
+
+            // Keychain protection with biometrics or companion device
+            if let requireAuthenticationWithBiometricsOrCompanion = options[.requireAuthenticationWithBiometricsOrCompanion] as? Bool {
+                self.requireAuthenticationWithBiometricsOrCompanion = requireAuthenticationWithBiometricsOrCompanion
+            }
+
+            // Override the local authentication context
+            #if os(macOS) || os(iOS) || os(visionOS)
+            if let context = options[.localAuthentication] as? LAContext {
+                self.context = context
+            }
+            #endif
+
+            // Override the url session
+            if let urlSession = options[.urlSession] as? URLSession {
+                self.urlSession = urlSession
+            }
+
+            // Override the keychain to use the custom application tag
+            if let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
+                self.keychain = .init(applicationTag)
+            }
+        }
         subscribe()
         restore()
     }
 
-    /// Restores state from storage.
+    /// Restores state from storage. If the keychain is protected by biometrics with local authentication, then
+    /// the device owner needs to authenticate with biometrics or companion app before any tokens in the keychain can be accessed.
     func restore() {
-        for provider in providers {
-            if let authorization: OAuth.Authorization = try? keychain.get(key: provider.id), !authorization.isExpired {
-                publish(state: .authorized(provider, authorization))
+        if requireAuthenticationWithBiometricsOrCompanion {
+            authenticateWithBiometricsOrCompanion()
+        } else {
+            loadAuthorizations()
+        }
+    }
+
+    /// Device owner will be authenticated by biometry or a companion device e.g. watch, mac, etc.
+    func authenticateWithBiometricsOrCompanion() {
+
+        #if os(macOS) || os(iOS) || os(visionOS)
+        let localizedReason = context.localizedReason.isNotEmpty ? context.localizedReason: defaultAuthenticationWithBiometricsOrCompanionReason
+        #if os(macOS) || os(iOS)
+        let policy: LAPolicy = .deviceOwnerAuthenticationWithBiometricsOrCompanion
+        #else
+        let policy: LAPolicy = .deviceOwnerAuthenticationWithBiometrics
+        #endif
+        var error: NSError?
+        if context.canEvaluatePolicy(policy, error: &error) {
+            context.evaluatePolicy(policy, localizedReason: localizedReason) { [weak self] success, error in
+                guard let self else { return }
+                Task(priority: .high) { @MainActor in
+                    if success {
+                        self.loadAuthorizations()
+                    }
+                }
             }
         }
+        #else
+        debugPrint("⚠️ Misconfigured option: `requireAuthenticationWithBiometricsOrCompanion` is set to true but the current platform does not support biometric authentication.")
+        loadAuthorizations()
+        #endif
     }
 
     /// Subsribes to event publishers.
@@ -262,7 +332,7 @@ private extension OAuth {
                     tasks.append(task)
                 } else {
                     // Execute the task immediately
-                    Task {
+                    Task(priority: .high) {
                         await refreshToken(provider: provider)
                     }
                 }
@@ -458,11 +528,22 @@ extension OAuth {
 
 public extension OAuth.Option {
 
+    /// A key used for custom application identifiers to improve token tagging.
+    static let applicationTag: OAuth.Option = .init(rawValue: "applicationTag")
+
     /// A key used to specify whether tokens should be automatically refreshed or not.
     static let autoRefresh: OAuth.Option = .init(rawValue: "autoRefresh")
 
-    /// A key used for custom application identifiers to improve token tagging.
-    static let applicationTag: OAuth.Option = .init(rawValue: "applicationTag")
+    /// A key used for providing a custom local authentication object.
+    static let localAuthentication: OAuth.Option = .init(rawValue: "localAuthentication")
+
+    /// A key used for determining if the keychain should be protected with biometrics until successful local authentication.
+    /// If set to true, the device owner will need to be authenticated by biometry or a companion device before the keychain items can be accessed.
+    /// Important: developers should set the requireAuthenticationWithBiometricsOrCompanionReason that will be eventually displayed in the authentication dialog.
+    static let requireAuthenticationWithBiometricsOrCompanion: OAuth.Option = . init(rawValue: "requireAuthenticationWithBiometricsOrCompanion")
+
+    /// A key used for providing a custom url session.
+    static let urlSession: OAuth.Option = .init(rawValue: "urlSession")
 
     /// A key used for setting the WKWebsiteDataStore to `nonPersistent()` in the OAWebView.
     /// This is disabled by default, but this can be turned on to allow developers to use an ephemeral webkit datastore

@@ -26,8 +26,8 @@ import SwiftUI
 @main
 struct OAuthApp: App {
 
-    /// The observable oauth object 
-    let oauth: OAuth = .init(.main)
+    @Environment(\.oauth)
+    var oauth: OAuth
     
     /// Build the scene body
     var body: some Scene {
@@ -35,7 +35,6 @@ struct OAuthApp: App {
         WindowGroup {
             ContentView()
         }
-        .environment(\.oauth, oauth)
         
         #if canImport(WebKit)
         WindowGroup(id: "oauth") {
@@ -47,6 +46,9 @@ struct OAuthApp: App {
 
 struct ContentView: View {
     
+    @Environment(\.oauth)
+    var oauth: OAuth
+
     #if canImport(WebKit)
     @Environment(\.openWindow)
     var openWindow
@@ -54,9 +56,6 @@ struct ContentView: View {
     @Environment(\.dismissWindow)
     private var dismissWindow
     #endif
-    
-    @Environment(\.oauth)
-    var oauth: OAuth
 
     /// The view body that reacts to oauth state changes
     var body: some View {
@@ -132,35 +131,79 @@ struct ContentView: View {
 ```
 
 ## OAuthKit Configuration
-By default, the easiest way to configure OAuthKit is to simply drop an `oauth.json` file into your main bundle and it will get automatically loaded into your swift application and available as an [Environment](https://developer.apple.com/documentation/swiftui/environment). You can find an example `oauth.json` file [here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json).
+By default, the easiest way to configure OAuthKit is to simply drop an `oauth.json` file into your main bundle and it will get automatically loaded into your swift application and available as an [Environment](https://developer.apple.com/documentation/swiftui/environment) property wrapper. You can find an example `oauth.json` file [here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json). OAuthKit provides flexible constructor options that allows developers to customize  how their oauth client is initialized and what features they want to implement. See the [oauth.init(\_:bundle:options)](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L94) method for details.
 
+### OAuth initialized from main bundle (default)
 ```swift
 @Environment(\.oauth)
 var oauth: OAuth
 ```
-
+### OAuth initialized from specified bundle
 If you want to customize your OAuth environment or are using modules in your application, you can also specify which bundle to load configure files from:
 
 ```swift
 let oauth: OAuth = .init(.module)
 ```
 
+### OAuth initialized with providers
 If you are building your OAuth Providers programatically (recommended for production applications via a CI build pipeline for security purposes), you can pass providers and options as well.
 
 ```swift
 let providers: [OAuth.Provider] = ...
-let options: [OAuth.Option: Sendable] = [.applicationTag: "com.bundle.identifier", .autoRefresh: true, .useNonPersistentWebDataStore: true]
+let options: [OAuth.Option: Any] = [
+    .applicationTag: "com.bundle.identifier",
+    .autoRefresh: true,
+    .useNonPersistentWebDataStore: true
+]
 let oauth: OAuth = .init(providers: providers, options: options)
 ```
 
+### OAuth initialized with custom URLSession
+To support custom protocols or URL schemes that your app supports, developers can pass a custom **.urlSession** option that will allow the configuration of custom [URLProtocol](https://developer.apple.com/documentation/foundation/urlprotocol) classes that can handle the loading of protocol-specific URL data.
+
+```swift
+// Custom URLSession
+let configuration: URLSessionConfiguration = .ephemeral
+configuration.protocolClasses = [CustomURLProtocol.self]
+let urlSession: URLSession = .init(configuration: configuration)
+
+let options: [OAuth.Option: Any] = [.urlSession: urlSession]
+let oauth: OAuth = .init(.main, options: options)
+```
+
+### OAuth initialized with Keychain protection and Private Browsing
+OAuthKit allows you to protect access to your keychain items with biometrics until successful local authentication. If the **.requireAuthenticationWithBiometricsOrCompanion** option is set to true, the device owner will need to be authenticated by biometry or a companion device before keychain items (tokens) can be accessed. OAuthKit uses a default [LAContext](https://developer.apple.com/documentation/localauthentication/lacontext), but if you need fine-grained control while evaluating a user’s identity, pass your own custom [LAContext](https://developer.apple.com/documentation/localauthentication/lacontext) to the options.
+
+Developers can also implement private browsing by setting the **.useNonPersistentWebDataStore** option to true. This forces the [WKWebView](https://developer.apple.com/documentation/webkit/wkwebview) used during authorization flows to use a non-persistent data store, preventing data from being written to the file system.
+
+
+```swift
+// Custom url session
+let configuration: URLSessionConfiguration = .ephemeral
+configuration.protocolClasses = [CustomURLProtocol.self]
+
+// Custom LAContext
+let context: LAContext = .init()
+context.localizedReason = "read tokens from keychain"
+context.localizedFallbackTitle = "Use password"
+context.touchIDAuthenticationAllowableReuseDuration = 10
+
+let options: [OAuth.Option: Any] = [
+    .requireAuthenticationWithBiometricsOrCompanion: true,
+    .useNonPersistentWebDataStore: true
+]
+let oauth: OAuth = .init(.main, options: options)
+```
+
 ## OAuthKit Authorization Flows
-OAuth 2.0 workflows are started by calling the [oauth.authorize(provider:grantType:)](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L127) method.
+OAuth 2.0 authorization flows are started by calling the [oauth.authorize(provider:grantType:)](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L127) method.
+
+A good resource to help understand the detailed steps involved in OAuth 2.0 authorization flows can be found on the [OAuth 2.0 Playground](https://www.oauth.com/playground/index.html).
 
 ```swift
 oauth.authorize(provider: provider, grantType: grantType)
 ``` 
 
-A good resource to help understand the detailed steps involved in OAuth 2.0 workflows can be found on the [OAuth 2.0 Playground](https://www.oauth.com/playground/index.html).
 
 ### OAuth 2.0 Authorization Code Flow
 The [Authorization Code](https://oauth.net/2/grant-types/authorization-code/) grant type is used by confidential and public clients to exchange an authorization code for an access token. It is recommended that all clients use the [PKCE](#oauth-20-pkce-flow) extension with this flow as well to provide better security.

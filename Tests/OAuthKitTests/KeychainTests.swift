@@ -26,7 +26,7 @@ final class KeychainTests {
     @Test("Storing keychain values")
     func whenStoring() async throws {
         let key = "Github"
-        let token: OAuth.Token = .init(accessToken: "1234", refreshToken: nil, expiresIn: 3600, scope: "email", type: "Bearer")
+        let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 3600, scope: "email", type: "Bearer")
 
         let inserted = try! keychain.set(token, for: key)
         #expect(inserted == true)

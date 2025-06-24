@@ -5,6 +5,7 @@
 //  Created by Kevin McKee
 //
 import Foundation
+import LocalAuthentication
 @testable import OAuthKit
 import Testing
 
@@ -23,7 +24,7 @@ final class OAuthTests {
 
     /// The mock url session that overrides the protocol classes with `OAuthTestURLProtocol`
     /// that will intercept all outbound requests and return mocked test data.
-    private lazy var urlSession: URLSession = {
+    private static let urlSession: URLSession = {
         let configuration: URLSessionConfiguration = .ephemeral
         configuration.protocolClasses = [OAuthTestURLProtocol.self]
         return .init(configuration: configuration)
@@ -32,17 +33,26 @@ final class OAuthTests {
     /// Initializer.
     init() async throws {
         tag = "oauthkit.test." + .secureRandom()
-        let options: [OAuth.Option: Sendable] = [.applicationTag: tag, .autoRefresh: true, .useNonPersistentWebDataStore: true]
+
+        let options: [OAuth.Option: Any] = [
+            .applicationTag: tag, .autoRefresh: true,
+            .useNonPersistentWebDataStore: true,
+            .urlSession: Self.urlSession,
+        ]
         oauth = .init(.module, options: options)
-        oauth.urlSession = urlSession
         #expect(oauth.useNonPersistentWebDataStore == true)
+        #expect(oauth.urlSession == Self.urlSession)
     }
 
     /// Tests the initialization with providers.
     @Test("When Initializing")
     func whenInitializing() async throws {
         let appTag: String = .secureRandom()
-        let options: [OAuth.Option: Sendable] = [.applicationTag: appTag, .autoRefresh: true]
+        let options: [OAuth.Option: Any] = [
+            .applicationTag: appTag,
+            .autoRefresh: true,
+            .urlSession: Self.urlSession,
+        ]
         let providers: [OAuth.Provider] = [
             .init(id: .secureRandom(),
                   authorizationURL: URL(string: "http://github.com/codefiesta/auth")!,
@@ -53,6 +63,40 @@ final class OAuthTests {
         let customOAuth: OAuth = .init(providers: providers, options: options)
         #expect(customOAuth.providers.count == 1)
         #expect(customOAuth.useNonPersistentWebDataStore == false)
+        #expect(customOAuth.urlSession == Self.urlSession)
+    }
+
+    @Test("When Requiring Local Authentication")
+    func whenRequiringAuthenticationWithBiometricsOrCompanion() async throws {
+        let appTag: String = .secureRandom()
+        let context: LAContext = OAuthTestLAContext()
+        let options: [OAuth.Option: Any] = [
+            .applicationTag: appTag,
+            .localAuthentication: context,
+            .requireAuthenticationWithBiometricsOrCompanion: true,
+            .autoRefresh: true]
+        let customOAuth: OAuth = .init(.module, options: options)
+        #expect(customOAuth.providers.isNotEmpty)
+        #expect(customOAuth.requireAuthenticationWithBiometricsOrCompanion == true)
+    }
+
+    @Test("When Restoring Authorizations")
+    func whenRestoringAuthorizations() async throws {
+        let key = provider.id
+        let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 3600, scope: "email", type: "Bearer")
+        let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
+        let inserted = try! keychain.set(auth, for: key)
+        #expect(inserted == true)
+
+        let options: [OAuth.Option: Any] = [
+            .applicationTag: tag,
+            .autoRefresh: false,
+            .useNonPersistentWebDataStore: true,
+            .urlSession: Self.urlSession
+        ]
+        let restoredOAuth: OAuth = .init(.module, options: options)
+        #expect(restoredOAuth.state == .authorized(provider, auth))
+        keychain.clear()
     }
 
     /// Tests the custom date extension operator.
@@ -91,7 +135,7 @@ final class OAuthTests {
         #expect(stringData!.contains("client_secret="))
         #expect(stringData!.contains("grant_type=client_credentials"))
         oauth.authorize(provider: provider, grantType: .clientCredentials)
-        let result = await waitForAuthorization()
+        let result = await waitForAuthorization(oauth)
         #expect(result == true)
     }
 
@@ -132,7 +176,7 @@ final class OAuthTests {
         #expect(stringData!.contains("redirect_uri=\(provider.redirectURI!)"))
         #expect(stringData!.contains("grant_type=authorization_code"))
         oauth.token(provider: provider, code: code, pkce: nil)
-        let result = await waitForAuthorization()
+        let result = await waitForAuthorization(oauth)
         #expect(result == true)
     }
 
@@ -155,7 +199,7 @@ final class OAuthTests {
         #expect(stringData!.contains("grant_type=authorization_code"))
         #expect(stringData!.contains("code_verifier=\(pkce.codeVerifier)"))
         oauth.token(provider: provider, code: code, pkce: pkce)
-        let result = await waitForAuthorization()
+        let result = await waitForAuthorization(oauth)
         #expect(result == true)
     }
 
@@ -171,7 +215,28 @@ final class OAuthTests {
         let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
         try! keychain.set(auth, for: provider.id)
         oauth.authorize(provider: provider, grantType: .refreshToken)
-        let result = await waitForAuthorization()
+        let result = await waitForAuthorization(oauth)
+        #expect(result == true)
+    }
+
+    @Test("When Auto Refreshng Tokens")
+    func whenAutoRefreshingTokens() async throws {
+        let key = provider.id
+        let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 0, scope: "email", type: "Bearer")
+        let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
+        let inserted = try! keychain.set(auth, for: key)
+        #expect(inserted == true)
+
+        let options: [OAuth.Option: Any] = [
+            .applicationTag: tag,
+            .autoRefresh: true,
+            .useNonPersistentWebDataStore: true,
+            .urlSession: Self.urlSession
+        ]
+        let restoredOAuth: OAuth = .init(.module, options: options)
+        #expect(restoredOAuth.state == .authorized(provider, auth))
+        restoredOAuth.state = .empty
+        let result = await waitForAuthorization(restoredOAuth)
         #expect(result == true)
     }
 
@@ -195,7 +260,7 @@ final class OAuthTests {
     private func whenPollingForDeviceCodeAuthorization() async throws {
         let deviceCode: OAuth.DeviceCode = .init(deviceCode: .secureRandom(), userCode: .secureRandom(), verificationUri: "https://example.com", expiresIn: 200, interval: 0)
         await oauth.poll(provider: provider, deviceCode: deviceCode)
-        let result = await waitForAuthorization()
+        let result = await waitForAuthorization(oauth)
         #expect(result == true)
     }
 
@@ -272,14 +337,14 @@ final class OAuthTests {
 
     /// Streams the oauth status until we receive an authorization.
     /// This should only be used on test methods that expect an authorization to be inserted into the keychain.
-    private func waitForAuthorization() async -> Bool {
+    private func waitForAuthorization(_ oauth: OAuth) async -> Bool {
         let monitor: OAuth.Monitor = .init(oauth: oauth)
         for await state in monitor.stream {
             switch state {
             case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
                 break
             case .authorized(_, _):
-                keychain.clear()
+                oauth.clear()
                 return true
             }
         }

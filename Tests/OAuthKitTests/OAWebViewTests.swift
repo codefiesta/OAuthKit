@@ -18,7 +18,7 @@ final class OAWebViewTests {
 
     /// The mock url session that overrides the protocol classes with `OAuthTestURLProtocol`
     /// that will intercept all outbound requests and return mocked test data.
-    private lazy var urlSession: URLSession = {
+    private static let urlSession: URLSession = {
         let configuration: URLSessionConfiguration = .ephemeral
         configuration.protocolClasses = [OAuthTestURLProtocol.self]
         return .init(configuration: configuration)
@@ -38,10 +38,14 @@ final class OAWebViewTests {
     /// Initializer.
     init() async throws {
         tag = "oauthkit.test." + .secureRandom()
-        let options: [OAuth.Option: Sendable] = [.applicationTag: tag, .autoRefresh: false, .useNonPersistentWebDataStore: true]
+        let options: [OAuth.Option: Any] = [
+            .applicationTag: tag,
+            .autoRefresh: false,
+            .useNonPersistentWebDataStore: true,
+            .urlSession: Self.urlSession
+        ]
         oauth = .init(.module, options: options)
         webView = .init(oauth: oauth)
-        oauth.urlSession = urlSession
         #expect(oauth.useNonPersistentWebDataStore == true)
     }
 

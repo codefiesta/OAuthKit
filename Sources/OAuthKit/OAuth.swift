@@ -240,7 +240,7 @@ private extension OAuth {
         if context.canEvaluatePolicy(policy, error: &error) {
             context.evaluatePolicy(policy, localizedReason: localizedReason) { [weak self] success, error in
                 guard let self else { return }
-                Task { @MainActor in
+                Task(priority: .high) { @MainActor in
                     if success {
                         self.loadAuthorizations()
                     }
@@ -304,7 +304,7 @@ private extension OAuth {
                     tasks.append(task)
                 } else {
                     // Execute the task immediately
-                    Task {
+                    Task(priority: .high) {
                         await refreshToken(provider: provider)
                     }
                 }

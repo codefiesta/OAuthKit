@@ -157,12 +157,31 @@ let options: [OAuth.Option: Sendable] = [
 ]
 let oauth: OAuth = .init(providers: providers, options: options)
 ```
-### OAuth initialized with keychain protection and private browsing
+
+### OAuth initialized with custom URLSession
+To support custom protocols or URL schemes that your app supports, developers can pass a custom **.urlSession** option that will allow the configuration of custom [URLProtocol](https://developer.apple.com/documentation/foundation/urlprotocol) classes that can handle the loading of protocol-specific URL data.
+
+```swift
+// Custom URLSession
+let configuration: URLSessionConfiguration = .ephemeral
+configuration.protocolClasses = [CustomURLProtocol.self]
+let urlSession: URLSession = .init(configuration: configuration)
+
+let options: [OAuth.Option: Sendable] = [.urlSession: urlSession]
+let oauth: OAuth = .init(options: options)
+```
+
+### OAuth initialized with Keychain protection and Private Browsing
 OAuthKit allows you to protect access to your keychain items with biometrics until successful local authentication. If the **.requireAuthenticationWithBiometricsOrCompanion** option is set to true, the device owner will need to be authenticated by biometry or a companion device before keychain items (tokens) can be accessed. 
 
 Developers can also implement private browsing and force a new login attempt every time an authorization flow is started by setting the **.useNonPersistentWebDataStore** to true. This will force the [WKWebView](https://developer.apple.com/documentation/webkit/wkwebview) to use a .nonPersistent data store that prevents any data from being written to the file system.
 
+
 ```swift
+// Custom url session
+let configuration: URLSessionConfiguration = .ephemeral
+configuration.protocolClasses = [CustomURLProtocol.self]
+
 let options: [OAuth.Option: Sendable] = [
     .requireAuthenticationWithBiometricsOrCompanion: true,
     .useNonPersistentWebDataStore: true

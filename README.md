@@ -26,8 +26,8 @@ import SwiftUI
 @main
 struct OAuthApp: App {
 
-    /// The observable oauth object 
-    let oauth: OAuth = .init(.main)
+    @Environment(\.oauth)
+    var oauth: OAuth
     
     /// Build the scene body
     var body: some Scene {
@@ -35,7 +35,6 @@ struct OAuthApp: App {
         WindowGroup {
             ContentView()
         }
-        .environment(\.oauth, oauth)
         
         #if canImport(WebKit)
         WindowGroup(id: "oauth") {
@@ -47,6 +46,9 @@ struct OAuthApp: App {
 
 struct ContentView: View {
     
+    @Environment(\.oauth)
+    var oauth: OAuth
+
     #if canImport(WebKit)
     @Environment(\.openWindow)
     var openWindow
@@ -54,9 +56,6 @@ struct ContentView: View {
     @Environment(\.dismissWindow)
     private var dismissWindow
     #endif
-    
-    @Environment(\.oauth)
-    var oauth: OAuth
 
     /// The view body that reacts to oauth state changes
     var body: some View {
@@ -132,7 +131,7 @@ struct ContentView: View {
 ```
 
 ## OAuthKit Configuration
-By default, the easiest way to configure OAuthKit is to simply drop an `oauth.json` file into your main bundle and it will get automatically loaded into your swift application and available as an [Environment](https://developer.apple.com/documentation/swiftui/environment). You can find an example `oauth.json` file [here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json). OAuthKit provides flexible constructor options that allows developers to customize  how their oauth client is initialized and what features they want to implement. See the [oauth.init(\_:bundle:context:options)](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L99) method for details.
+By default, the easiest way to configure OAuthKit is to simply drop an `oauth.json` file into your main bundle and it will get automatically loaded into your swift application and available as an [Environment](https://developer.apple.com/documentation/swiftui/environment) property wrapper. You can find an example `oauth.json` file [here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json). OAuthKit provides flexible constructor options that allows developers to customize  how their oauth client is initialized and what features they want to implement. See the [oauth.init(\_:bundle:context:options)](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L99) method for details.
 
 ### OAuth initialized from main bundle (default)
 ```swift
@@ -158,8 +157,10 @@ let options: [OAuth.Option: Sendable] = [
 ]
 let oauth: OAuth = .init(providers: providers, options: options)
 ```
-### OAuth initialized with keychain protection
-OAuth allows you to protect access to your keychain items with biometrics until successful local authentication. If the **.requireAuthenticationWithBiometricsOrCompanion** option is set to true, the device owner will need to be authenticated by biometry or a companion device before the keychain items can be accessed.
+### OAuth initialized with keychain protection and private browsing
+OAuthKit allows you to protect access to your keychain items with biometrics until successful local authentication. If the **.requireAuthenticationWithBiometricsOrCompanion** option is set to true, the device owner will need to be authenticated by biometry or a companion device before keychain items (tokens) can be accessed. 
+
+Developers can also implement private browsing and force a new login attempt every time an authorization flow is started by setting the **.useNonPersistentWebDataStore** to true. This will force the [WKWebView](https://developer.apple.com/documentation/webkit/wkwebview) to use a .nonPersistent data store that prevents any data from being written to the file system.
 
 ```swift
 let options: [OAuth.Option: Sendable] = [

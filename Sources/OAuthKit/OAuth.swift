@@ -101,9 +101,15 @@ public final class OAuth: NSObject {
         self.context = context
         self.options = options
         self.providers = providers
-        if let options, let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
+        if let options {
+            // Override the url session
+            if let urlSession = options[.urlSession] as? URLSession {
+                self.urlSession = urlSession
+            }
             // Override the keychain to use the custom application tag
-            self.keychain = .init(applicationTag)
+            if let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
+                self.keychain = .init(applicationTag)
+            }
         }
         start()
     }
@@ -118,9 +124,15 @@ public final class OAuth: NSObject {
         self.context = context
         self.options = options
         self.providers = loadProviders(bundle)
-        if let options, let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
+        if let options {
+            // Override the url session
+            if let urlSession = options[.urlSession] as? URLSession {
+                self.urlSession = urlSession
+            }
             // Override the keychain to use the custom application tag
-            self.keychain = .init(applicationTag)
+            if let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
+                self.keychain = .init(applicationTag)
+            }
         }
         start()
     }
@@ -210,7 +222,7 @@ private extension OAuth {
     /// Loads authorizations from the keychain.
     func loadAuthorizations() {
         for provider in providers {
-            if let authorization: OAuth.Authorization = try? keychain.get(key: provider.id), !authorization.isExpired {
+            if let authorization: OAuth.Authorization = try? keychain.get(key: provider.id) {
                 publish(state: .authorized(provider, authorization))
             }
         }
@@ -500,21 +512,24 @@ extension OAuth {
 
 public extension OAuth.Option {
 
-    /// A key used to specify whether tokens should be automatically refreshed or not.
-    static let autoRefresh: OAuth.Option = .init(rawValue: "autoRefresh")
-
     /// A key used for custom application identifiers to improve token tagging.
     static let applicationTag: OAuth.Option = .init(rawValue: "applicationTag")
 
-    /// A key used for setting the WKWebsiteDataStore to `nonPersistent()` in the OAWebView.
-    /// This is disabled by default, but this can be turned on to allow developers to use an ephemeral webkit datastore
-    /// that effectively implements private browsing and forces a new login attempt every time an authorization flow is started.
-    static let useNonPersistentWebDataStore: OAuth.Option = .init(rawValue: "useNonPersistentWebDataStore")
+    /// A key used to specify whether tokens should be automatically refreshed or not.
+    static let autoRefresh: OAuth.Option = .init(rawValue: "autoRefresh")
 
     /// A key used for determining if the keychain should be protected with biometrics until successful local authentication.
     /// If set to true, the device owner will need to be authenticated by biometry or a companion device before the keychain items can be accessed.
     /// Important: developers should set the context.localizedReason that will be eventually displayed in the authentication dialog.
     /// The context.localizedReason string provided should be short and clear.
     static let requireAuthenticationWithBiometricsOrCompanion: OAuth.Option = . init(rawValue: "requireAuthenticationWithBiometricsOrCompanion")
+
+    /// A key used for providing a custom url session.
+    static let urlSession: OAuth.Option = .init(rawValue: "urlSession")
+
+    /// A key used for setting the WKWebsiteDataStore to `nonPersistent()` in the OAWebView.
+    /// This is disabled by default, but this can be turned on to allow developers to use an ephemeral webkit datastore
+    /// that effectively implements private browsing and forces a new login attempt every time an authorization flow is started.
+    static let useNonPersistentWebDataStore: OAuth.Option = .init(rawValue: "useNonPersistentWebDataStore")
 }
 

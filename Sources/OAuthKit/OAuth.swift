@@ -271,8 +271,9 @@ private extension OAuth {
                 }
             }
         }
+        
         #else
-        debugPrint("⚠️ Misconfigured option: `requireAuthenticationWithBiometricsOrCompanion` is set to true but the current platform does not support biometrics authentication. ")
+        debugPrint("⚠️ Misconfigured option: `requireAuthenticationWithBiometricsOrCompanion` is set to true but the current platform does not support biometric authentication.")
         loadAuthorizations()
         #endif
     }

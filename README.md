@@ -173,13 +173,14 @@ let oauth: OAuth = .init(.main, context: context, options: options)
 ```
 
 ## OAuthKit Authorization Flows
-OAuth 2.0 workflows are started by calling the [oauth.authorize(provider:grantType:)](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L127) method.
+OAuth 2.0 authorization flows are started by calling the [oauth.authorize(provider:grantType:)](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L127) method.
+
+A good resource to help understand the detailed steps involved in OAuth 2.0 authorization flows can be found on the [OAuth 2.0 Playground](https://www.oauth.com/playground/index.html).
 
 ```swift
 oauth.authorize(provider: provider, grantType: grantType)
 ``` 
 
-A good resource to help understand the detailed steps involved in OAuth 2.0 workflows can be found on the [OAuth 2.0 Playground](https://www.oauth.com/playground/index.html).
 
 ### OAuth 2.0 Authorization Code Flow
 The [Authorization Code](https://oauth.net/2/grant-types/authorization-code/) grant type is used by confidential and public clients to exchange an authorization code for an access token. It is recommended that all clients use the [PKCE](#oauth-20-pkce-flow) extension with this flow as well to provide better security.

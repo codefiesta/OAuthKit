@@ -38,7 +38,7 @@ final class OAWebViewTests {
     /// Initializer.
     init() async throws {
         tag = "oauthkit.test." + .secureRandom()
-        let options: [OAuth.Option: Sendable] = [
+        let options: [OAuth.Option: Any] = [
             .applicationTag: tag,
             .autoRefresh: false,
             .useNonPersistentWebDataStore: true,

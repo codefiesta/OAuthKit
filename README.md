@@ -131,7 +131,7 @@ struct ContentView: View {
 ```
 
 ## OAuthKit Configuration
-By default, the easiest way to configure OAuthKit is to simply drop an `oauth.json` file into your main bundle and it will get automatically loaded into your swift application and available as an [Environment](https://developer.apple.com/documentation/swiftui/environment) property wrapper. You can find an example `oauth.json` file [here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json). OAuthKit provides flexible constructor options that allows developers to customize  how their oauth client is initialized and what features they want to implement. See the [oauth.init(\_:bundle:context:options)](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L99) method for details.
+By default, the easiest way to configure OAuthKit is to simply drop an `oauth.json` file into your main bundle and it will get automatically loaded into your swift application and available as an [Environment](https://developer.apple.com/documentation/swiftui/environment) property wrapper. You can find an example `oauth.json` file [here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json). OAuthKit provides flexible constructor options that allows developers to customize  how their oauth client is initialized and what features they want to implement. See the [oauth.init(\_:bundle:options)](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L94) method for details.
 
 ### OAuth initialized from main bundle (default)
 ```swift
@@ -150,7 +150,7 @@ If you are building your OAuth Providers programatically (recommended for produc
 
 ```swift
 let providers: [OAuth.Provider] = ...
-let options: [OAuth.Option: Sendable] = [
+let options: [OAuth.Option: Any] = [
     .applicationTag: "com.bundle.identifier",
     .autoRefresh: true,
     .useNonPersistentWebDataStore: true
@@ -167,12 +167,12 @@ let configuration: URLSessionConfiguration = .ephemeral
 configuration.protocolClasses = [CustomURLProtocol.self]
 let urlSession: URLSession = .init(configuration: configuration)
 
-let options: [OAuth.Option: Sendable] = [.urlSession: urlSession]
+let options: [OAuth.Option: Any] = [.urlSession: urlSession]
 let oauth: OAuth = .init(.main, options: options)
 ```
 
 ### OAuth initialized with Keychain protection and Private Browsing
-OAuthKit allows you to protect access to your keychain items with biometrics until successful local authentication. If the **.requireAuthenticationWithBiometricsOrCompanion** option is set to true, the device owner will need to be authenticated by biometry or a companion device before keychain items (tokens) can be accessed. 
+OAuthKit allows you to protect access to your keychain items with biometrics until successful local authentication. If the **.requireAuthenticationWithBiometricsOrCompanion** option is set to true, the device owner will need to be authenticated by biometry or a companion device before keychain items (tokens) can be accessed. OAuthKit uses a default [LAContext](https://developer.apple.com/documentation/localauthentication/lacontext), but if you need fine-grained control while evaluating a user’s identity, pass your own custom [LAContext](https://developer.apple.com/documentation/localauthentication/lacontext) to the options.
 
 Developers can also implement private browsing by setting the **.useNonPersistentWebDataStore** option to true. This forces the [WKWebView](https://developer.apple.com/documentation/webkit/wkwebview) used during authorization flows to use a non-persistent data store, preventing data from being written to the file system.
 
@@ -182,13 +182,17 @@ Developers can also implement private browsing by setting the **.useNonPersisten
 let configuration: URLSessionConfiguration = .ephemeral
 configuration.protocolClasses = [CustomURLProtocol.self]
 
-let options: [OAuth.Option: Sendable] = [
+// Custom LAContext
+let context: LAContext = .init()
+context.localizedReason = "read tokens from keychain"
+context.localizedFallbackTitle = "Use password"
+context.touchIDAuthenticationAllowableReuseDuration = 10
+
+let options: [OAuth.Option: Any] = [
     .requireAuthenticationWithBiometricsOrCompanion: true,
     .useNonPersistentWebDataStore: true
 ]
-let context: LAContext = .init()
-context.localizedReason = "read tokens from keychain"
-let oauth: OAuth = .init(.main, context: context, options: options)
+let oauth: OAuth = .init(.main, options: options)
 ```
 
 ## OAuthKit Authorization Flows

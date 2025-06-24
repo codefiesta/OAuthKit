@@ -34,10 +34,10 @@ final class OAuthTests {
     init() async throws {
         tag = "oauthkit.test." + .secureRandom()
 
-        let options: [OAuth.Option: Sendable] = [
+        let options: [OAuth.Option: Any] = [
             .applicationTag: tag, .autoRefresh: true,
             .useNonPersistentWebDataStore: true,
-            .urlSession: Self.urlSession
+            .urlSession: Self.urlSession,
         ]
         oauth = .init(.module, options: options)
         #expect(oauth.useNonPersistentWebDataStore == true)
@@ -48,7 +48,7 @@ final class OAuthTests {
     @Test("When Initializing")
     func whenInitializing() async throws {
         let appTag: String = .secureRandom()
-        let options: [OAuth.Option: Sendable] = [
+        let options: [OAuth.Option: Any] = [
             .applicationTag: appTag,
             .autoRefresh: true,
             .urlSession: Self.urlSession,
@@ -69,12 +69,13 @@ final class OAuthTests {
     @Test("When Requiring Local Authentication")
     func whenRequiringAuthenticationWithBiometricsOrCompanion() async throws {
         let appTag: String = .secureRandom()
-        let options: [OAuth.Option: Sendable] = [
-            .applicationTag: appTag,
-            .requireAuthenticationWithBiometricsOrCompanion: true,
-            .autoRefresh: false]
         let context: LAContext = OAuthTestLAContext()
-        let customOAuth: OAuth = .init(.module, context: context, options: options)
+        let options: [OAuth.Option: Any] = [
+            .applicationTag: appTag,
+            .localAuthentication: context,
+            .requireAuthenticationWithBiometricsOrCompanion: true,
+            .autoRefresh: true]
+        let customOAuth: OAuth = .init(.module, options: options)
         #expect(customOAuth.providers.isNotEmpty)
         #expect(customOAuth.requireAuthenticationWithBiometricsOrCompanion == true)
     }
@@ -87,7 +88,7 @@ final class OAuthTests {
         let inserted = try! keychain.set(auth, for: key)
         #expect(inserted == true)
 
-        let options: [OAuth.Option: Sendable] = [
+        let options: [OAuth.Option: Any] = [
             .applicationTag: tag,
             .autoRefresh: false,
             .useNonPersistentWebDataStore: true,
@@ -226,7 +227,7 @@ final class OAuthTests {
         let inserted = try! keychain.set(auth, for: key)
         #expect(inserted == true)
 
-        let options: [OAuth.Option: Sendable] = [
+        let options: [OAuth.Option: Any] = [
             .applicationTag: tag,
             .autoRefresh: true,
             .useNonPersistentWebDataStore: true,

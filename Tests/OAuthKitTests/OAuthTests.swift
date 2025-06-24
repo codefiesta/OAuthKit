@@ -55,6 +55,21 @@ final class OAuthTests {
         #expect(customOAuth.useNonPersistentWebDataStore == false)
     }
 
+    @Test("When Requiring Local Authentication")
+    func whenRequiringAuthenticationWithBiometricsOrCompanion() async throws {
+        let appTag: String = .secureRandom()
+        let localAuthenticationReason = "to unlock device"
+        let options: [OAuth.Option: Sendable] = [
+            .applicationTag: appTag,
+            .requireAuthenticationWithBiometricsOrCompanion: true,
+            .requireAuthenticationWithBiometricsOrCompanionReason: localAuthenticationReason,
+            .autoRefresh: false]
+        let customOAuth: OAuth = .init(.module, options: options)
+        #expect(customOAuth.providers.isNotEmpty)
+        #expect(customOAuth.requireAuthenticationWithBiometricsOrCompanion == true)
+        #expect(customOAuth.requireAuthenticationWithBiometricsOrCompanionReason == localAuthenticationReason)
+    }
+
     /// Tests the custom date extension operator.
     @Test("Expiring tokens")
     func whenExpiring() async throws {

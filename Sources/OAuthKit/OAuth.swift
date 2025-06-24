@@ -13,8 +13,8 @@ import Observation
 private let defaultResourceName = "oauth"
 /// The default file extension.
 private let defaultExtension = "json"
-/// The default for local authentication with biometrics.
-private let defaultDeviceOwnerAuthenticationWithBiometricsReason = "unlock keychain"
+/// The default reason for local authentication with biometrics or companion device.
+private let defaultAuthenticationWithBiometricsOrCompanionReason = "unlock keychain"
 
 /// Provides an enum of oauth errors.
 public enum OAError: Error {
@@ -77,13 +77,13 @@ public final class OAuth: NSObject {
     /// Convenience var for determining if the keychain should be protected with biometrics until sucessful local authentication.
     /// If set to true, the device owner will need to be authenticated by biometry or a companion device before the keychain items can be accessed.
     @ObservationIgnored
-    var requireDeviceOwnerAuthenticationWithBiometrics: Bool {
-        options?[.requireDeviceOwnerAuthenticationWithBiometrics] as? Bool ?? false
+    var requireAuthenticationWithBiometricsOrCompanion: Bool {
+        options?[.requireAuthenticationWithBiometricsOrCompanion] as? Bool ?? false
     }
 
-    /// Convenience var for displaying the application reason for local authentication with biometrics.
-    var requireDeviceOwnerAuthenticationWithBiometricsReason: String {
-        options?[.requireDeviceOwnerAuthenticationWithBiometricsReason] as? String ?? defaultDeviceOwnerAuthenticationWithBiometricsReason
+    /// Convenience var for displaying the application reason for local authentication with biometrics or companion device.
+    var requireAuthenticationWithBiometricsOrCompanionReason: String {
+        options?[.requireAuthenticationWithBiometricsOrCompanionReason] as? String ?? defaultAuthenticationWithBiometricsOrCompanionReason
     }
 
     /// Combine subscribers.
@@ -225,9 +225,9 @@ private extension OAuth {
     /// Restores state from storage. If the keychain is protected by biometrics with local authentication, then
     /// the device owner needs to authenticate with biometrics or companion app before any tokens in the keychain can be accessed.
     func restore() {
-        if requireDeviceOwnerAuthenticationWithBiometrics {
+        if requireAuthenticationWithBiometricsOrCompanion {
             Task { @MainActor in
-                let deviceOwnerAuthenticated = await authenticateDeviceOwnerWithBiometricsOrCompanion()
+                let deviceOwnerAuthenticated = await authenticateWithBiometricsOrCompanion()
                 if deviceOwnerAuthenticated {
                     loadAuthorizations()
                 }
@@ -238,12 +238,12 @@ private extension OAuth {
     }
 
     /// Device owner will be authenticated by biometry or a companion device e.g. watch, mac, etc.
-    func authenticateDeviceOwnerWithBiometricsOrCompanion() async -> Bool {
+    func authenticateWithBiometricsOrCompanion() async -> Bool {
         let context: LAContext = .init()
         let policy: LAPolicy = .deviceOwnerAuthenticationWithBiometricsOrCompanion
         var error: NSError?
         if context.canEvaluatePolicy(policy, error: &error) {
-            let reason = requireDeviceOwnerAuthenticationWithBiometricsReason
+            let reason = requireAuthenticationWithBiometricsOrCompanionReason
             let result = try? await context.evaluatePolicy(policy, localizedReason: reason)
             return result ?? false
         }
@@ -512,14 +512,13 @@ public extension OAuth.Option {
     /// that effectively implements private browsing and forces a new login attempt every time an authorization flow is started.
     static let useNonPersistentWebDataStore: OAuth.Option = .init(rawValue: "useNonPersistentWebDataStore")
 
-    /// A key used for determining if the keychain should be protected with biometrics until sucessful local authentication.
+    /// A key used for determining if the keychain should be protected with biometrics until successful local authentication.
     /// If set to true, the device owner will need to be authenticated by biometry or a companion device before the keychain items can be accessed.
-    static let requireDeviceOwnerAuthenticationWithBiometrics: OAuth.Option = . init(rawValue: "requireDeviceOwnerAuthenticationWithBiometrics")
+    static let requireAuthenticationWithBiometricsOrCompanion: OAuth.Option = . init(rawValue: "requireAuthenticationWithBiometricsOrCompanion")
 
-    /// A key used for displaying the application reason for local authentication with biometrics.
+    /// A key used for displaying the application reason for local authentication with biometrics or companion device.
     /// If `.requireDeviceOwnerAuthenticationWithBiometrics` is set to true, you should set the reason as well.
     /// The string must be provided should be short and clear. It will be eventually displayed in the authentication dialog
-    static let requireDeviceOwnerAuthenticationWithBiometricsReason: OAuth.Option = . init(rawValue: "requireDeviceOwnerAuthenticationWithBiometricsReason")
-
+    static let requireAuthenticationWithBiometricsOrCompanionReason: OAuth.Option = . init(rawValue: "requireAuthenticationWithBiometricsOrCompanionReason")
 }
 

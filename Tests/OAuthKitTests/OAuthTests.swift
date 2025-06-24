@@ -69,6 +69,22 @@ final class OAuthTests {
         #expect(customOAuth.requireAuthenticationWithBiometricsOrCompanion == true)
     }
 
+    @Test("When Restoring Authorizations")
+    func whenRestoringAuthorizations() async throws {
+
+        let key = provider.id
+        let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 3600, scope: "email", type: "Bearer")
+        let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
+        let inserted = try! keychain.set(auth, for: key)
+        #expect(inserted == true)
+
+        let options: [OAuth.Option: Sendable] = [.applicationTag: tag, .autoRefresh: true, .useNonPersistentWebDataStore: true]
+        let restoredOAuth: OAuth = .init(.module, options: options)
+        #expect(restoredOAuth.state == .authorized(provider, auth))
+        keychain.clear()
+    }
+
+
     /// Tests the custom date extension operator.
     @Test("Expiring tokens")
     func whenExpiring() async throws {

@@ -5,6 +5,7 @@
 //  Created by Kevin McKee
 //
 import Foundation
+import LocalAuthentication
 @testable import OAuthKit
 import Testing
 
@@ -58,16 +59,14 @@ final class OAuthTests {
     @Test("When Requiring Local Authentication")
     func whenRequiringAuthenticationWithBiometricsOrCompanion() async throws {
         let appTag: String = .secureRandom()
-        let localAuthenticationReason = "to unlock device"
         let options: [OAuth.Option: Sendable] = [
             .applicationTag: appTag,
             .requireAuthenticationWithBiometricsOrCompanion: true,
-            .requireAuthenticationWithBiometricsOrCompanionReason: localAuthenticationReason,
             .autoRefresh: false]
-        let customOAuth: OAuth = .init(.module, options: options)
+        let context: LAContext = OAuthTestLAContext()
+        let customOAuth: OAuth = .init(.module, context: context, options: options)
         #expect(customOAuth.providers.isNotEmpty)
         #expect(customOAuth.requireAuthenticationWithBiometricsOrCompanion == true)
-        #expect(customOAuth.requireAuthenticationWithBiometricsOrCompanionReason == localAuthenticationReason)
     }
 
     /// Tests the custom date extension operator.

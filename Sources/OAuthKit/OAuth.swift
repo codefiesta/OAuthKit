@@ -61,6 +61,8 @@ public final class OAuth: NSObject {
     private let networkMonitor = NetworkMonitor()
     @ObservationIgnored
     var keychain: Keychain = .default
+    @ObservationIgnored
+    var context: LAContext = .init()
 
     /// Convenience var for accessing the autoRefresh option.
     @ObservationIgnored
@@ -81,11 +83,6 @@ public final class OAuth: NSObject {
         options?[.requireAuthenticationWithBiometricsOrCompanion] as? Bool ?? false
     }
 
-    /// Convenience var for displaying the application reason for local authentication with biometrics or companion device.
-    var requireAuthenticationWithBiometricsOrCompanionReason: String {
-        options?[.requireAuthenticationWithBiometricsOrCompanionReason] as? String ?? defaultAuthenticationWithBiometricsOrCompanionReason
-    }
-
     /// Combine subscribers.
     @ObservationIgnored
     private var subscribers = Set<AnyCancellable>()
@@ -97,11 +94,13 @@ public final class OAuth: NSObject {
     /// Initializes the OAuth service with the specified providers.
     /// - Parameters:
     ///   - providers: the list of oauth providers
-    public init(providers: [Provider] = [Provider](), options: [Option: Sendable]? = nil) {
+    ///   - context: the local authentication context used for evaluating authentication policies and access controls.
+    ///   - options: the initialization options to apply
+    public init(providers: [Provider] = [Provider](), context: LAContext = .init(), options: [Option: Sendable]? = nil) {
         super.init()
+        self.context = context
         self.options = options
         self.providers = providers
-        // Set the keychain
         if let options, let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
             // Override the keychain to use the custom application tag
             self.keychain = .init(applicationTag)
@@ -112,12 +111,13 @@ public final class OAuth: NSObject {
     /// Common Initializer that attempts to load an `oauth.json` file from the specified bundle.
     /// - Parameters:
     ///   - bundle: the bundle to load the oauth provider configuration information from.
+    ///   - context: the local authentication context used for evaluating authentication policies and access controls.
     ///   - options: the initialization options to apply
-    public init(_ bundle: Bundle, options: [Option: Sendable]? = nil) {
+    public init(_ bundle: Bundle, context: LAContext = .init(), options: [Option: Sendable]? = nil) {
         super.init()
+        self.context = context
         self.options = options
         self.providers = loadProviders(bundle)
-        // Set the keychain
         if let options, let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
             // Override the keychain to use the custom application tag
             self.keychain = .init(applicationTag)
@@ -226,28 +226,27 @@ private extension OAuth {
     /// the device owner needs to authenticate with biometrics or companion app before any tokens in the keychain can be accessed.
     func restore() {
         if requireAuthenticationWithBiometricsOrCompanion {
-            Task { @MainActor in
-                let deviceOwnerAuthenticated = await authenticateWithBiometricsOrCompanion()
-                if deviceOwnerAuthenticated {
-                    loadAuthorizations()
-                }
-            }
+            authenticateWithBiometricsOrCompanion()
         } else {
             loadAuthorizations()
         }
     }
 
     /// Device owner will be authenticated by biometry or a companion device e.g. watch, mac, etc.
-    func authenticateWithBiometricsOrCompanion() async -> Bool {
-        let context: LAContext = .init()
+    func authenticateWithBiometricsOrCompanion() {
+        let localizedReason = context.localizedReason.isEmpty ? defaultAuthenticationWithBiometricsOrCompanionReason : context.localizedReason
         let policy: LAPolicy = .deviceOwnerAuthenticationWithBiometricsOrCompanion
         var error: NSError?
         if context.canEvaluatePolicy(policy, error: &error) {
-            let reason = requireAuthenticationWithBiometricsOrCompanionReason
-            let result = try? await context.evaluatePolicy(policy, localizedReason: reason)
-            return result ?? false
+            context.evaluatePolicy(policy, localizedReason: localizedReason) { [weak self] success, error in
+                guard let self else { return }
+                Task { @MainActor in
+                    if success {
+                        self.loadAuthorizations()
+                    }
+                }
+            }
         }
-        return false
     }
 
     /// Subsribes to event publishers.
@@ -514,11 +513,8 @@ public extension OAuth.Option {
 
     /// A key used for determining if the keychain should be protected with biometrics until successful local authentication.
     /// If set to true, the device owner will need to be authenticated by biometry or a companion device before the keychain items can be accessed.
+    /// Important: developers should set the context.localizedReason that will be eventually displayed in the authentication dialog.
+    /// The context.localizedReason string provided should be short and clear.
     static let requireAuthenticationWithBiometricsOrCompanion: OAuth.Option = . init(rawValue: "requireAuthenticationWithBiometricsOrCompanion")
-
-    /// A key used for displaying the application reason for local authentication with biometrics or companion device.
-    /// If `.requireDeviceOwnerAuthenticationWithBiometrics` is set to true, you should set the reason as well.
-    /// The string must be provided should be short and clear. It will be eventually displayed in the authentication dialog
-    static let requireAuthenticationWithBiometricsOrCompanionReason: OAuth.Option = . init(rawValue: "requireAuthenticationWithBiometricsOrCompanionReason")
 }
 

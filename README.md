@@ -134,23 +134,43 @@ struct ContentView: View {
 ## OAuthKit Configuration
 By default, the easiest way to configure OAuthKit is to simply drop an `oauth.json` file into your main bundle and it will get automatically loaded into your swift application and available as an [Environment](https://developer.apple.com/documentation/swiftui/environment). You can find an example `oauth.json` file [here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json).
 
+OAuthKit provides flexible constructor options that allows developers to customize  how their oauth client is initialized and what features they want to implement. See the [oauth.init(\_:bundle:context:options)](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L101) method for details.
+
+### OAuth initialized from main bundle (default)
 ```swift
 @Environment(\.oauth)
 var oauth: OAuth
 ```
-
+### OAuth initialized from specified bundle
 If you want to customize your OAuth environment or are using modules in your application, you can also specify which bundle to load configure files from:
 
 ```swift
 let oauth: OAuth = .init(.module)
 ```
 
+### OAuth initialized with providers
 If you are building your OAuth Providers programatically (recommended for production applications via a CI build pipeline for security purposes), you can pass providers and options as well.
 
 ```swift
 let providers: [OAuth.Provider] = ...
-let options: [OAuth.Option: Sendable] = [.applicationTag: "com.bundle.identifier", .autoRefresh: true, .useNonPersistentWebDataStore: true]
+let options: [OAuth.Option: Sendable] = [
+    .applicationTag: "com.bundle.identifier",
+    .autoRefresh: true,
+    .useNonPersistentWebDataStore: true
+]
 let oauth: OAuth = .init(providers: providers, options: options)
+```
+### OAuth initialized with keychain protection
+OAuth allows you to protect access to your keychain items with biometrics until successful local authentication. If the **.requireAuthenticationWithBiometricsOrCompanion** option is set to true, the device owner will need to be authenticated by biometry or a companion device before the keychain items can be accessed.
+
+```swift
+let options: [OAuth.Option: Sendable] = [
+    .requireAuthenticationWithBiometricsOrCompanion: true,
+    .useNonPersistentWebDataStore: true
+]
+let context: LAContext = .init()
+context.localizedReason = "read tokens from keychain"
+let oauth: OAuth = .init(.main, context: context, options: options)
 ```
 
 ## OAuthKit Authorization Flows

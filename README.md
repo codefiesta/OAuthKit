@@ -178,19 +178,15 @@ Developers can also implement private browsing by setting the **.useNonPersisten
 
 
 ```swift
-// Custom url session
-let configuration: URLSessionConfiguration = .ephemeral
-configuration.protocolClasses = [CustomURLProtocol.self]
-
 // Custom LAContext
-let context: LAContext = .init()
-context.localizedReason = "read tokens from keychain"
-context.localizedFallbackTitle = "Use password"
-context.touchIDAuthenticationAllowableReuseDuration = 10
+let localAuthenticationContext: LAContext = .init()
+localAuthenticationContext.localizedReason = "read tokens from keychain"
+localAuthenticationContext.localizedFallbackTitle = "Use password"
+localAuthenticationContext.touchIDAuthenticationAllowableReuseDuration = 10
 
 let options: [OAuth.Option: Any] = [
+    .localAuthentication: localAuthenticationContext,
     .requireAuthenticationWithBiometricsOrCompanion: true,
-    .useNonPersistentWebDataStore: true
 ]
 let oauth: OAuth = .init(.main, options: options)
 ```

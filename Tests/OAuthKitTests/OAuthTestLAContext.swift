@@ -4,7 +4,7 @@
 //
 //  Created by Kevin McKee
 //
-
+#if !os(tvOS)
 import Foundation
 import LocalAuthentication
 
@@ -31,3 +31,4 @@ class OAuthTestLAContext: LAContext {
         reply(true, nil)
     }
 }
+#endif

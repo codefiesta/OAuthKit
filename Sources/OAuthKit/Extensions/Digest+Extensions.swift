@@ -38,5 +38,4 @@ extension Digest {
             .replacingOccurrences(of: "=", with: "")
             .trimmingCharacters(in: .whitespaces)
     }
-
 }

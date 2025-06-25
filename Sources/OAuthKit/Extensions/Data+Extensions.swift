@@ -46,5 +46,4 @@ extension Data {
         _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
         return Data(bytes: &bytes, count: bytes.count)
     }
-
 }

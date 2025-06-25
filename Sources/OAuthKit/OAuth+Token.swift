@@ -60,5 +60,4 @@ extension OAuth {
             case openIDToken = "id_token"
         }
     }
-
 }

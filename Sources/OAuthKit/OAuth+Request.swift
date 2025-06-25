@@ -258,7 +258,6 @@ extension OAuth {
             return queryItems
         }
     }
-
 }
 
 fileprivate extension URLQueryItem {

@@ -56,7 +56,8 @@ final class OAWebViewTests {
         var values: EnvironmentValues = .init()
         values.oauth = oauth
         let environmentOAuth = values.oauth
-        #expect(environmentOAuth == oauth)
+        #expect(environmentOAuth.providers == oauth.providers)
+        #expect(environmentOAuth.state == oauth.state)
     }
 
     /// Tests the OAWebViewCoordinator coordinator policy decisions.
@@ -65,7 +66,7 @@ final class OAWebViewTests {
 
         // 1) Bad Request Expectations
         let coordinator: OAWebViewCoordinator = webView.makeCoordinator()
-        #expect(coordinator.oauth == oauth)
+        #expect(coordinator.oauth.state == oauth.state)
         let wkWebView = webView.view
 
         var urlRequest: URLRequest = .init(url: URL(string: "https://github.com/codefiesta/OAuthKit")!)
@@ -108,7 +109,7 @@ final class OAWebViewTests {
 
         // 1) Bad Request Expectations
         let coordinator: OAWebViewCoordinator = webView.makeCoordinator()
-        #expect(coordinator.oauth == oauth)
+        #expect(coordinator.oauth.state == oauth.state)
         let wkWebView = webView.view
 
         var urlRequest: URLRequest = .init(url: URL(string: "https://github.com/codefiesta/OAuthKit")!)

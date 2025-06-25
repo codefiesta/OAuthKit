@@ -5,7 +5,9 @@
 //  Created by Kevin McKee
 //
 import Foundation
+#if canImport(LocalAuthentication)
 import LocalAuthentication
+#endif
 @testable import OAuthKit
 import Testing
 
@@ -69,12 +71,14 @@ final class OAuthTests {
     @Test("When Requiring Local Authentication")
     func whenRequiringAuthenticationWithBiometricsOrCompanion() async throws {
         let appTag: String = .secureRandom()
-        let context: LAContext = OAuthTestLAContext()
-        let options: [OAuth.Option: Any] = [
+        var options: [OAuth.Option: Any] = [
             .applicationTag: appTag,
-            .localAuthentication: context,
             .requireAuthenticationWithBiometricsOrCompanion: true,
-            .autoRefresh: true]
+            .autoRefresh: true
+        ]
+        #if !os(tvOS)
+        options[.localAuthentication] = OAuthTestLAContext()
+        #endif
         let customOAuth: OAuth = .init(.module, options: options)
         #expect(customOAuth.providers.isNotEmpty)
         #expect(customOAuth.requireAuthenticationWithBiometricsOrCompanion == true)

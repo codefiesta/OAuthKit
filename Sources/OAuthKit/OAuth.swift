@@ -6,7 +6,9 @@
 //
 import Combine
 import Foundation
+#if canImport(LocalAuthentication)
 import LocalAuthentication
+#endif
 import Observation
 
 /// The default file name that holds the list of providers.

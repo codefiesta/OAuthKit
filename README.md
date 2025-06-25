@@ -179,13 +179,13 @@ Developers can also implement private browsing by setting the **.useNonPersisten
 
 ```swift
 // Custom LAContext
-let localAuthenticationContext: LAContext = .init()
-localAuthenticationContext.localizedReason = "read tokens from keychain"
-localAuthenticationContext.localizedFallbackTitle = "Use password"
-localAuthenticationContext.touchIDAuthenticationAllowableReuseDuration = 10
+let localAuthentication: LAContext = .init()
+localAuthentication.localizedReason = "read tokens from keychain"
+localAuthentication.localizedFallbackTitle = "Use password"
+localAuthentication.touchIDAuthenticationAllowableReuseDuration = 10
 
 let options: [OAuth.Option: Any] = [
-    .localAuthentication: localAuthenticationContext,
+    .localAuthentication: localAuthentication,
     .requireAuthenticationWithBiometricsOrCompanion: true,
 ]
 let oauth: OAuth = .init(.main, options: options)

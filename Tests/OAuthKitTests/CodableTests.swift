@@ -58,5 +58,4 @@ struct CodableTests {
         #expect(deviceCode.expiration != nil)
         #expect(deviceCode.interval == decoded.interval)
     }
-
 }

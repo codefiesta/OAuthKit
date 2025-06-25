@@ -20,10 +20,13 @@ private let defaultAuthenticationWithBiometricsOrCompanionReason = "unlock keych
 
 /// Provides an enum of oauth errors.
 public enum OAError: Error {
-    case unknown
+    /// An error occurred while building a request url
     case malformedURL
+    /// An error occurred while loading data from a request
     case badResponse
+    /// Unable to decode a response from a provider into an expected type.
     case decoding
+    /// Unable to write data to the keychain
     case keychain
 }
 
@@ -31,20 +34,7 @@ public enum OAError: Error {
 /// See: https://datatracker.ietf.org/doc/html/rfc6749
 @MainActor
 @Observable
-public final class OAuth: NSObject {
-
-    /// Keys and values used to specify loading or runtime options.
-    public struct Option: Hashable, Equatable, RawRepresentable, Sendable {
-
-        /// The option raw value.
-        public var rawValue: String
-
-        /// Initializer
-        /// - Parameter rawValue: the option raw value
-        public init(rawValue: String) {
-            self.rawValue = rawValue
-        }
-    }
+public final class OAuth {
 
     /// A published list of available OAuth providers to choose from.
     public var providers = [Provider]()
@@ -55,10 +45,7 @@ public final class OAuth: NSObject {
     /// The url session to use for communicating with providers.
     @ObservationIgnored
     public var urlSession: URLSession = .init(configuration: .ephemeral)
-    @ObservationIgnored
-    private var tasks = [Task<(), any Error>]()
-    @ObservationIgnored
-    private let networkMonitor = NetworkMonitor()
+
     @ObservationIgnored
     var keychain: Keychain = .default
 
@@ -66,6 +53,12 @@ public final class OAuth: NSObject {
     @ObservationIgnored
     var context: LAContext = .init()
     #endif
+
+    @ObservationIgnored
+    private var tasks = [Task<(), any Error>]()
+
+    @ObservationIgnored
+    private let networkMonitor = NetworkMonitor()
 
     /// Configuration option determining if tokens should be auto refreshed or not.
     @ObservationIgnored
@@ -94,7 +87,6 @@ public final class OAuth: NSObject {
     ///   - providers: the list of oauth providers
     ///   - options: the configuration options to apply
     public init(providers: [Provider] = [Provider](), options: [Option: Any]? = nil) {
-        super.init()
         self.providers = providers
         configure(options)
     }
@@ -104,7 +96,6 @@ public final class OAuth: NSObject {
     ///   - bundle: the bundle to load the oauth provider configuration information from.
     ///   - options: the configuration options to apply
     public init(_ bundle: Bundle, options: [Option: Any]? = nil) {
-        super.init()
         self.providers = loadProviders(bundle)
         configure(options)
     }
@@ -524,32 +515,3 @@ extension OAuth {
         publish(state: .authorized(provider, authorization))
     }
 }
-
-
-// MARK: Options
-
-public extension OAuth.Option {
-
-    /// A key used for custom application identifiers to improve token tagging.
-    static let applicationTag: OAuth.Option = .init(rawValue: "applicationTag")
-
-    /// A key used to specify whether tokens should be automatically refreshed or not.
-    static let autoRefresh: OAuth.Option = .init(rawValue: "autoRefresh")
-
-    /// A key used for providing a custom local authentication object.
-    static let localAuthentication: OAuth.Option = .init(rawValue: "localAuthentication")
-
-    /// A key used for determining if the keychain should be protected with biometrics until successful local authentication.
-    /// If set to true, the device owner will need to be authenticated by biometry or a companion device before the keychain items can be accessed.
-    /// Important: developers should set the requireAuthenticationWithBiometricsOrCompanionReason that will be eventually displayed in the authentication dialog.
-    static let requireAuthenticationWithBiometricsOrCompanion: OAuth.Option = . init(rawValue: "requireAuthenticationWithBiometricsOrCompanion")
-
-    /// A key used for providing a custom url session.
-    static let urlSession: OAuth.Option = .init(rawValue: "urlSession")
-
-    /// A key used for setting the WKWebsiteDataStore to `nonPersistent()` in the OAWebView.
-    /// This is disabled by default, but this can be turned on to allow developers to use an ephemeral webkit datastore
-    /// that effectively implements private browsing and forces a new login attempt every time an authorization flow is started.
-    static let useNonPersistentWebDataStore: OAuth.Option = .init(rawValue: "useNonPersistentWebDataStore")
-}
-

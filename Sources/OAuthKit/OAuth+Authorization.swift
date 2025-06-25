@@ -42,5 +42,4 @@ extension OAuth {
             return issued.addingTimeInterval(TimeInterval(expiresIn))
         }
     }
-
 }

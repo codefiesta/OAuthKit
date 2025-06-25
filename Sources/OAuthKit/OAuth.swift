@@ -45,17 +45,20 @@ public final class OAuth {
     /// The url session to use for communicating with providers.
     @ObservationIgnored
     public var urlSession: URLSession = .init(configuration: .ephemeral)
-    @ObservationIgnored
-    private var tasks = [Task<(), any Error>]()
-    @ObservationIgnored
-    private let networkMonitor = NetworkMonitor()
+
     @ObservationIgnored
     var keychain: Keychain = .default
 
-#if os(macOS) || os(iOS) || os(visionOS)
+    #if os(macOS) || os(iOS) || os(visionOS)
     @ObservationIgnored
     var context: LAContext = .init()
-#endif
+    #endif
+
+    @ObservationIgnored
+    private var tasks = [Task<(), any Error>]()
+
+    @ObservationIgnored
+    private let networkMonitor = NetworkMonitor()
 
     /// Configuration option determining if tokens should be auto refreshed or not.
     @ObservationIgnored

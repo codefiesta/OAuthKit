@@ -10,9 +10,11 @@ import Foundation
 
 /// The version of the http response
 private let httpVersion = "HTTP/1.1"
-
+/// A successful status code
 private let statusCodeSuccess = 200
+/// A status code that indicates the error seems to have been caused by the client
 private let statusCodeBadRequest = 400
+/// A status code that indicates the server has encountered an error or is otherwise incapable of performing the request
 private let statusCodeServerError = 500
 
 /// Builds and responds to mock test requests.

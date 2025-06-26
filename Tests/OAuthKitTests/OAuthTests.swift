@@ -244,6 +244,88 @@ final class OAuthTests {
         #expect(result == true)
     }
 
+    @Test("When Receiving bad response data")
+    func whenReceivingBadResponseData() async throws {
+        let configuration: URLSessionConfiguration = .ephemeral
+        configuration.protocolClasses = [OAuthTestClientErrorURLProtocol.self]
+        let urlSession: URLSession = .init(configuration: configuration)
+
+        let applicationTag = "oauthkit.test." + .secureRandom()
+        let options: [OAuth.Option: Any] = [
+            .applicationTag: applicationTag,
+            .autoRefresh: true,
+            .useNonPersistentWebDataStore: true,
+            .urlSession: urlSession,
+        ]
+
+        // Token
+        let oauth: OAuth = .init(.module, options: options)
+        let result = await oauth.requestToken(provider: provider, code: .secureRandom())
+        #expect(result == .failure(.decoding))
+
+        // Refresh Token
+        let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 0, scope: "email", type: "Bearer")
+        let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
+        try! oauth.keychain.set(auth, for: provider.id)
+        await oauth.refreshToken(provider: provider)
+        #expect(oauth.state == .empty)
+        oauth.clear()
+
+        // Client Credentials
+        await oauth.requestClientCredentials(provider: provider)
+        #expect(oauth.state == .empty)
+
+        // Device Code
+        await oauth.requestDeviceCode(provider: provider)
+        #expect(oauth.state == .empty)
+
+        // Device Code Polling
+        let deviceCode: OAuth.DeviceCode = .init(deviceCode: .secureRandom(), userCode: .secureRandom(), verificationUri: "https://example.com", expiresIn: 200, interval: 0)
+        await oauth.poll(provider: provider, deviceCode: deviceCode)
+        #expect(oauth.state == .empty)
+    }
+
+    @Test("When Received server error")
+    func whenReceivingServerError() async throws {
+        let configuration: URLSessionConfiguration = .ephemeral
+        configuration.protocolClasses = [OAuthTestServerErrorURLProtocol.self]
+        let urlSession: URLSession = .init(configuration: configuration)
+
+        let applicationTag = "oauthkit.test." + .secureRandom()
+        let options: [OAuth.Option: Any] = [
+            .applicationTag: applicationTag,
+            .autoRefresh: true,
+            .useNonPersistentWebDataStore: true,
+            .urlSession: urlSession,
+        ]
+
+        // Token
+        let oauth: OAuth = .init(.module, options: options)
+        let result = await oauth.requestToken(provider: provider, code: .secureRandom())
+        #expect(result == .failure(.badResponse))
+
+        // Refresh Token
+        let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 0, scope: "email", type: "Bearer")
+        let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
+        try! oauth.keychain.set(auth, for: provider.id)
+        await oauth.refreshToken(provider: provider)
+        #expect(oauth.state == .empty)
+        oauth.clear()
+
+        // Client Credentials
+        await oauth.requestClientCredentials(provider: provider)
+        #expect(oauth.state == .empty)
+
+        // Device Code
+        await oauth.requestDeviceCode(provider: provider)
+        #expect(oauth.state == .empty)
+
+        // Device Code Polling
+        let deviceCode: OAuth.DeviceCode = .init(deviceCode: .secureRandom(), userCode: .secureRandom(), verificationUri: "https://example.com", expiresIn: 200, interval: 0)
+        await oauth.poll(provider: provider, deviceCode: deviceCode)
+        #expect(oauth.state == .empty)
+    }
+
     /// Tests the PKCE request parameters.
     @Test("Building PKCE Request")
     func whenBuildingPKCERequest() async throws {

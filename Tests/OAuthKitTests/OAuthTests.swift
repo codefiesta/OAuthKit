@@ -264,8 +264,12 @@ final class OAuthTests {
         #expect(result == .failure(.decoding))
 
         // Refresh Token
+        let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 0, scope: "email", type: "Bearer")
+        let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
+        try! oauth.keychain.set(auth, for: provider.id)
         await oauth.refreshToken(provider: provider)
         #expect(oauth.state == .empty)
+        oauth.clear()
 
         // Client Credentials
         await oauth.requestClientCredentials(provider: provider)
@@ -301,11 +305,19 @@ final class OAuthTests {
         #expect(result == .failure(.badResponse))
 
         // Refresh Token
+        let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 0, scope: "email", type: "Bearer")
+        let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
+        try! oauth.keychain.set(auth, for: provider.id)
         await oauth.refreshToken(provider: provider)
         #expect(oauth.state == .empty)
+        oauth.clear()
 
         // Client Credentials
         await oauth.requestClientCredentials(provider: provider)
+        #expect(oauth.state == .empty)
+
+        // Device Code
+        await oauth.requestDeviceCode(provider: provider)
         #expect(oauth.state == .empty)
 
         // Device Code Polling

@@ -11,15 +11,28 @@ import Foundation
 /// The version of the http response
 private let httpVersion = "HTTP/1.1"
 
+private let statusCodeSuccess = 200
+private let statusCodeBadRequest = 400
+private let statusCodeServerError = 500
+
 /// Builds and responds to mock test requests.
-private actor OAuthTestRequestHandler {
+actor OAuthTestRequestHandler {
+
+    let encoder: JSONEncoder = .init()
+    let statusCode: Int
+
+    /// Initializr
+    /// - Parameter statusCode: the status code to return
+    init(statusCode: Int = statusCodeSuccess) {
+        self.statusCode = statusCode
+    }
 
     /// Returns a mocked URL response for the given request and status code
     /// - Parameters:
     ///   - request: the request
     ///   - statusCode: the status code to return
     /// - Returns: an url response
-    private func response(request: URLRequest, statusCode: Int = 200) -> HTTPURLResponse {
+    private func response(request: URLRequest) -> HTTPURLResponse {
         HTTPURLResponse(url: request.url!, statusCode: statusCode, httpVersion: httpVersion, headerFields: nil)!
     }
 
@@ -28,20 +41,18 @@ private actor OAuthTestRequestHandler {
     /// - Returns: the data to respond with
     private func data(request: URLRequest) -> Data {
 
-        guard let url = request.url else {
-            return .init()
-        }
+        guard statusCode == statusCodeSuccess, let url = request.url else { return .init() }
 
         // Returns device code data
         if url.absoluteString.contains("grant_type=device_code") {
             let deviceCode: OAuth.DeviceCode = .init(deviceCode: .secureRandom(), userCode: "0A17-B332", verificationUri: "https://github.com/codefiesta/OAuthKit", expiresIn: 2, interval: 1)
-            return try! JSONEncoder().encode(deviceCode)
+            return try! encoder.encode(deviceCode)
         }
 
         // Returns oauth access token data
         if url.absoluteString.contains("token") {
             let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 3600, scope: nil, type: "Bearer")
-            return try! JSONEncoder().encode(token)
+            return try! encoder.encode(token)
         }
 
         return .init()
@@ -61,7 +72,9 @@ private actor OAuthTestRequestHandler {
 class OAuthTestURLProtocol: URLProtocol, @unchecked Sendable {
 
     /// The handler responsible for returning mocked test response data
-    private static let handler: OAuthTestRequestHandler = .init()
+    var handler: OAuthTestRequestHandler {
+        .init()
+    }
 
     /// Determines whether this protocol can handle the given request.
     /// - Parameter request: the request to handle
@@ -76,8 +89,13 @@ class OAuthTestURLProtocol: URLProtocol, @unchecked Sendable {
     /// Starts loading the given request.
     override func startLoading() {
         Task {
+            // Client error
+            guard handler.statusCode != 500 else {
+                client?.urlProtocol(self, didFailWithError: OAError.badResponse)
+                return
+            }
             do {
-                let (response, data) = try await Self.handler.execute(request)
+                let (response, data) = try await handler.execute(request)
                 client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
                 client?.urlProtocol(self, didLoad: data)
                 client?.urlProtocolDidFinishLoading(self)
@@ -89,4 +107,18 @@ class OAuthTestURLProtocol: URLProtocol, @unchecked Sendable {
 
     /// Stops the loading of a request.
     override func stopLoading() {}
+}
+
+class OAuthTestClientErrorURLProtocol: OAuthTestURLProtocol, @unchecked Sendable {
+
+    override var handler: OAuthTestRequestHandler {
+        .init(statusCode: statusCodeBadRequest)
+    }
+}
+
+class OAuthTestServerErrorURLProtocol: OAuthTestURLProtocol, @unchecked Sendable {
+
+    override var handler: OAuthTestRequestHandler {
+        .init(statusCode: statusCodeServerError)
+    }
 }

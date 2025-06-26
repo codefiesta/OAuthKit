@@ -111,6 +111,7 @@ class OAuthTestURLProtocol: URLProtocol, @unchecked Sendable {
     override func stopLoading() {}
 }
 
+/// An URLProtocol that returns 400 error response and empty data.
 class OAuthTestClientErrorURLProtocol: OAuthTestURLProtocol, @unchecked Sendable {
 
     override var handler: OAuthTestRequestHandler {
@@ -118,6 +119,7 @@ class OAuthTestClientErrorURLProtocol: OAuthTestURLProtocol, @unchecked Sendable
     }
 }
 
+/// An URLProtocol that returns 500 error responses and indicates that data has failed to load successfully.
 class OAuthTestServerErrorURLProtocol: OAuthTestURLProtocol, @unchecked Sendable {
 
     override var handler: OAuthTestRequestHandler {

@@ -6,7 +6,6 @@
 //
 
 #if canImport(WebKit)
-import Combine
 import SwiftUI
 import WebKit
 

@@ -8,8 +8,6 @@
 import Network
 import Observation
 
-private let queueLabel = "oauthkit.NetworkMonitor"
-
 /// A type that broadcasts network reachability via Combine event publishing.
 @MainActor
 @Observable

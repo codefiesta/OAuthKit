@@ -4,7 +4,6 @@
 //
 //  Created by Kevin McKee on 5/14/24.
 //
-import Combine
 import Foundation
 #if canImport(LocalAuthentication)
 import LocalAuthentication
@@ -73,10 +72,6 @@ public final class OAuth {
     /// If set to true, the device owner will need to be authenticated by biometry or a companion device before the keychain items can be accessed.
     @ObservationIgnored
     var requireAuthenticationWithBiometricsOrCompanion: Bool = false
-
-    /// Combine subscribers.
-    @ObservationIgnored
-    private var subscribers = Set<AnyCancellable>()
 
     /// The json decoder
     @ObservationIgnored
@@ -229,7 +224,7 @@ private extension OAuth {
                 self.keychain = .init(applicationTag)
             }
         }
-        subscribe()
+        monitor()
         restore()
     }
 
@@ -270,12 +265,11 @@ private extension OAuth {
         #endif
     }
 
-    /// Subsribes to event publishers.
-    func subscribe() {
-        // Subscribe to network status events
-        networkMonitor.networkStatus.sink { (_) in
-            // TODO: Add Handler
-        }.store(in: &subscribers)
+    /// Starts the network monitor.
+    func monitor() {
+        Task {
+            await networkMonitor.start()
+        }
     }
 
     /// Publishes state on the main thread.

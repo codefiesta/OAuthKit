@@ -1,6 +1,6 @@
 # ``OAuthKit``
 
-A modern and observable Swift Package for implementing OAuth 2.0 authorization flows.
+A modern and observable framework for implementing OAuth 2.0 authorization flows.
 
 @Metadata {
     @PageColor(purple)

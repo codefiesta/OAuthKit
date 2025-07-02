@@ -11,28 +11,28 @@ import Observation
 /// A type that broadcasts network reachability via Combine event publishing.
 @MainActor
 @Observable
-final class NetworkMonitor {
+public final class NetworkMonitor {
 
     @ObservationIgnored
     private let pathMonitor = NWPathMonitor()
 
     /// Returns true if the network has an available wifi interface.
-    var onWifi = false
+    public var onWifi = false
     /// Returns true if the network has an available cellular interface.
-    var onCellular = false
+    public var onCellular = false
     /// Returns true if the network has an wired ethernet interface.
-    var onWiredEthernet = false
+    public var onWiredEthernet = false
 
     /// Returns true if the network is online with any available interface.
-    var isOnline: Bool {
+    public var isOnline: Bool {
         onWifi || onCellular || onWiredEthernet
     }
 
     /// Initializer.
-    init() { }
+    public init() { }
 
     /// Starts the network monitor (conforms to AsyncSequence).
-    func start() async {
+    public func start() async {
         for await path in pathMonitor {
             handle(path: path)
         }

@@ -382,9 +382,7 @@ extension OAuth {
     /// - Parameters:
     ///   - provider: the provider to request a refresh token for
     func refreshToken(provider: Provider) async {
-        guard let auth: OAuth.Authorization = try? keychain.get(key: provider.id) else {
-            return
-        }
+        guard let auth: OAuth.Authorization = try? keychain.get(key: provider.id) else { return }
 
         // If we can't build a refresh request simply bail as no refresh token
         // was returned in the original auth request
@@ -422,8 +420,7 @@ extension OAuth {
     func requestDeviceCode(provider: Provider) async {
         guard let request = Request.device(provider: provider) else { return }
         guard let (data, response) = try? await urlSession.data(for: request) else {
-            publish(state: .empty)
-            return
+            return publish(state: .empty)
         }
 
         if provider.debug {
@@ -434,8 +431,7 @@ extension OAuth {
 
         // Decode the device code
         guard let deviceCode = try? decoder.decode(DeviceCode.self, from: data) else {
-            publish(state: .empty)
-            return
+            return publish(state: .empty)
         }
 
         // Publish the state
@@ -448,8 +444,7 @@ extension OAuth {
     func requestClientCredentials(provider: Provider) async {
         guard let request = Request.token(provider: provider) else { return }
         guard let (data, response) = try? await urlSession.data(for: request) else {
-            publish(state: .empty)
-            return
+            return publish(state: .empty)
         }
 
         if provider.debug {
@@ -479,13 +474,11 @@ extension OAuth {
     func poll(provider: Provider, deviceCode: DeviceCode) async {
 
         guard !deviceCode.isExpired, let request = Request.token(provider: provider, deviceCode: deviceCode) else {
-            publish(state: .empty)
-            return
+            return publish(state: .empty)
         }
 
         guard let (data, response) = try? await urlSession.data(for: request) else {
-            publish(state: .empty)
-            return
+            return publish(state: .empty)
         }
 
         if provider.debug {
@@ -497,8 +490,7 @@ extension OAuth {
         /// If we received something other than a 200 response or we can't decode the token then restart the polling
         guard response.isOK, let token = try? decoder.decode(Token.self, from: data) else {
             // Reschedule the polling task
-            schedule(provider: provider, deviceCode: deviceCode)
-            return
+            return schedule(provider: provider, deviceCode: deviceCode)
         }
 
         // Store the authorization

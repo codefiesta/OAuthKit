@@ -148,5 +148,23 @@ struct UtilityTests {
         let executed = try await task.value
         #expect(executed)
     }
+
+    /// Tests the network monitor
+    @MainActor
+    @Test("Network Monitor")
+    func whenNetworkMonitoring() async throws {
+        let monitor = NetworkMonitor()
+        #expect(monitor.isOnline == false)
+        withObservationTracking {
+            _ = monitor.isOnline
+        } onChange: {
+            Task { @MainActor in
+                #expect(monitor.isOnline)
+            }
+        }
+        Task {
+            await monitor.start()
+        }
+    }
 }
 

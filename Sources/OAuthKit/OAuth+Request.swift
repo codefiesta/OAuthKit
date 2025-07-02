@@ -103,9 +103,7 @@ extension OAuth {
         ///   - deviceCode: the device code data
         /// - Returns: a  `/token` request that can be used for polling
         static func token(provider: Provider, deviceCode: DeviceCode) -> URLRequest? {
-            guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else {
-                return nil
-            }
+            guard var urlComponents = URLComponents(string: provider.accessTokenURL.absoluteString) else { return nil }
             urlComponents.queryItems = buildQueryItems(provider: provider, deviceCode: deviceCode)
             guard let url = urlComponents.url else { return nil }
             var request = URLRequest(url: url)
@@ -144,9 +142,8 @@ extension OAuth {
         ///   - provider: the oauth provider
         /// - Returns: the url request
         static func device(provider: Provider) -> URLRequest? {
-            guard let deviceCodeURL = provider.deviceCodeURL, var urlComponents = URLComponents(string: deviceCodeURL.absoluteString) else {
-                return nil
-            }
+            guard let deviceCodeURL = provider.deviceCodeURL,
+                  var urlComponents = URLComponents(string: deviceCodeURL.absoluteString) else { return nil }
             urlComponents.queryItems = buildQueryItems(provider: provider, grantType: .deviceCode)
             guard let url = urlComponents.url else { return nil }
             var request = URLRequest(url: url)

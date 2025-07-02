@@ -21,16 +21,16 @@ OAuthKit is a small, lightweight package that provides out of the box [Swift Con
 
 Key features include:
 
-- [Simple Configuration](https://github.com/codefiesta/OAuthKit?tab=readme-ov-file#oauthkit-configuration)
-- [Keychain protection with biometrics or companion device](https://github.com/codefiesta/OAuthKit?tab=readme-ov-file#oauth-initialized-with-keychain-protection-and-private-browsing)
-- [Private Browsing with non-persistent WebKit Datastores](https://github.com/codefiesta/OAuthKit?tab=readme-ov-file#oauth-initialized-with-keychain-protection-and-private-browsing)
-- [Custom URLSession](https://github.com/codefiesta/OAuthKit?tab=readme-ov-file#oauth-initialized-with-keychain-protection-and-private-browsing) configuration for complete control custom protocol specific data
+- [Simple Configuration](#oauthkit-configuration)
+- [Keychain protection with biometrics or companion device](#oauth-initialized-with-keychain-protection-and-private-browsing)
+- [Private Browsing with non-persistent WebKit Datastores](#oauth-initialized-with-keychain-protection-and-private-browsing)
+- [Custom URLSession](#oauth-initialized-with-keychain-protection-and-private-browsing) configuration for complete control custom protocol specific data
 - [Observable State](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L36) driven events to allow full control over when and if users are prompted to authenticate with an OAuth provider
-- [Support for every OAuth 2.0 Flow](https://github.com/codefiesta/OAuthKit?tab=readme-ov-file#oauthkit-configuration)
-	- [Authorization Code](https://github.com/codefiesta/OAuthKit?tab=readme-ov-file#oauth-20-authorization-code-flow)
-	- [PKCE](https://github.com/codefiesta/OAuthKit?tab=readme-ov-file#oauth-20-pkce-flow)
-	- [Device Code](https://github.com/codefiesta/OAuthKit?tab=readme-ov-file#oauth-20-device-code-flow)
-	- [Client Credentials](https://github.com/codefiesta/OAuthKit?tab=readme-ov-file#oauth-20-client-credentials-flow)
+- [Support for every OAuth 2.0 Flow](#oauthkit-configuration)
+	- [Authorization Code](#oauth-20-authorization-code-flow)
+	- [PKCE](#oauth-20-pkce-flow)
+	- [Device Code](#oauth-20-device-code-flow)
+	- [Client Credentials](#oauth-20-client-credentials-flow)
 	- [OpenID Connect](https://www.oauth.com/playground/oidc.html)
 
 ## OAuthKit Installation

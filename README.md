@@ -15,6 +15,35 @@
 OAuthKit is a contemporary, event-driven Swift Package that utilizes the [Observation](https://developer.apple.com/documentation/observation) Framework to implement the observer design pattern and publish [OAuth 2.0](https://oauth.net/2/) events. This enables application developers to effortlessly configure OAuth Providers and concentrate on developing exceptional applications rather than being preoccupied with the intricacies of authorization flows.
 <br clear="left"/>
 
+## OAuthKit Features
+
+OAuthKit is a small, lightweight package that provides out of the box [Swift Concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/) safety support and [Observable](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L36) OAuth 2.0 state events that allow fine grained control over when and how to start authorization flows. 
+
+Key features include:
+
+- [Simple Configuration](#oauthkit-configuration)
+- [Keychain protection with biometrics or companion device](#oauth-initialized-with-keychain-protection-and-private-browsing)
+- [Private Browsing with non-persistent WebKit Datastores](#oauth-initialized-with-keychain-protection-and-private-browsing)
+- [Custom URLSession](#oauth-initialized-with-keychain-protection-and-private-browsing) configuration for complete control custom protocol specific data
+- [Observable State](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L36) driven events to allow full control over when and if users are prompted to authenticate with an OAuth provider
+- [Support for every OAuth 2.0 Flow](#oauthkit-configuration)
+	- [Authorization Code](#oauth-20-authorization-code-flow)
+	- [PKCE](#oauth-20-pkce-flow)
+	- [Device Code](#oauth-20-device-code-flow)
+	- [Client Credentials](#oauth-20-client-credentials-flow)
+	- [OpenID Connect](https://www.oauth.com/playground/oidc.html)
+
+## OAuthKit Installation
+
+OAuthKit can easily be installed using [Swift Package Manager](https://www.swift.org/documentation/package-manager/):
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/codefiesta/OAuthKit", from: "1.4.3")
+]
+```
+
+
 ## OAuthKit Usage
 
 The following is an example of the simplest usage of using OAuthKit across multiple platforms (iOS, macOS, visionOS, tvOS, watchOS):

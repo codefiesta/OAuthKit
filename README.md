@@ -39,7 +39,7 @@ OAuthKit can easily be installed using [Swift Package Manager](https://www.swift
 
 ```swift
 dependencies: [
-	.package(url: "https://github.com/codefiesta/OAuthKit", from: "1.4.3")
+    .package(url: "https://github.com/codefiesta/OAuthKit", from: "1.4.3")
 ]
 ```
 

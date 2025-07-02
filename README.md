@@ -17,7 +17,7 @@ OAuthKit is a contemporary, event-driven Swift Package that utilizes the [Observ
 
 ## OAuthKit Features
 
-OAuthKit is a small, lightweight package that provides out of the box [Swift Concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/) support and observable OAuth 2.0 events that allow fine grained control over when and how to start authorization flows. Key features include:
+OAuthKit is a small, lightweight package that provides out of the box [Swift Concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/) safety support and [Observable](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L36) OAuth 2.0 state events that allow fine grained control over when and how to start authorization flows. Key features include:
 
 - [Simple Configuration](https://github.com/codefiesta/OAuthKit?tab=readme-ov-file#oauthkit-configuration)
 - [Keychain protection with biometrics or companion device](https://github.com/codefiesta/OAuthKit?tab=readme-ov-file#oauth-initialized-with-keychain-protection-and-private-browsing)

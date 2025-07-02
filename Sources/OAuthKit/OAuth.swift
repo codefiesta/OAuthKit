@@ -35,10 +35,10 @@ public enum OAError: Error {
 @Observable
 public final class OAuth {
 
-    /// A published list of available OAuth providers to choose from.
+    /// An observable list of available OAuth providers to choose from.
     public var providers = [Provider]()
 
-    /// An observable  published oauth state.
+    /// An observable oauth state.
     public var state: State = .empty
 
     /// The url session to use for communicating with providers.

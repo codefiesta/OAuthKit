@@ -12,5 +12,3 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: sersoft-gmbh/swifty-docs-action@v3
-      with:
-        target: OAuthKit

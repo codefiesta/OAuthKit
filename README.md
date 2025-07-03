@@ -26,6 +26,7 @@ Key features include:
 - [Private Browsing with non-persistent WebKit Datastores](#oauth-initialized-with-keychain-protection-and-private-browsing)
 - [Custom URLSession](#oauth-initialized-with-keychain-protection-and-private-browsing) configuration for complete control custom protocol specific data
 - [Observable State](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L36) driven events to allow full control over when and if users are prompted to authenticate with an OAuth provider
+- Supports all Apple Platforms (iOS, macOS, tvOS, visionOS, watchOS)
 - [Support for every OAuth 2.0 Flow](#oauthkit-configuration)
 	- [Authorization Code](#oauth-20-authorization-code-flow)
 	- [PKCE](#oauth-20-pkce-flow)
@@ -35,14 +36,13 @@ Key features include:
 
 ## OAuthKit Installation
 
-OAuthKit can easily be installed using [Swift Package Manager](https://www.swift.org/documentation/package-manager/):
+OAuthKit can be installed using [Swift Package Manager](https://www.swift.org/documentation/package-manager/):
 
 ```swift
 dependencies: [
     .package(url: "https://github.com/codefiesta/OAuthKit", from: "1.4.4")
 ]
 ```
-
 
 ## OAuthKit Usage
 
@@ -216,6 +216,7 @@ localAuthentication.touchIDAuthenticationAllowableReuseDuration = 10
 let options: [OAuth.Option: Any] = [
     .localAuthentication: localAuthentication,
     .requireAuthenticationWithBiometricsOrCompanion: true,
+    .useNonPersistentWebDataStore: true,
 ]
 let oauth: OAuth = .init(.main, options: options)
 ```
@@ -307,3 +308,8 @@ OAuthKit should work with any standard OAuth2 provider. Below is a list of teste
 * [Stripe](https://docs.stripe.com/stripe-apps/api-authentication/oauth)
 * [Twitter](https://developer.x.com/en/docs/authentication/oauth-2-0)
 	* **Unsupported**: Although OAuthKit *should* work with Twitter/X OAuth2 APIs without any modification, **@codefiesta** has chosen not to support any [Elon Musk](https://www.natesilver.net/p/elon-musk-polls-popularity-nate-silver-bulletin) backed ventures due to his facist, racist, and divisive behavior that epitomizes out-of-touch wealth and greed. **@codefiesta** will not raise objections to other developers who wish to contribute to OAuthKit in order to support Twitter OAuth2.
+
+## OAuthKit Documentation
+
+You can find the complete Swift DocC documentation for the [OAuthKit Framework here](https://codefiesta.github.io/OAuthKit/documentation/oauthkit/).
+

@@ -24,6 +24,9 @@ jobs:
   # Single deploy job since we're just deploying
   docc:
 
+    env:
+      XCODE_VERSION: 'Xcode_16.4'
+
     environment:
       # Must be set to this for deploying to GitHub Pages
       name: github-pages
@@ -34,7 +37,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Select Xcode
-      run: sudo xcode-select -s "/Applications/Xcode_16.4.app"
+      run: sudo xcode-select -s "/Applications/$XCODE_VERSION.app"
     - name: Generate DocC
       run: xcodebuild docbuild -scheme OAuthKit -derivedDataPath /tmp/docbuild -destination 'generic/platform=macOS';
     - name: Transform DocC

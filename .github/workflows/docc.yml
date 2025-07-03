@@ -43,8 +43,8 @@ jobs:
         transform-for-static-hosting /tmp/docbuild/Build/Products/Debug/OAuthKit.doccarchive \
         --hosting-base-path OAuthKit \
         --output-path docs;
-#    - name: Update Index
-#      run: echo "<script>window.location.href += \"/documentation/oauthkit\"</script>" > docs/index.html;
+    - name: Update Index
+      run: echo "<script>window.location.href += \"/documentation/oauthkit\"</script>" > docs/index.html;
 #    - name: Upload artifact
 #    - uses: actions/upload-pages-artifact@v3
 #      with:

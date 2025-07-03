@@ -23,7 +23,8 @@ jobs:
 
   # Single deploy job since we're just deploying
   docc:
-    environment:
+
+    env:
       # Must be set to this for deploying to GitHub Pages
       name: github-pages
       url: ${{steps.deployment.outputs.page_url}}

@@ -13,7 +13,7 @@ jobs:
 
   build:
   
-    if: "skip" == "dude"
+    if: contains(github.event.pull_request.labels.*.name, 'blah')
 
     env:
       XCODE_VERSION: 'Xcode_16.4'

@@ -28,6 +28,18 @@ jobs:
       run: swift build -v
     - name: Test
       run: swift test --enable-code-coverage
+    - name: Generate Docs
+      uses: SwiftDocOrg/swift-doc@master
+      with:
+        inputs: Sources
+        module-name: OAuthKit
+        output: docs
+    - name: Upload Docs
+      uses: SwiftDocOrg/github-wiki-publish-action@v1
+      with:
+        path: docs
+      env:
+        GH_PERSONAL_ACCESS_TOKEN: ${{secrets.GIST_SECRET}}
     - id: coverage
       uses: codefiesta/swift-coverage-action@0.0.4
     - name: badge

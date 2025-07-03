@@ -37,16 +37,16 @@ jobs:
       run: sudo xcode-select -s "/Applications/Xcode_16.4.app"
     - name: Generate DocC
       run: xcodebuild docbuild -scheme OAuthKit -derivedDataPath /tmp/docbuild -destination 'generic/platform=macOS';
-    - name: Transform DocC
-      run: $(xcrun --find docc) process-archive \
-        transform-for-static-hosting /tmp/docbuild/Build/Products/Debug/OAuthKit.doccarchive \
-        --hosting-base-path OAuthKit \
-        --output-path docs;
-    - name: Update Index
-      run: echo "<script>window.location.href += \"/documentation/oauthkit\"</script>" > docs/index.html;
-    - name: Upload artifact
-    - uses: actions/upload-pages-artifact@v3
-      with:
-        path: 'docs'
-    - name: Deploy to GitHub Pages
-    - uses: actions/deploy-pages@v4
+#    - name: Transform DocC
+#      run: $(xcrun --find docc) process-archive \
+#        transform-for-static-hosting /tmp/docbuild/Build/Products/Debug/OAuthKit.doccarchive \
+#        --hosting-base-path OAuthKit \
+#        --output-path docs;
+#    - name: Update Index
+#      run: echo "<script>window.location.href += \"/documentation/oauthkit\"</script>" > docs/index.html;
+#    - name: Upload artifact
+#    - uses: actions/upload-pages-artifact@v3
+#      with:
+#        path: 'docs'
+#    - name: Deploy to GitHub Pages
+#    - uses: actions/deploy-pages@v4

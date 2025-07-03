@@ -1,4 +1,4 @@
-# OAuthKit Sample: Integrating OAuthKit into an App
+# OAuthSample: Integrating OAuthKit into an App
 
 Integrate OAuthKit into a multiplatform app with support for iOS, macOS, tvOS, visionOS, and watchOS.
 

@@ -1,9 +1,10 @@
 # Getting Started with OAuthKit
 
-Create an ``OAuth`` instance and start an authorization flow.
+Learn how to create an observable OAuth instance and start an authorization flow.
 
 @Metadata {
     @PageKind(article)
+    @PageColor(yellow)
     @Available(iOS, introduced: "18.0")
     @Available(macOS, introduced: "15.0")
     @Available(tvOS, introduced: "18.0")

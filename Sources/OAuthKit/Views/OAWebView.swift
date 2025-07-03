@@ -17,7 +17,7 @@ public struct OAWebView {
     let oauth: OAuth
     let view: WKWebView
 
-    /// Initializer with the speciifed oauth object,
+    /// Initializer with the speciifed oauth object.
     /// - Parameter oauth: the oauth object to use
     public init(oauth: OAuth) {
         self.oauth = oauth

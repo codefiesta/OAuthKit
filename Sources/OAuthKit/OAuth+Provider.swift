@@ -57,7 +57,7 @@ extension OAuth {
             case debug
         }
 
-        /// Public initializer
+        /// Public initializer.
         /// - Parameters:
         ///   - id: The provider unique id
         ///   - icon: The provider icon

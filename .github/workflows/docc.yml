@@ -1,0 +1,54 @@
+# Generates and Deploys DocC documentation to Github pages
+# See: https://maxxfrazer.medium.com/deploying-docc-with-github-actions-218c5ca6cad5
+name: DocC
+
+on:
+  push:
+    branches: [ "main" ]
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+
+  # Single deploy job since we're just deploying
+  docc:
+
+    env:
+      XCODE_VERSION: 'Xcode_16.4'
+
+    environment:
+      # Must be set to this for deploying to GitHub Pages
+      name: github-pages
+      url: ${{steps.deployment.outputs.page_url}}
+
+    runs-on: macos-15
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Select Xcode
+      run: sudo xcode-select -s "/Applications/$XCODE_VERSION.app"
+    - name: Generate DocC
+      run: xcodebuild docbuild -scheme OAuthKit -derivedDataPath /tmp/docbuild -destination 'generic/platform=macOS';
+    - name: Transform DocC
+      run: |
+        $(xcrun --find docc) process-archive \
+        transform-for-static-hosting /tmp/docbuild/Build/Products/Debug/OAuthKit.doccarchive \
+        --hosting-base-path OAuthKit \
+        --output-path docs;
+    - name: Update Index
+      run: echo "<script>window.location.href += \"/documentation/oauthkit\"</script>" > docs/index.html;
+    - name: Upload Pages Artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: 'docs'
+    - name: Deploy to GitHub Pages
+      uses: actions/deploy-pages@v4

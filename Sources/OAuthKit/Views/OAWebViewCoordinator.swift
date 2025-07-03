@@ -9,6 +9,7 @@
 import SwiftUI
 import WebKit
 
+/// Coordinates  ``OAuth/state-swift.property``   changes inside a ``OAWebView``.
 @MainActor
 public class OAWebViewCoordinator: NSObject {
 

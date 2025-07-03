@@ -8,7 +8,7 @@
 import Network
 import Observation
 
-/// A type that broadcasts network reachability via Combine event publishing.
+/// An  `Observable` type that publishes network reachability information.
 @MainActor
 @Observable
 public final class NetworkMonitor {

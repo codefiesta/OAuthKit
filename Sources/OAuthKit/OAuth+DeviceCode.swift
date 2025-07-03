@@ -10,8 +10,8 @@ import Foundation
 extension OAuth {
 
     /// A codable type that holds device code information.
-    /// See: https://auth0.com/docs/get-started/authentication-and-authorization-flow/device-authorization-flow
-    /// See: https://www.oauth.com/playground/device-code.html
+    /// - SeeAlso:
+    /// [Requesting a Device Code](https://www.oauth.com/playground/device-code.html)
     public struct DeviceCode: Codable, Equatable, Sendable {
 
         /// A constant for the oauth grant type.

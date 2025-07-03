@@ -29,7 +29,7 @@ public enum OAError: Error {
     case keychain
 }
 
-/// Provides an observable OAuth 2.0 implementation that emits ``OAuth/state`` changes when
+/// Provides an `Observable` OAuth 2.0 implementation that emits ``OAuth/state`` changes when
 /// an authorization flow is started by calling ``OAuth/authorize(provider:grantType:)``.
 ///
 /// You can create an observable OAuth object using the ``OAuth/init(_:options:)`` or ``OAuth/init(providers:options:)`` initializers, or

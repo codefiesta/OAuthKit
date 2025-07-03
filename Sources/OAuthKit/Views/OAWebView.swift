@@ -10,7 +10,7 @@ import SwiftUI
 import WebKit
 
 /// A UIViewRepresentable / NSViewRepresentable wrapper type that coordinates
-/// oauth authorization flows inside a WKWebView.
+/// oauth authorization flows inside a `WKWebView`.
 @MainActor
 public struct OAWebView {
 

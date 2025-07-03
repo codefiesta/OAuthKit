@@ -17,10 +17,16 @@ OAuthKit offers a robust, type-safe, and performant OAuth 2.0 implementation usi
 
 This has the advantage of avoiding direct coupling with an authorization flow, enabling highly flexible and fine-grained control when interacting with an ``OAuth/Provider``. It also allows updates across multiple observers.
 
-### Featured
+### Articles
 
 @Links(visualStyle: detailedGrid) {
     - <doc:GettingStarted>
+    - <doc:Configuration>
+}
+
+### Sample code
+
+@Links(visualStyle: detailedGrid) {
     - <doc:SampleCode>
 }
 

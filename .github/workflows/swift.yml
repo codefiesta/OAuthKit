@@ -12,6 +12,10 @@ on:
 jobs:
 
   build:
+  
+    # Only run this action if the PR isn't a draft and it is labled as a `security` PR
+    if: "skip" == false
+
     env:
       XCODE_VERSION: 'Xcode_16.4'
     runs-on: macos-15

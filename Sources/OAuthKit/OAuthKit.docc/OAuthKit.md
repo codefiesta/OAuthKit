@@ -4,6 +4,11 @@ A modern and observable framework for implementing OAuth 2.0 authorization flows
 
 @Metadata {
     @PageColor(purple)
+    @Available(iOS, introduced: "18.0")
+    @Available(macOS, introduced: "15.0")
+    @Available(tvOS, introduced: "18.0")
+    @Available(visionOS, introduced: "2.0")
+    @Available(watchOS, introduced: "11.0")
 }
 
 ## Overview

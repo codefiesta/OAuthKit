@@ -11,7 +11,7 @@
 
 - ``authorize(provider:grantType:)``
 
-### Observing an OAuth object
+### OAuth State Tracking
 
 - ``state``
 - ``providers``

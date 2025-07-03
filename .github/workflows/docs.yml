@@ -5,16 +5,12 @@ name: Documentation
 on: [push]
 
 jobs:
+
   build:
     runs-on: macos-15
 
     steps:
-      - uses: sersoft-gmbh/swifty-docs-action@v3
-        with:
-          output: docs
-#      - name: Upload Documentation
-#        uses: SwiftDocOrg/github-wiki-publish-action@v1
-#        with:
-#          path: "Documentation"
-#        env:
-#          GH_PERSONAL_ACCESS_TOKEN: ${{secrets.GIST_SECRET}}
+    - uses: actions/checkout@v4
+    - uses: sersoft-gmbh/swifty-docs-action@v3
+      with:
+        target: OAuthKit

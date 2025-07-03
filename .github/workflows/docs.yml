@@ -1,0 +1,24 @@
+# This workflow generates Swift DocC documentation and publishes to Github pages
+# https://github.com/marketplace/actions/swift-doc
+name: Documentation
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Documentation
+        uses: SwiftDocOrg/swift-doc@master
+        with:
+          inputs: "Sources"
+          module-name: OAuthKit
+          output: "Documentation"
+      - name: Upload Documentation
+        uses: SwiftDocOrg/github-wiki-publish-action@v1
+        with:
+          path: "Documentation"
+        env:
+          GH_PERSONAL_ACCESS_TOKEN: ${{secrets.GIST_SECRET}}

@@ -9,16 +9,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Generate Documentation
-        uses: SwiftDocOrg/swift-doc@master
+      - uses: sersoft-gmbh/swifty-docs-action@v3
         with:
-          inputs: "Sources"
-          module-name: OAuthKit
-          output: "Documentation"
-      - name: Upload Documentation
-        uses: SwiftDocOrg/github-wiki-publish-action@v1
-        with:
-          path: "Documentation"
-        env:
-          GH_PERSONAL_ACCESS_TOKEN: ${{secrets.GIST_SECRET}}
+          output: docs
+#      - name: Upload Documentation
+#        uses: SwiftDocOrg/github-wiki-publish-action@v1
+#        with:
+#          path: "Documentation"
+#        env:
+#          GH_PERSONAL_ACCESS_TOKEN: ${{secrets.GIST_SECRET}}

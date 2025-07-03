@@ -20,29 +20,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+
   # Single deploy job since we're just deploying
-  deploy:
+  docc:
     environment:
       # Must be set to this for deploying to GitHub Pages
       name: github-pages
       url: ${{steps.deployment.outputs.page_url}}
+      XCODE_VERSION: 'Xcode_16.4'
     runs-on: macos-15
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Generate DocC
-        run: |
-          xcodebuild docbuild -scheme OAuthKit -derivedDataPath /tmp/docbuild -destination 'generic/platform=macOS';
-          $(xcrun --find docc) process-archive \
-            transform-for-static-hosting /tmp/docbuild/Build/Products/Debug/OAuthKit.doccarchive \
-            --hosting-base-path OAuthKit \
-            --output-path docs;
-          echo "<script>window.location.href += \"/documentation/oauthkit\"</script>" > docs/index.html;
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Upload only docs directory
-          path: 'docs'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+    - name: Checkout
+    - uses: actions/checkout@v4
+    - name: Select Xcode
+      run: sudo xcode-select -s "/Applications/$XCODE_VERSION.app"
+    - name: Generate DocC
+      run: |
+        xcodebuild docbuild -scheme OAuthKit -derivedDataPath /tmp/docbuild -destination 'generic/platform=macOS';
+        $(xcrun --find docc) process-archive \
+        transform-for-static-hosting /tmp/docbuild/Build/Products/Debug/OAuthKit.doccarchive \
+        --hosting-base-path OAuthKit \
+        --output-path docs;
+        echo "<script>window.location.href += \"/documentation/oauthkit\"</script>" > docs/index.html;
+    - name: Upload artifact
+    - uses: actions/upload-pages-artifact@v3
+      with:
+        path: 'docs'
+    - name: Deploy to GitHub Pages
+    - uses: actions/deploy-pages@v4

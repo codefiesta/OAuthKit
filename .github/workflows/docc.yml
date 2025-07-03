@@ -46,8 +46,8 @@ jobs:
     - name: Update Index
       run: echo "<script>window.location.href += \"/documentation/oauthkit\"</script>" > docs/index.html;
     - name: Upload Pages Artifact
-    - uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v3
       with:
         path: 'docs'
-#    - name: Deploy to GitHub Pages
-#    - uses: actions/deploy-pages@v4
+    - name: Deploy to GitHub Pages
+      uses: actions/deploy-pages@v4

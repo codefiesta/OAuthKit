@@ -6,7 +6,7 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-15
 
     steps:
       - uses: sersoft-gmbh/swifty-docs-action@v3

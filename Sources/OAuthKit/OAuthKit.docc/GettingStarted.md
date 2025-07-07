@@ -4,6 +4,10 @@ Learn how to create an observable OAuth instance and start an authorization flow
 
 @Metadata {
     @PageKind(article)
+    @PageImage(
+        purpose: card, 
+        source: "gettingStarted-card", 
+        alt: "Getting Started with OAuthKit")
     @PageColor(yellow)
     @Available(iOS, introduced: "18.0")
     @Available(macOS, introduced: "15.0")

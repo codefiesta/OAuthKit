@@ -19,7 +19,7 @@ extension OAuth {
         /// See RFC 7636 Standard  [PKCE Code Verifier](https://datatracker.ietf.org/doc/html/rfc7636#section-4.1).
         public let codeVerifier: String
 
-        /// A transformation of the codeVerifier that is SHA-256 hashed and Base 64 URL encoded.
+        /// A code challenge derived from the codeVerifier that is a Base 64 URL encoded string from it's SHA-256 digest.
         /// See RFC 7636 Standard  [PKCE Code Challenge](https://datatracker.ietf.org/doc/html/rfc7636#section-4.2).
         public let codeChallenge: String
 

@@ -15,7 +15,7 @@ extension URL {
         absoluteString.sha256
     }
 
-    /// Returns the SHA-256 Digest for this URL.
+    /// Returns the SHA-512 Digest for this URL.
     var sha512: SHA512.Digest {
         absoluteString.sha512
     }

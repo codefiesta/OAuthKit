@@ -12,23 +12,22 @@ private let defaultCodeChallengeMethod = "S256"
 
 extension OAuth {
 
-    /// Provides a structure for OAuth 2.0 Authorization Code Flow with Proof Key for Code Exchange (PKCE)
+    /// Provides a structure for OAuth 2.0 Authorization Code Flow with Proof Key for Code Exchange (PKCE).
     public struct PKCE: Equatable, Sendable {
 
-        /// A cryptographically random string using the characters A-Z, a-z, 0-9, and the punctuation characters -
-        /// ._~ (hyphen, period, underscore, and tilde), between 43 and 128 characters long.
-        /// See: https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
-        let codeVerifier: String
+        /// A cryptographically random string between 43 and 128 characters long.
+        /// See RFC 7636 Standard  [PKCE Code Verifier](https://datatracker.ietf.org/doc/html/rfc7636#section-4.1).
+        public let codeVerifier: String
 
         /// A transformation of the codeVerifier that is SHA-256 hashed and Base 64 URL encoded.
-        /// See: https://datatracker.ietf.org/doc/html/rfc7636#section-4.2
-        let codeChallenge: String
+        /// See RFC 7636 Standard  [PKCE Code Challenge](https://datatracker.ietf.org/doc/html/rfc7636#section-4.2).
+        public let codeChallenge: String
 
         /// The PKCE state code.
-        let state: String
+        public let state: String
 
-        /// Returns the code challenge method.
-        var codeChallengeMethod: String {
+        /// Returns the code challenge method. Currently only supports [SHA-256 hash](https://en.wikipedia.org/wiki/SHA-2).
+        public var codeChallengeMethod: String {
             defaultCodeChallengeMethod
         }
 

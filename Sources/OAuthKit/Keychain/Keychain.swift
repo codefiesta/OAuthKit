@@ -47,7 +47,6 @@ class Keychain: @unchecked Sendable {
         guard status == noErr else { return [] }
 
         var results = [String]()
-
         if let items = result as? [[String: Any]] {
             for item in items {
                 if let key = item[kSecAttrAccount as String] as? String {

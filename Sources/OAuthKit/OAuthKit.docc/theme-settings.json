@@ -1,0 +1,12 @@
+{
+    "theme": {
+        "aside": {
+            "border-radius": "8px",
+            "border-width": "3px"
+        },
+        "color": {
+            "aside-tip-border": "rgb(106, 162, 148)",
+            "aside-important-border": "rgb(244, 184, 66)"
+        }
+    }
+}

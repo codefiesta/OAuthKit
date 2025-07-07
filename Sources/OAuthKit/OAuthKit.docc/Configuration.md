@@ -4,6 +4,10 @@ Explore advanced OAuth configuration options such as Keychain protection and pri
 
 @Metadata {
     @PageKind(article)
+    @PageImage(
+        purpose: card, 
+        source: "config-card", 
+        alt: "OAuthKit Framework Configuration")
     @PageColor(red)
     @Available(iOS, introduced: "18.0")
     @Available(macOS, introduced: "15.0")

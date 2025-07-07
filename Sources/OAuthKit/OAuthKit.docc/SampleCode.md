@@ -8,6 +8,10 @@ Integrate OAuthKit into a multiplatform app with support for iOS, macOS, tvOS, v
         url: "https://github.com/codefiesta/OAuthSample"
     )
     @PageKind(sampleCode)
+    @PageImage(
+        purpose: card, 
+        source: "blueprint-card", 
+        alt: "OAuthKit Sample Code")
     @Available(iOS, introduced: "18.0")
     @Available(macOS, introduced: "15.0")
     @Available(tvOS, introduced: "18.0")

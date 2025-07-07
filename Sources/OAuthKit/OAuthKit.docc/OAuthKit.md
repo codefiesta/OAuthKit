@@ -37,6 +37,8 @@ This has the advantage of avoiding direct coupling with an authorization flow, e
 - <doc:GettingStarted>
 - <doc:SampleCode>
 - ``OAuth``
+- ``OAuth/Provider``
+- ``OAuth/GrantType``
 
 ### State Observability
 - ``OAuth/state``

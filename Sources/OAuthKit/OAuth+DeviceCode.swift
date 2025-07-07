@@ -9,7 +9,7 @@ import Foundation
 
 extension OAuth {
 
-    /// A codable type that holds device code information.
+    /// A codable type returned from a server that holds device code information.
     /// - SeeAlso:
     /// [Requesting a Device Code](https://www.oauth.com/playground/device-code.html)
     public struct DeviceCode: Codable, Equatable, Sendable {

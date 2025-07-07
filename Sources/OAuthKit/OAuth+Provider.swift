@@ -9,7 +9,7 @@ import Foundation
 
 extension OAuth {
 
-    /// Provides configuration data for an OAuth service provider.
+    /// Provides configuration data for an OAuth 2.0 service provider.
     public struct Provider: Codable, Identifiable, Hashable, Sendable {
 
         /// The provider unique id.

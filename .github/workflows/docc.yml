@@ -4,7 +4,7 @@ name: DocC
 
 on:
   push:
-    branches: [ "*" ]
+    branches: [ "main" ]
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -51,7 +51,6 @@ jobs:
         --source-service github \
         --source-service-base-url https://github.com/codefiesta/OAuthKit/blob/main \
         --checkout-path ${{github.workspace}};
-
 #    - name: Generate DocC
 #      run: xcodebuild docbuild -scheme OAuthKit -derivedDataPath /tmp/docbuild -destination 'generic/platform=macOS';
 #    - name: Transform DocC

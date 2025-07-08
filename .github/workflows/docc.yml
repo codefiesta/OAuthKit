@@ -4,7 +4,7 @@ name: DocC
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "*" ]
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -36,19 +36,35 @@ jobs:
     - uses: actions/checkout@v4
     - name: Select Xcode
       run: sudo xcode-select -s "/Applications/$XCODE_VERSION.app"
-    - name: Generate DocC
-      run: xcodebuild docbuild -scheme OAuthKit -derivedDataPath /tmp/docbuild -destination 'generic/platform=macOS';
-    - name: Transform DocC
+    - name: Add Plugin Dependency
+      run: swift package add-dependency "https://github.com/apple/swift-docc-plugin" --branch main
+    - name: Generate Documentation
       run: |
-        $(xcrun --find docc) process-archive \
-        transform-for-static-hosting /tmp/docbuild/Build/Products/Debug/OAuthKit.doccarchive \
+        swift package \
+        --allow-writing-to-package-directory \
+        --allow-writing-to-directory ${{github.workspace}}/docs \
+        generate-documentation \
+        --target OAuthKit \
+        --transform-for-static-hosting \
         --hosting-base-path OAuthKit \
-        --output-path docs;
+        --output-path ${{github.workspace}}/docs \
+        --source-service github \
+        --source-service-base-url https://github.com/codefiesta/OAuthKit/blob/main \
+        --checkout-path ${{github.workspace}};
+
+#    - name: Generate DocC
+#      run: xcodebuild docbuild -scheme OAuthKit -derivedDataPath /tmp/docbuild -destination 'generic/platform=macOS';
+#    - name: Transform DocC
+#      run: |
+#        $(xcrun --find docc) process-archive \
+#        transform-for-static-hosting /tmp/docbuild/Build/Products/Debug/OAuthKit.doccarchive \
+#        --hosting-base-path OAuthKit \
+#        --output-path docs;
     - name: Update Index
-      run: echo "<script>window.location.href += \"/documentation/oauthkit\"</script>" > docs/index.html;
-    - name: Upload Pages Artifact
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: 'docs'
-    - name: Deploy to GitHub Pages
-      uses: actions/deploy-pages@v4
+      run: echo "<script>window.location.href += \"/documentation/oauthkit\"</script>" > ${{github.workspace}}/docs/index.html;
+#    - name: Upload Pages Artifact
+#      uses: actions/upload-pages-artifact@v3
+#      with:
+#        path: 'docs'
+#    - name: Deploy to GitHub Pages
+#      uses: actions/deploy-pages@v4

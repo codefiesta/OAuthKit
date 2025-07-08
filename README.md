@@ -25,7 +25,7 @@ Key features include:
 - [Keychain protection with biometrics or companion device](https://codefiesta.github.io/OAuthKit/documentation/oauthkit/configuration#Keychain-Protection)
 - [Private Browsing with non-persistent WebKit Datastores](https://codefiesta.github.io/OAuthKit/documentation/oauthkit/configuration#Private-Browsing)
 - [Custom URLSession](https://codefiesta.github.io/OAuthKit/documentation/oauthkit/configuration#URL-Session) configuration for complete control custom protocol specific data
-- [Observable State](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L36) driven events to allow full control over when and if users are prompted to authenticate with an OAuth provider
+- [Observable State](https://codefiesta.github.io/OAuthKit/documentation/oauthkit/gettingstarted#Observing-OAuth-State) driven events to allow full control over when and if users are prompted to authenticate with an OAuth provider
 - Supports all Apple Platforms (iOS, macOS, tvOS, visionOS, watchOS)
 - [Support for every OAuth 2.0 Flow](#oauthkit-configuration)
 	- [Authorization Code](#oauth-20-authorization-code-flow)

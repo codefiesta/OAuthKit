@@ -17,7 +17,7 @@ OAuthKit is a contemporary, event-driven Swift Package that utilizes the [Observ
 
 ## OAuthKit Features
 
-OAuthKit is a small, lightweight package that provides out of the box [Swift Concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/) safety support and [Observable](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L36) OAuth 2.0 state events that allow fine grained control over when and how to start authorization flows. 
+OAuthKit is a small, lightweight package that provides out of the box [Swift Concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/) safety support and [Observable](https://codefiesta.github.io/OAuthKit/documentation/oauthkit/oauth/state-swift.enum) OAuth 2.0 state events that allow fine grained control over when and how to start authorization flows. 
 
 Key features include:
 
@@ -160,7 +160,7 @@ struct ContentView: View {
 ```
 
 ## OAuthKit Configuration
-By default, the easiest way to configure OAuthKit is to simply drop an `oauth.json` file into your main bundle and it will get automatically loaded into your swift application and available as an [Environment](https://developer.apple.com/documentation/swiftui/environment) property wrapper. You can find an example `oauth.json` file [here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json). OAuthKit provides flexible constructor options that allows developers to customize  how their oauth client is initialized and what features they want to implement. See the [oauth.init(\_:bundle:options)](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L98) method for details.
+By default, the easiest way to configure OAuthKit is to simply drop an `oauth.json` file into your main bundle and it will get automatically loaded into your swift application and available as an [Environment](https://developer.apple.com/documentation/swiftui/environment) property wrapper. You can find an example `oauth.json` file [here](https://github.com/codefiesta/OAuthKit/blob/main/Tests/OAuthKitTests/Resources/oauth.json). OAuthKit provides flexible constructor options that allows developers to customize  how their oauth client is initialized and what features they want to implement. See the [oauth.init(\_:bundle:options)](https://codefiesta.github.io/OAuthKit/documentation/oauthkit/oauth) method for details.
 
 ### OAuth initialized from main bundle (default)
 ```swift
@@ -222,7 +222,7 @@ let oauth: OAuth = .init(.main, options: options)
 ```
 
 ## OAuthKit Authorization Flows
-OAuth 2.0 authorization flows are started by calling the [oauth.authorize(provider:grantType:)](https://github.com/codefiesta/OAuthKit/blob/main/Sources/OAuthKit/OAuth.swift#L117) method.
+OAuth 2.0 authorization flows are started by calling the [oauth.authorize(provider:grantType:)](https://codefiesta.github.io/OAuthKit/documentation/oauthkit/oauth#Starting-an-authorization-flow) method.
 
 A good resource to help understand the detailed steps involved in OAuth 2.0 authorization flows can be found on the [OAuth 2.0 Playground](https://www.oauth.com/playground/index.html).
 

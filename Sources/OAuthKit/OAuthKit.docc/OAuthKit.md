@@ -41,4 +41,5 @@ This has the advantage of avoiding direct coupling with an authorization flow, e
 - ``OAuth/GrantType``
 
 ### State Observability
+- ``OAuth/State``
 - ``OAuth/state``

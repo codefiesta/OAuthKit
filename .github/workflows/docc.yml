@@ -51,14 +51,6 @@ jobs:
         --source-service github \
         --source-service-base-url https://github.com/codefiesta/OAuthKit/blob/main \
         --checkout-path ${{github.workspace}};
-#    - name: Generate DocC
-#      run: xcodebuild docbuild -scheme OAuthKit -derivedDataPath /tmp/docbuild -destination 'generic/platform=macOS';
-#    - name: Transform DocC
-#      run: |
-#        $(xcrun --find docc) process-archive \
-#        transform-for-static-hosting /tmp/docbuild/Build/Products/Debug/OAuthKit.doccarchive \
-#        --hosting-base-path OAuthKit \
-#        --output-path docs;
     - name: Update Index
       run: echo "<script>window.location.href += \"/documentation/oauthkit\"</script>" > ${{github.workspace}}/docs/index.html;
     - name: Upload Pages Artifact

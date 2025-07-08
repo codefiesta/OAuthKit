@@ -17,29 +17,29 @@ extension OAuth {
         /// The provider icon.
         public var icon: URL?
         /// The provider authorization url.
-        var authorizationURL: URL
+        public var authorizationURL: URL
         /// The provider access token url.
-        var accessTokenURL: URL
+        public var accessTokenURL: URL
         /// The provider device code url that can be used for devices without browsers (like tvOS).
-        var deviceCodeURL: URL?
+        public var deviceCodeURL: URL?
+        /// The provider redirect uri.
+        public var redirectURI: String?
         /// The unique client identifier for interacting with this providers oauth server.
         var clientID: String
         /// The client's secret known only to the client and the providers oauth server. It is essential the client's password.
         var clientSecret: String?
-        /// The provider redirect uri.
-        var redirectURI: String?
         /// The provider scopes.
-        var scope: [String]?
+        public var scope: [String]?
         /// Informs the oauth client to encode the access token query parameters into the
         /// http body (using application/x-www-form-urlencoded) or simply send the query parameters with the request.
         /// This is turned on by default, but you may need to disable this based on how the provider is implemented.
-        var encodeHttpBody: Bool
+        public var encodeHttpBody: Bool
         /// The custom user agent to send with browser requests. Providers such as Slack will block unsupported browsers
         /// from initiating oauth workflows. Setting this value to a supported user agent string can allow for workarounds.
         /// Be very careful when setting this value as it can have unintended consquences of how servers respond to requests.
-        var customUserAgent: String?
+        public var customUserAgent: String?
         /// Enables provider debugging. Off by default.
-        var debug: Bool
+        public var debug: Bool
 
         /// The coding keys.
         enum CodingKeys: String, CodingKey {

@@ -10,43 +10,6 @@ import Foundation
 extension OAuth {
 
     /// Holds the OAuth state that is published to subscribers via the ``state`` property.
-    ///
-    /// A n example of observing the ``state`` property in SwiftUI:
-    /// ```swift
-    ///struct ContentView: View {
-    ///
-    ///     @Environment(\.oauth)
-    ///     var oauth: OAuth
-    ///
-    ///     var body: some View {
-    ///         VStack {
-    ///             switch oauth.state {
-    ///             case .empty:
-    ///                 providerList
-    ///             case .authorizing(let provider, let grantType):
-    ///                 Text("Authorizing [\(provider.id)] with [\(grantType.rawValue)]")
-    ///             case .requestingAccessToken(let provider):
-    ///                 Text("Requesting Access Token [\(provider.id)]")
-    ///             case .requestingDeviceCode(let provider):
-    ///                 Text("Requesting Device Code [\(provider.id)]")
-    ///             case .authorized(let provider, _):
-    ///                 Button("Authorized [\(provider.id)]") {
-    ///                     oauth.clear()
-    ///                 }
-    ///             case .receivedDeviceCode(_, let deviceCode):
-    ///                 Text("To login, visit")
-    ///                 Text(.init("[\(deviceCode.verificationUri)](\(deviceCode.verificationUri))"))
-    ///                     .foregroundStyle(.blue)
-    ///                 Text("and enter the following code:")
-    ///                 Text(deviceCode.userCode)
-    ///             }
-    ///         }
-    ///         .onChange(of: oauth.state) { oldState, newState in
-    ///             handle(state: newState)
-    ///         }
-    ///     }
-    /// }
-    /// ```
     public enum State: Equatable, Sendable {
 
         /// The state is empty and no authorizations or tokens have been issued.

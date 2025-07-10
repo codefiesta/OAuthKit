@@ -31,31 +31,9 @@ public enum OAError: Error {
 
 /// Provides an `Observable` OAuth 2.0 implementation that emits ``OAuth/state`` changes when
 /// an authorization flow is started by calling ``OAuth/authorize(provider:grantType:)``.
-///
-/// You can create an observable OAuth object using the ``OAuth/init(_:options:)`` or ``OAuth/init(providers:options:)`` initializers, or
-/// you can access a default OAuth object via SwiftUI ``SwiftUICore/EnvironmentValues`` via the following:
-///
-/// ```swift
-/// @Environment(\.oauth)
-/// var oauth: OAuth
-/// ```
-///
-/// An OAuth object can also be highly customized when passed a dictionary  of  ``Option`` values into it's iniitializers.
-/// ```swift
-/// let options: [OAuth.Option: Any] = [
-///     .applicationTag: "com.bundle.Idenfitier",
-///     .autoRefresh: true,
-///     .requireAuthenticationWithBiometricsOrCompanion: true,
-///     .useNonPersistentWebDataStore: true
-/// ]
-/// let oauth: OAuth = .init(.module, options: options)
-/// ```
-///
-/// - SeeAlso:
-/// [RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749)
 @MainActor
 @Observable
-public final class OAuth {
+public final class OAuth: Sendable {
 
     /// An observable list of available OAuth providers to choose from.
     public var providers = [Provider]()

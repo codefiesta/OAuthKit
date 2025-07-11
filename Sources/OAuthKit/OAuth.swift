@@ -57,7 +57,7 @@ public final class OAuth: Sendable {
     private var tasks = [Task<(), any Error>]()
 
     @ObservationIgnored
-    private let networkMonitor = NetworkMonitor()
+    private let networkMonitor: NetworkMonitor = .shared
 
     /// Configuration option determining if tokens should be auto refreshed or not.
     @ObservationIgnored

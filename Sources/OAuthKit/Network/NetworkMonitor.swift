@@ -11,10 +11,16 @@ import Observation
 /// An  `Observable` type that publishes network reachability information.
 @MainActor
 @Observable
-public final class NetworkMonitor {
+public final class NetworkMonitor: Sendable {
+
+    // The shared singleton network monitor.
+    public static let shared: NetworkMonitor = .init()
 
     @ObservationIgnored
     private let pathMonitor = NWPathMonitor()
+
+    /// Flag indicating if monitoring is currently active or not.
+    public private(set) var isMonitoring = false
 
     /// Returns true if the network has an available wifi interface.
     public var onWifi = false
@@ -29,10 +35,12 @@ public final class NetworkMonitor {
     }
 
     /// Initializer.
-    public init() { }
+    private init() { }
 
     /// Starts the network monitor (conforms to AsyncSequence).
     public func start() async {
+        guard !isMonitoring else { return }
+        isMonitoring.toggle()
         for await path in pathMonitor {
             handle(path: path)
         }

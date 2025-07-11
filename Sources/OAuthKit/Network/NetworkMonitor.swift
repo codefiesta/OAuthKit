@@ -19,6 +19,9 @@ public final class NetworkMonitor: Sendable {
     @ObservationIgnored
     private let pathMonitor = NWPathMonitor()
 
+    /// Flag indicating if monitoring is currently active or not.
+    public var isMonitoring = false
+
     /// Returns true if the network has an available wifi interface.
     public var onWifi = false
     /// Returns true if the network has an available cellular interface.
@@ -36,6 +39,8 @@ public final class NetworkMonitor: Sendable {
 
     /// Starts the network monitor (conforms to AsyncSequence).
     public func start() async {
+        guard !isMonitoring else { return }
+        isMonitoring.toggle()
         for await path in pathMonitor {
             handle(path: path)
         }

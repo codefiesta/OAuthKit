@@ -162,8 +162,15 @@ struct UtilityTests {
                 #expect(monitor.isOnline)
             }
         }
-        Task {
+        Task { @MainActor in
             await monitor.start()
+            #expect(monitor.isMonitoring)
+        }
+        // The second call to monitor.start() should simply bail as monitoring
+        // is already happening and not toggle the internal `isMonitoring` flag.
+        Task { @MainActor in
+            await monitor.start()
+            #expect(monitor.isMonitoring)
         }
     }
 }

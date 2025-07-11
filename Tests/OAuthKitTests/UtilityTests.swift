@@ -153,7 +153,7 @@ struct UtilityTests {
     @MainActor
     @Test("Network Monitor")
     func whenNetworkMonitoring() async throws {
-        let monitor = NetworkMonitor()
+        let monitor: NetworkMonitor = .shared
         #expect(monitor.isOnline == false)
         withObservationTracking {
             _ = monitor.isOnline

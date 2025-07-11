@@ -20,7 +20,7 @@ public final class NetworkMonitor: Sendable {
     private let pathMonitor = NWPathMonitor()
 
     /// Flag indicating if monitoring is currently active or not.
-    public var isMonitoring = false
+    public private(set) var isMonitoring = false
 
     /// Returns true if the network has an available wifi interface.
     public var onWifi = false

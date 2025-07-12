@@ -10,8 +10,6 @@ import Foundation
 extension OAuth {
 
     /// A codable type that holds oauth token information.
-    /// - SeeAlso:
-    /// [Access Token Response](https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/)
     public struct Token: Codable, Equatable, Sendable {
 
         /// The access token string as issued by the authorization server.

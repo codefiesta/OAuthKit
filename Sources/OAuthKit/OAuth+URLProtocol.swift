@@ -1,0 +1,60 @@
+//
+//  OAuth+URLProtocol.swift
+//  OAuthKit
+//
+//  Created by Kevin McKee
+//
+
+import Foundation
+
+extension OAuth {
+    
+    /// A custom `URLProtocol` that can be registered with an `URLSessionConfiguration`  and used to automatically inject
+    /// `Authorization: Bearer <<token>>` headers into outbound HTTP URLRequests.
+    public class URLProtocol: Foundation.URLProtocol {
+
+        nonisolated(unsafe) private static var authorizations: [OAuth.Provider: OAuth.Authorization] = .init()
+        
+        /// Adds an authorization for the given provider that can be used inject `Authorization: Bearer <<token>>` headers into a request.
+        /// - Parameters:
+        ///   - authorization: the authorization issued by the provider
+        ///   - provider: the provider
+        @MainActor
+        public class func addAuthorization(_ authorization: OAuth.Authorization, for provider: OAuth.Provider) {
+            guard let _ = provider.authorizationPattern else { return }
+            authorizations[provider] = authorization
+        }
+        
+        /// Determines whether this protocol can handle the given request.
+        /// - Parameter request: the request to handle
+        /// - Returns: always true
+        override public class func canInit(with request: URLRequest) -> Bool {
+            guard let url = request.url, authorizations.isNotEmpty else { return false }
+            for (provider, _) in authorizations {
+                guard let pattern = provider.authorizationPattern else { continue }
+                if url.absoluteString.range(of: pattern, options: .regularExpression) != nil {
+                    return true
+                }
+            }
+            return false
+        }
+
+        /// Returns the canonical version of the given request.
+        /// - Parameter request: the request
+        /// - Returns: the canonical version of the given request.
+        override public class func canonicalRequest(for request: URLRequest) -> URLRequest {
+            guard let url = request.url, authorizations.isNotEmpty else { return request }
+            for (provider, auth) in authorizations {
+                guard let pattern = provider.authorizationPattern else { continue }
+                if url.absoluteString.range(of: pattern, options: .regularExpression) != nil {
+                    var canonicalRequest = request
+                    canonicalRequest.addAuthorization(auth: auth)
+                    return canonicalRequest
+                }
+            }
+            return request
+        }
+    }
+}
+
+

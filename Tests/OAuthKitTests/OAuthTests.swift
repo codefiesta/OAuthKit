@@ -420,6 +420,73 @@ final class OAuthTests {
         let random = OAuth.secureRandom()
         #expect(random.count >= 43)
     }
+    
+    /// Tests the OAuth URLProtocol Authorization Request Matches
+    @Test("OAuth Provider Authorization Request Matches")
+    func whenMatchingAuthorizationRequests() async throws {
+        
+        // Provider that matches patterns for adding authorization headers
+        let provider: OAuth.Provider =
+            .init(id: .secureRandom(),
+                  authorizationURL: URL(string: "https://example.com/auth")!,
+                  accessTokenURL: URL(string: "https://example.com/token")!,
+                  clientID: .secureRandom(),
+                  clientSecret: .secureRandom(),
+                  authorizationPattern: "(example.com|example.org)"
+            )
+        
+        let token: OAuth.Token = .init(accessToken: .secureRandom(),
+                                       refreshToken: nil,
+                                       expiresIn: 3600,
+                                       scope: nil,
+                                       type: "Bearer")
+        let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
+        OAuth.URLProtocol.addAuthorization(auth, for: provider)
+        
+        var urls: [String] = [
+            "https://api.example.com/endpoint",
+            "https://api.example.org/endpoint",
+            "https://www.example.com/secure",
+        ]
+        
+        // Success handling
+        for urlString in urls {
+            let request: URLRequest = .init(url: URL(string: urlString)!)
+            let canHandle = OAuth.URLProtocol.canInit(with: request)
+            #expect(canHandle == true)
+
+            let canonicalRequest = OAuth.URLProtocol.canonicalRequest(for: request)
+            let authorizationHeader = canonicalRequest.value(forHTTPHeaderField: "Authorization")
+            #expect(authorizationHeader == "\(token.type) \(token.accessToken)")
+        }
+        
+        // Provider that doesn't do any pattern matching for adding authorization headers
+        let provider2: OAuth.Provider =
+            .init(id: .secureRandom(),
+                  authorizationURL: URL(string: "https://example.com/auth")!,
+                  accessTokenURL: URL(string: "https://example.com/token")!,
+                  clientID: .secureRandom(),
+                  clientSecret: .secureRandom()
+            )
+        OAuth.URLProtocol.addAuthorization(auth, for: provider2)
+        
+        urls = [
+            "https://api.github.com/endpoint",
+            "https://github.com/codefiesta",
+        ]
+        // Unmatched expectations
+        for urlString in urls {
+            let request: URLRequest = .init(url: URL(string: urlString)!)
+            let canHandle = OAuth.URLProtocol.canInit(with: request)
+            #expect(canHandle == false)
+
+            let canonicalRequest = OAuth.URLProtocol.canonicalRequest(for: request)
+            let authorizationHeader = canonicalRequest.value(forHTTPHeaderField: "Authorization")
+            #expect(authorizationHeader == nil)
+        }
+
+        
+    }
 
     /// Streams the oauth status until we receive an authorization.
     /// This should only be used on test methods that expect an authorization to be inserted into the keychain.

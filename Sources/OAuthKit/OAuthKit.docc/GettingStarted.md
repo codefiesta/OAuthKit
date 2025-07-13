@@ -151,7 +151,7 @@ func handle(state: OAuth.State) {
 ```
 Once the user has successfully authorized with the ``OAuth/Provider``, the ``OAuth/state`` will move to an ``OAuth/State/authorized(_:_:)`` state. You can then automaticaly close the ``OAWebView`` window in your SwiftUI application.
 
-> Tip: Once authorized, a ``OAuth/Authorization/token`` will be inserted into the user's Keychain that can be used in subsequent API requests by inserting the `Authorization` header into an ``Foundation/URLRequest`` via ``OAuthKit/Foundation/URLRequest/addAuthorization(auth:)`` .
+> Tip: Once authorized, a ``OAuth/Authorization/token`` will be inserted into the user's Keychain that can be used in subsequent API requests by inserting the `Authorization` header into an `URLRequest` via ``OAuthKit/Foundation/URLRequest/addAuthorization(auth:)`` .
 
 ## Presenting Device Codes (tvOS and watchOS)
 OAuthKit also supports the [OAuth 2.0 Device Code Flow Grant](https://alexbilbie.github.io/2016/04/oauth-2-device-flow-grant/), which is used by apps that don't have access to a web browser (like tvOS or watchOS). To leverage OAuthKit in tvOS or watchOS apps, simply add the `deviceCodeURL` to your ``OAuth/Provider`` and start an ``OAuth/authorize(provider:grantType:)`` flow with the ``OAuth/GrantType/deviceCode`` grantType.

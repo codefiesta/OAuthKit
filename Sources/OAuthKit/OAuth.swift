@@ -286,6 +286,11 @@ private extension OAuth {
         self.state = state
     }
 
+    func updateProtocol(provider: Provider, authorization: Authorization) {
+        // Add the authorization to the OAuth.URLProtocol
+        URLProtocol.addAuthorization(authorization, for: provider)
+    }
+    
     /// Schedules the provider to be polled for authorization with the specified device token.
     /// - Parameters:
     ///   - provider: the oauth provider

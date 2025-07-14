@@ -8,13 +8,13 @@
 import Foundation
 
 extension OAuth {
-    
-    /// A custom `URLProtocol` that can be registered with an `URLSessionConfiguration`  and used to automatically inject
-    /// `Authorization: Bearer <<token>>` headers into outbound HTTP URLRequests.
+
+    /// A custom `URLProtocol` that can be registered with any `URLSessionConfiguration` that will automatically inject
+    /// `Authorization: Bearer <<token>>` headers into outbound HTTP URLRequests based on ``Provider/authorizationPattern``.
     public class URLProtocol: Foundation.URLProtocol {
 
         nonisolated(unsafe) private static var authorizations: [OAuth.Provider: OAuth.Authorization] = .init()
-        
+
         /// Adds an authorization for the given provider that can be used inject `Authorization: Bearer <<token>>` headers into a request.
         /// - Parameters:
         ///   - authorization: the authorization issued by the provider
@@ -24,11 +24,29 @@ extension OAuth {
             guard let _ = provider.authorizationPattern else { return }
             authorizations[provider] = authorization
         }
-        
+
+        /// Removes authorizations for the specified provider.
+        /// - Parameter provider: the provider to remove authorization for
+        @MainActor
+        public class func removeAuthorization(for provider: OAuth.Provider) {
+            authorizations.removeValue(forKey: provider)
+        }
+
+        /// Clears all authorizations out of the protocol.
+        @MainActor
+        public class func clear() {
+            authorizations.removeAll()
+        }
+
         /// Determines whether this protocol can handle the given request.
         /// - Parameter request: the request to handle
         /// - Returns: always true
         override public class func canInit(with request: URLRequest) -> Bool {
+            // Remove any expired authorizations
+            let expiredEntries = authorizations.filter{ $0.value.isExpired }
+            for expired in expiredEntries {
+                authorizations.removeValue(forKey: expired.key)
+            }
             guard let url = request.url, authorizations.isNotEmpty else { return false }
             for (provider, _) in authorizations {
                 guard let pattern = provider.authorizationPattern else { continue }

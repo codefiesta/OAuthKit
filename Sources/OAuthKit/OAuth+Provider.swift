@@ -41,7 +41,7 @@ extension OAuth {
         /// Enables provider debugging. Off by default.
         public var debug: Bool
         /// An optional regex that can be used in conjuction with the ``OAuth/URLProtocol`` class to intercept outbound requests
-        /// and inject an `Authorization: Bearer <<token>>` header into a request.
+        /// and inject an `Authorization: Bearer <<token>>` header into a request. 
         public var authorizationPattern: String?
 
         /// The coding keys.

@@ -30,6 +30,12 @@ This has the advantage of avoiding direct coupling with an authorization flow, e
     - <doc:SampleCode>
 }
 
+### Tutorials
+
+@Links(visualStyle: list) {
+    - <doc:TableOfContents>
+}
+
 ## Topics
 
 ### Essentials

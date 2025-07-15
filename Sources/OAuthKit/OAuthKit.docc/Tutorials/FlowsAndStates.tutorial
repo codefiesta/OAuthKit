@@ -1,0 +1,37 @@
+@Tutorial(time: 7) {
+    @Intro(title: "OAuth Flows and States") {
+        This tutorial guides you through creating an observable ``OAuth`` instance, starting authorization flows, and observing ``OAuth/state``.
+
+        @Image(source: gettingStarted-card.jpg, alt: "OAuthKit")
+    }
+    
+    @Section(title: "Creating Observable OAuth Objects") {
+        @ContentAndMedia {
+            This section walks you through an example of how to create an observable ``OAuth`` object.
+        }
+        
+        @Steps {
+            @Step {
+                Register the ``OAuth/URLProtocol`` class with an URLSession.
+                @Code(name: "URLSession.swift", file: flows-states-step-1.swift)
+            }
+            
+            @Step {
+                Create a GitHub Provider that matches all REST endpoint patterns of `api.github.com`.
+                @Code(name: "Provider.swift", file: url-protocol-step-2.swift)
+            }
+
+            @Step {
+                Start an ``OAuth/authorize(provider:grantType:)`` flow with the GitHub ``OAuth/Provider``.
+                
+                > Important: You'll need to wait until you've been authorized by GitHub and your ``OAuth/State`` has moved to ``OAuth/State/authorized(_:_:)`` 
+                @Code(name: "Authorization.swift", file: url-protocol-step-3.swift)
+            }
+
+            @Step {
+                Once the GitHub ``OAuth/Provider`` has been authorized, your app can begin to send authorized requests to any endpoints that match `api.github.com`. The ``OAuth/URLProtocol`` will automatically intercept every outbound request that matches `api.github.com` and inject the `Authorization: Bearer <<token>>` header for you.
+                @Code(name: "Request.swift", file: url-protocol-step-4.swift)
+            }
+        }
+    }
+}

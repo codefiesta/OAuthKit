@@ -33,7 +33,7 @@ This has the advantage of avoiding direct coupling with an authorization flow, e
 ### Tutorials
 
 @Links(visualStyle: list) {
-    - <doc:TableOfContents>
+    - <doc:Contents>
 }
 
 ## Topics

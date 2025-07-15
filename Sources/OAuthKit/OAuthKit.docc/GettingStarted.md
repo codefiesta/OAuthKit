@@ -188,4 +188,8 @@ The observable ``OAuth`` instance will proceed to poll the ``OAuth/Provider`` ac
 
 > Tip: Click  [here](https://oauth.net/2/grant-types/device-code/) to see details of how the OAuth 2.0 Device Code Grant Type works.
 
+### Related Tutorials
 
+@Links(visualStyle: list) {
+    - <doc:FlowsStates>
+}

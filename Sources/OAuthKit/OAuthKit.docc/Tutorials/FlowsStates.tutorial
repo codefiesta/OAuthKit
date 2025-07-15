@@ -1,0 +1,46 @@
+@Tutorial(time: 7) {
+    @Intro(title: "OAuth Flows and States") {
+        This tutorial guides you through starting authorization flows, and observing ``OAuth/state``.
+
+        @Image(source: gettingStarted-card.jpg, alt: "OAuthKit")
+    }
+    
+    @Section(title: "Observing OAuth Objects") {
+        @ContentAndMedia {
+            This section walks you through an example of how to use an observable ``OAuth`` object.
+        }
+        
+        @Steps {
+            @Step {
+                Declare a default ``OAuth`` instance via the @Environment property wrapper in SwiftUI that can be accessed throughout your app.
+                
+                > Tip: For details of how to create and configure an ``OAuth`` instance, see <doc:Configuration>
+                @Code(name: "OAuthApp.swift", file: flows-states-step-1.swift)
+            }
+            
+            @Step {
+                Observe the ``OAuth/state`` property for changes in your View.
+                @Code(name: "ContentView.swift", file: flows-states-step-2.swift)
+            }
+
+            @Step {
+                Start an flow for a `Provider` when a user taps a `Provider` in the list.
+                
+                > Tip: OAuthKit also supports the [OAuth 2.0 Device Code Flow Grant](https://alexbilbie.github.io/2016/04/oauth-2-device-flow-grant/), which is used by apps that don't have access to a web browser (like tvOS or watchOS). To leverage OAuthKit in tvOS or watchOS apps, simply add the ``OAuth/Provider/deviceCodeURL`` to your `Provider` and start an authorization flow with the `.deviceCode` grantType.
+                @Code(name: "ContentView.swift", file: flows-states-step-3.swift)
+            }
+
+            @Step {
+                Open the authorization window when the ``OAuth/state`` reaches an ``OAuth/State/authorizing(_:_:)`` state.
+                @Code(name: "ContentView.swift", file: flows-states-step-4.swift)
+            }
+
+            @Step {
+                Once the ``OAuth/Provider`` has been authorized, the ``OAuth/state`` will reach an ``OAuth/State/authorized(_:_:)`` state can you can dismiss the authorization window.
+                
+                > Tip: See using the received authorization token in subsequent API requests in the <doc:URLProtocol> tutorial. 
+                @Code(name: "ContentView.swift", file: flows-states-step-4.swift)
+            }
+        }
+    }
+}

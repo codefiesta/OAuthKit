@@ -17,7 +17,7 @@
         @Image(source: gettingStarted-card.jpg, alt: "OAuthKit")
         
         Learn the basics of how to create observable ``OAuth`` instances and start authorization flows.
-        @TutorialReference(tutorial: "doc:FlowsAndStates")
+        @TutorialReference(tutorial: "doc:FlowsStates")
     }
 
     @Chapter(name: "URLProtocols with OAuthKit") {

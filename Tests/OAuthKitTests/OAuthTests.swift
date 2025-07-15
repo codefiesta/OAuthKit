@@ -504,8 +504,8 @@ final class OAuthTests {
         OAuth.URLProtocol.addAuthorization(auth, for: provider2)
 
         urls = [
-            "https://api.github.com/endpoint",
-            "https://github.com/codefiesta",
+            "https://api.codefiesta.com/endpoint",
+            "https://codefiesta.com/codefiesta",
         ]
 
         for urlString in urls {
@@ -517,6 +517,8 @@ final class OAuthTests {
             let authorizationHeader = canonicalRequest.value(forHTTPHeaderField: "Authorization")
             #expect(authorizationHeader == nil)
         }
+        
+        OAuth.URLProtocol.clear()
     }
 
     /// Streams the oauth status until we receive an authorization.

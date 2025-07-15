@@ -8,7 +8,7 @@ Explore advanced OAuth configuration options such as Keychain protection and pri
         purpose: card, 
         source: "config-card", 
         alt: "OAuthKit Framework Configuration")
-    @PageColor(red)
+    @PageColor(purple)
     @Available(iOS, introduced: "18.0")
     @Available(macOS, introduced: "15.0")
     @Available(tvOS, introduced: "18.0")

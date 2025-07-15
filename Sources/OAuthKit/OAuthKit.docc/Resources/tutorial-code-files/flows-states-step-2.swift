@@ -1,23 +1,27 @@
-# ``OAuthKit/OAuth/State``
-@Metadata {
-    @Available(iOS, introduced: "18.0")
-    @Available(macOS, introduced: "15.0")
-    @Available(tvOS, introduced: "18.0")
-    @Available(visionOS, introduced: "2.0")
-    @Available(watchOS, introduced: "11.0")
-}
-
-## Overview
-An example of observing the ``state`` property in SwiftUI:
-
-```swift
 struct ContentView: View {
 
     @Environment(\.oauth)
     var oauth: OAuth
 
+    @Environment(\.openWindow)
+    var openWindow
+
+    @Environment(\.dismissWindow)
+    private var dismissWindow
+
+    /// Displays a list of oauth providers.
+    var providerList: some View {
+        List(oauth.providers) { provider in
+            Button(provider.id) {
+                // Start an authorization flow
+            }
+        }
+    }
+
+    /// The main view body
     var body: some View {
         VStack {
+            // Update the view based on the current oauth state
             switch oauth.state {
             case .empty:
                 providerList
@@ -37,11 +41,13 @@ struct ContentView: View {
                     .foregroundStyle(.blue)
                 Text("and enter the following code:")
                 Text(deviceCode.userCode)
+                    .padding()
+                    .border(Color.primary)
+                    .font(.title)
             }
         }
-        .onChange(of: oauth.state) { oldState, newState in
-            handle(state: newState)
+        .onChange(of: oauth.state) { _, state in
+            // Handle state change
         }
     }
 }
-```

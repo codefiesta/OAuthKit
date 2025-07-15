@@ -1,7 +1,4 @@
 # ``OAuthKit``
-
-A modern and observable framework for implementing OAuth 2.0 authorization flows.
-
 @Metadata {
     @PageColor(purple)
     @Available(iOS, introduced: "18.0")
@@ -10,6 +7,8 @@ A modern and observable framework for implementing OAuth 2.0 authorization flows
     @Available(visionOS, introduced: "2.0")
     @Available(watchOS, introduced: "11.0")
 }
+
+A modern and observable framework for implementing OAuth 2.0 authorization flows.
 
 ## Overview
 
@@ -28,6 +27,12 @@ This has the advantage of avoiding direct coupling with an authorization flow, e
 
 @Links(visualStyle: detailedGrid) {
     - <doc:SampleCode>
+}
+
+### Tutorials
+
+@Links(visualStyle: list) {
+    - <doc:Contents>
 }
 
 ## Topics

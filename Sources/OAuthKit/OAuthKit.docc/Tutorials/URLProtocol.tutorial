@@ -1,0 +1,40 @@
+@Tutorial(time: 5) {
+    @Intro(title: "Using URLProtocols with OAuthKit") {
+        This tutorial guides you through using the ``OAuth/URLProtocol`` for automatically injecting `Authorization` headers into matching outbound HTTP URLRequests using the ``OAuth/Provider/authorizationPattern``.
+
+        @Image(source: blueprint-card.jpg, alt: "OAuthKit")
+    }
+    
+    @Section(title: "Leverage the OAuth.URLProtocol with an URLSession.") {
+        @ContentAndMedia {
+
+            This section walks you through an example of configuring an ``OAuth/Provider`` with [GitHub](https://docs.github.com/en/rest) and using the ``OAuth/URLProtocol`` for authorized URL requests with GitHub's REST endpoints.
+        }
+        
+        @Steps {
+            @Step {
+                Register the ``OAuth/URLProtocol`` class with an URLSession you'll use to communicate with an ``OAuth/Provider`` for API requests.
+                @Code(name: "Configuration/URLSession.swift", file: url-protocol-step-1.swift)
+            }
+            
+            @Step {
+                Create a GitHub Provider that matches all REST endpoint patterns of `api.github.com`.
+                @Code(name: "Configuration/Provider.swift", file: url-protocol-step-2.swift)
+            }
+
+            @Step {
+                Start an ``OAuth/authorize(provider:grantType:)`` flow with the GitHub ``OAuth/Provider``.
+                
+                > Important: You'll need to wait until you've been authorized by GitHub and your ``OAuth/State`` has moved to ``OAuth/State/authorized(_:_:)``
+                
+                > See: <doc:FlowsStates>
+                @Code(name: "Configuration/AuthFlow.swift", file: url-protocol-step-3.swift)
+            }
+
+            @Step {
+                Once the GitHub ``OAuth/Provider`` has been authorized, your app can begin to send authorized requests to any endpoints that match `api.github.com`. The ``OAuth/URLProtocol`` will automatically intercept every outbound request that matches `api.github.com` and inject the `Authorization: Bearer <<token>>` header for you.
+                @Code(name: "Configuration/Request.swift", file: url-protocol-step-4.swift)
+            }
+        }
+    }
+}

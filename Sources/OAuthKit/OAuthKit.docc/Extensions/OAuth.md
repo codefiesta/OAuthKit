@@ -48,3 +48,6 @@ let oauth: OAuth = .init(.module, options: options)
 
 - ``state``
 - ``providers``
+
+### OAuth Authorization Headers
+- ``OAuthKit/OAuth/URLProtocol``

@@ -1,0 +1,30 @@
+@Metadata {
+    @PageImage(
+        purpose: card, 
+        source: "gettingStarted-card", 
+        alt: "Getting Started with OAuthKit")
+}
+
+@Tutorials(name: "Tutorials") {
+    @Intro(title: "OAuthKit Tutorials") {
+        Learn how to start OAuth flows, observe state changes, and use authorization tokens in API requests using URLProtocols.
+        
+        @Image(source: tutorial-card.jpg, alt: "tutorial")
+    }
+    
+    @Chapter(name: "OAuth Flows and States") {
+        
+        @Image(source: gettingStarted-card.jpg, alt: "OAuthKit")
+        
+        Learn the basics of how to create observable ``OAuth`` instances and start authorization flows.
+        @TutorialReference(tutorial: "doc:FlowsStates")
+    }
+
+    @Chapter(name: "URLProtocols with OAuthKit") {
+        
+        @Image(source: blueprint-card.jpg, alt: "OAuthKit")
+        
+        Leverage the ``OAuth/URLProtocol`` class to automatically have `Authorization` header values injected into matching outbound `URLRequest`.
+        @TutorialReference(tutorial: "doc:URLProtocol")
+    }
+}

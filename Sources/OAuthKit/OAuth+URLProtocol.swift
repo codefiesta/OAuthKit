@@ -13,7 +13,16 @@ extension OAuth {
     /// `Authorization: Bearer <<token>>` headers into outbound HTTP URLRequests based on ``Provider/authorizationPattern``.
     public class URLProtocol: Foundation.URLProtocol {
 
-        nonisolated(unsafe) private static var authorizations: [OAuth.Provider: OAuth.Authorization] = .init()
+        /// The lock that provides manual synchronization around access to authorization tokens.
+        private static let lock: NSLock = .init()
+        nonisolated(unsafe) private static var auths: [OAuth.Provider: OAuth.Authorization] = .init()
+
+        static var authorizations: [OAuth.Provider: OAuth.Authorization] {
+            get { lock.withLock { auths } }
+            set { lock.withLock { auths = newValue } }
+        }
+
+        //nonisolated(unsafe) private static var authorizations: [OAuth.Provider: OAuth.Authorization] = .init()
 
         /// Adds an authorization for the given provider that can be used inject `Authorization: Bearer <<token>>` headers into a request.
         /// - Parameters:

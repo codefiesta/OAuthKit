@@ -517,7 +517,7 @@ final class OAuthTests {
             let authorizationHeader = canonicalRequest.value(forHTTPHeaderField: "Authorization")
             #expect(authorizationHeader == nil)
         }
-        
+
         OAuth.URLProtocol.clear()
     }
 

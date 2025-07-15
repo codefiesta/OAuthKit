@@ -8,7 +8,7 @@
 }
 
 ## Overview
-The URLProtocol can be registered with any `URLSessionConfiguration` and will automatically inject `Authorization` headers into outbound HTTP URLRequests if patterns are matched. The following is an example of using the `OAuth.URLProtocol` with [GitHub](https://docs.github.com/en/rest).
+The URLProtocol can be registered with any `URLSessionConfiguration` and will automatically inject `Authorization` headers into outbound HTTP URLRequests if patterns are matched.
 
 ### Tutorials
 

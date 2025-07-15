@@ -1,7 +1,4 @@
 # Getting Started with OAuthKit
-
-Learn how to create an observable OAuth instance and start an authorization flow.
-
 @Metadata {
     @PageKind(article)
     @PageImage(
@@ -15,6 +12,9 @@ Learn how to create an observable OAuth instance and start an authorization flow
     @Available(visionOS, introduced: "2.0")
     @Available(watchOS, introduced: "11.0")
 }
+
+Learn how to create an observable OAuth instance and start an authorization flow.
+
 
 ## Overview
 

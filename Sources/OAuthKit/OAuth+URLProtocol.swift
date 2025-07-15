@@ -15,14 +15,12 @@ extension OAuth {
 
         /// The lock that provides manual synchronization around access to authorization tokens.
         private static let lock: NSLock = .init()
-        nonisolated(unsafe) private static var auths: [OAuth.Provider: OAuth.Authorization] = .init()
+        nonisolated(unsafe) private static var _authorizations: [OAuth.Provider: OAuth.Authorization] = .init()
 
         static var authorizations: [OAuth.Provider: OAuth.Authorization] {
-            get { lock.withLock { auths } }
-            set { lock.withLock { auths = newValue } }
+            get { lock.withLock { _authorizations } }
+            set { lock.withLock { _authorizations = newValue } }
         }
-
-        //nonisolated(unsafe) private static var authorizations: [OAuth.Provider: OAuth.Authorization] = .init()
 
         /// Adds an authorization for the given provider that can be used inject `Authorization: Bearer <<token>>` headers into a request.
         /// - Parameters:
@@ -66,7 +64,8 @@ extension OAuth {
             return false
         }
 
-        /// Returns the canonical version of the given request.
+        /// If an authorized provider matches the given request, then this method returns a canonical version
+        /// of the given request with an additional `Authorization: Bearer <<token>>` header field.
         /// - Parameter request: the request
         /// - Returns: the canonical version of the given request.
         override public class func canonicalRequest(for request: URLRequest) -> URLRequest {

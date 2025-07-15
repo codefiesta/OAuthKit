@@ -28,7 +28,7 @@
                 > Important: You'll need to wait until you've been authorized by GitHub and your ``OAuth/State`` has moved to ``OAuth/State/authorized(_:_:)``
                 
                 > See: <doc:FlowsStates>
-                @Code(name: "Configuration/ProviderAuthorization.swift", file: url-protocol-step-3.swift)
+                @Code(name: "Configuration/AuthFlow.swift", file: url-protocol-step-3.swift)
             }
 
             @Step {

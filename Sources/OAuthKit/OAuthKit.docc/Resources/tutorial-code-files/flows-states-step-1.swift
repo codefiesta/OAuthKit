@@ -6,7 +6,7 @@ struct OAuthApp: App {
 
     @Environment(\.oauth)
     var oauth: OAuth
-    
+
     /// Build the scene body
     var body: some Scene {
 
@@ -14,7 +14,7 @@ struct OAuthApp: App {
         WindowGroup {
             ContentView()
         }
-        
+
         // The authorization window
         WindowGroup(id: "oauth") {
             OAWebView(oauth: oauth)

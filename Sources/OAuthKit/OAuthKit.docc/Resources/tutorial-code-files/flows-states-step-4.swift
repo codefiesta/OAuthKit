@@ -1,14 +1,14 @@
 struct ContentView: View {
-    
+
     @Environment(\.oauth)
     var oauth: OAuth
-    
+
     @Environment(\.openWindow)
     var openWindow
-    
+
     @Environment(\.dismissWindow)
     private var dismissWindow
-    
+
     /// The main view body
     var body: some View {
         VStack {

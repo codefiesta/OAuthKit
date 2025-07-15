@@ -1,14 +1,14 @@
 struct ContentView: View {
-    
+
     @Environment(\.oauth)
     var oauth: OAuth
-    
+
     @Environment(\.openWindow)
     var openWindow
-    
+
     @Environment(\.dismissWindow)
     private var dismissWindow
-    
+
     /// Displays a list of oauth providers.
     var providerList: some View {
         List(oauth.providers) { provider in
@@ -17,7 +17,7 @@ struct ContentView: View {
             }
         }
     }
-    
+
     /// Starts the authorization process for the specified provider.
     /// - Parameter provider: the provider to begin authorization for
     private func authorize(provider: OAuth.Provider) {

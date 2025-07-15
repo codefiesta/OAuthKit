@@ -8,7 +8,7 @@ Learn how to create an observable OAuth instance and start an authorization flow
         purpose: card, 
         source: "gettingStarted-card", 
         alt: "Getting Started with OAuthKit")
-    @PageColor(yellow)
+    @PageColor(purple)
     @Available(iOS, introduced: "18.0")
     @Available(macOS, introduced: "15.0")
     @Available(tvOS, introduced: "18.0")

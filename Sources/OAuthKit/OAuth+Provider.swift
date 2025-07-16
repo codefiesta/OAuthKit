@@ -40,9 +40,6 @@ extension OAuth {
         public var customUserAgent: String?
         /// Enables provider debugging. Off by default.
         public var debug: Bool
-        /// An optional regex that can be used in conjuction with the ``OAuth/URLProtocol`` class to intercept outbound requests
-        /// and inject an `Authorization: Bearer <<token>>` header into a request. 
-        public var authorizationPattern: String?
 
         /// The coding keys.
         enum CodingKeys: String, CodingKey {
@@ -58,7 +55,6 @@ extension OAuth {
             case encodeHttpBody
             case customUserAgent
             case debug
-            case authorizationPattern
         }
 
         /// Public initializer.
@@ -75,7 +71,6 @@ extension OAuth {
         ///   - encodeHttpBody: If the provider should encode the access token parameters into the http body (true by default)
         ///   - customUserAgent: The custom user agent to send with browser requests.
         ///   - debug: Boolean to pass debugging into to the standard output (false by default)
-        ///   - authorizationPattern: a regex pattern used to automatically match outbound url requests that should have authorization headers added
         public init(id: String,
                     icon: URL? = nil,
                     authorizationURL: URL,
@@ -87,8 +82,7 @@ extension OAuth {
                     scope: [String]? = nil,
                     encodeHttpBody: Bool = true,
                     customUserAgent: String? = nil,
-                    debug: Bool = false,
-                    authorizationPattern: String? = nil) {
+                    debug: Bool = false) {
             self.id = id
             self.icon = icon
             self.authorizationURL = authorizationURL
@@ -101,7 +95,6 @@ extension OAuth {
             self.encodeHttpBody = encodeHttpBody
             self.customUserAgent = customUserAgent
             self.debug = debug
-            self.authorizationPattern = authorizationPattern
         }
 
         /// Custom decoder initializer.
@@ -121,7 +114,6 @@ extension OAuth {
             encodeHttpBody = try container.decodeIfPresent(Bool.self, forKey: .encodeHttpBody) ?? true
             customUserAgent = try container.decodeIfPresent(String.self, forKey: .customUserAgent)
             debug = try container.decodeIfPresent(Bool.self, forKey: .debug) ?? false
-            authorizationPattern = try container.decodeIfPresent(String.self, forKey: .authorizationPattern)
         }
     }
 }

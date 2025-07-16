@@ -37,8 +37,6 @@
 
             @Step {
                 Once the ``OAuth/Provider`` has been authorized, the ``OAuth/state`` will reach an ``OAuth/State/authorized(_:_:)`` state can you can dismiss the authorization window.
-                
-                > Tip: See using the received authorization token in subsequent API requests in the <doc:URLProtocol> tutorial. 
                 @Code(name: "ContentView.swift", file: flows-states-step-4.swift)
             }
         }

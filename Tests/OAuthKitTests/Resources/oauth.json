@@ -54,8 +54,7 @@
             "user",
             "repo"
         ],
-        "debug": true,
-        "authorizationPattern": "api.github.com"
+        "debug": true
     },
     {
         "id": "Google",

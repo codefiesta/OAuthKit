@@ -157,7 +157,6 @@ public extension OAuth {
     func clear() {
         debugPrint("⚠️ [Clearing oauth state]")
         keychain.clear()
-        URLProtocol.clear()
         state = .empty
     }
 }
@@ -278,7 +277,6 @@ private extension OAuth {
     func publish(state: State) {
         switch state {
         case .authorized(let provider, let auth):
-            addAuthorization(provider: provider, authorization: auth)
             schedule(provider: provider, auth: auth)
         case .receivedDeviceCode(let provider, let deviceCode):
             schedule(provider: provider, deviceCode: deviceCode)
@@ -286,14 +284,6 @@ private extension OAuth {
             break
         }
         self.state = state
-    }
-
-    /// Adds a received authorization to the ``OAuth/URLProtocol`` class.
-    /// - Parameters:
-    ///   - provider: the provider
-    ///   - authorization: the authorization issued by the provider
-    func addAuthorization(provider: Provider, authorization: Authorization) {
-        URLProtocol.addAuthorization(authorization, for: provider)
     }
 
     /// Schedules the provider to be polled for authorization with the specified device token.

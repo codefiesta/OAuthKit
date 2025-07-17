@@ -44,7 +44,7 @@ extension OAuth {
         ///   - Authorization: the oauth authorization
         case authorized(Provider, Authorization)
 
-        /// An error has occurred during the authorization flow for the specified provider.
+        /// An error has occurred during an authorization flow for the specified provider.
         /// - Parameters:
         ///   - Provider: the oauth provider
         ///   - OAError: the error information

@@ -37,6 +37,8 @@ struct ContentView: View {
                     .foregroundStyle(.blue)
                 Text("and enter the following code:")
                 Text(deviceCode.userCode)
+            case .error(let provider, let error):
+                Text("Error [\(provider.id)]: \(error.localizedDescription)")
             }
         }
         .onChange(of: oauth.state) { oldState, newState in

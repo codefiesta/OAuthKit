@@ -139,17 +139,7 @@ public extension OAuth {
     ///   - pkce: the pkce data
     func token(provider: Provider, code: String, pkce: PKCE? = nil) {
         Task(priority: .high) {
-            let result = await requestToken(provider: provider, code: code, pkce: pkce)
-            switch result {
-            case .success(let token):
-                if provider.debug {
-                    debugPrint("➡️ [Received token], [\(token)]")
-                }
-            case .failure(let error):
-                if provider.debug {
-                    debugPrint("➡️ [Error requesting access token], [\(error)]")
-                }
-            }
+            await requestToken(provider: provider, code: code, pkce: pkce)
         }
     }
 
@@ -280,7 +270,7 @@ private extension OAuth {
             schedule(provider: provider, auth: auth)
         case .receivedDeviceCode(let provider, let deviceCode):
             schedule(provider: provider, deviceCode: deviceCode)
-        case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode:
+        case .empty, .error, .authorizing, .requestingAccessToken, .requestingDeviceCode:
             break
         }
         self.state = state
@@ -338,20 +328,16 @@ extension OAuth {
     ///   - provider: the provider the access token is being requested from
     ///   - code: the code to exchange
     ///   - pkce: the PKCE data to pass along with the request
-    /// - Returns: the exchange result
-    @discardableResult
-    func requestToken(provider: Provider, code: String, pkce: PKCE? = nil) async -> Result<Token, OAError> {
+    func requestToken(provider: Provider, code: String, pkce: PKCE? = nil) async {
         // Publish the state
         publish(state: .requestingAccessToken(provider))
 
         guard let request = Request.token(provider: provider, code: code, pkce: pkce) else {
-            publish(state: .empty)
-            return .failure(.malformedURL)
+            return publish(state: .error(provider, .malformedURL))
         }
 
         guard let (data, response) = try? await urlSession.data(for: request) else {
-            publish(state: .empty)
-            return .failure(.badResponse)
+            return publish(state: .error(provider, .badResponse))
         }
 
         if provider.debug {
@@ -362,19 +348,16 @@ extension OAuth {
 
         // Decode the token
         guard let token = try? decoder.decode(Token.self, from: data) else {
-            publish(state: .empty)
-            return .failure(.decoding)
+            return publish(state: .error(provider, .decoding))
         }
 
         // Store the authorization
         let authorization = Authorization(issuer: provider.id, token: token)
         guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
-            publish(state: .empty)
-            return .failure(.keychain)
+            return publish(state: .error(provider, .keychain))
         }
 
         publish(state: .authorized(provider, authorization))
-        return .success(token)
     }
 
     /// Refreshes the token for the specified provider.
@@ -392,7 +375,7 @@ extension OAuth {
         }
 
         guard let (data, response) = try? await urlSession.data(for: request) else {
-            return publish(state: .empty)
+            return publish(state: .error(provider, .badResponse))
         }
 
         if provider.debug {
@@ -403,13 +386,13 @@ extension OAuth {
 
         // Decode the token
         guard response.isOK, let token = try? decoder.decode(Token.self, from: data) else {
-            return publish(state: .empty)
+            return publish(state: .error(provider, .decoding))
         }
 
         // Store the authorization
         let authorization = Authorization(issuer: provider.id, token: token)
         guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
-            return publish(state: .empty)
+            return publish(state: .error(provider, .keychain))
         }
         publish(state: .authorized(provider, authorization))
     }
@@ -420,7 +403,7 @@ extension OAuth {
     func requestDeviceCode(provider: Provider) async {
         guard let request = Request.device(provider: provider) else { return }
         guard let (data, response) = try? await urlSession.data(for: request) else {
-            return publish(state: .empty)
+            return publish(state: .error(provider, .badResponse))
         }
 
         if provider.debug {
@@ -431,7 +414,7 @@ extension OAuth {
 
         // Decode the device code
         guard let deviceCode = try? decoder.decode(DeviceCode.self, from: data) else {
-            return publish(state: .empty)
+            return publish(state: .error(provider, .decoding))
         }
 
         // Publish the state
@@ -444,7 +427,7 @@ extension OAuth {
     func requestClientCredentials(provider: Provider) async {
         guard let request = Request.token(provider: provider) else { return }
         guard let (data, response) = try? await urlSession.data(for: request) else {
-            return publish(state: .empty)
+            return publish(state: .error(provider, .badResponse))
         }
 
         if provider.debug {
@@ -455,13 +438,13 @@ extension OAuth {
 
         // Decode the token
         guard let token = try? decoder.decode(Token.self, from: data) else {
-            return publish(state: .empty)
+            return publish(state: .error(provider, .decoding))
         }
 
         // Store the authorization
         let authorization = Authorization(issuer: provider.id, token: token)
         guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
-            return publish(state: .empty)
+            return publish(state: .error(provider, .keychain))
         }
         publish(state: .authorized(provider, authorization))
     }
@@ -474,11 +457,11 @@ extension OAuth {
     func poll(provider: Provider, deviceCode: DeviceCode) async {
 
         guard !deviceCode.isExpired, let request = Request.token(provider: provider, deviceCode: deviceCode) else {
-            return publish(state: .empty)
+            return publish(state: .error(provider, .malformedURL))
         }
 
         guard let (data, response) = try? await urlSession.data(for: request) else {
-            return publish(state: .empty)
+            return publish(state: .error(provider, .badResponse))
         }
 
         if provider.debug {
@@ -496,7 +479,7 @@ extension OAuth {
         // Store the authorization
         let authorization = Authorization(issuer: provider.id, token: token)
         guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
-            return publish(state: .empty)
+            return publish(state: .error(provider, .keychain))
         }
         publish(state: .authorized(provider, authorization))
     }

@@ -90,6 +90,8 @@ struct ContentView: View {
                     .padding()
                     .border(Color.primary)
                     .font(.title)
+            case .error(let provider, let error):
+                Text("Error [\(provider.id)]: \(error.localizedDescription)")
             }
         }
         .onChange(of: oauth.state) { _, state in
@@ -118,7 +120,7 @@ struct ContentView: View {
     private func handle(state: OAuth.State) {
         #if canImport(WebKit)
         switch state {
-        case .empty, .requestingAccessToken, .requestingDeviceCode:
+        case .empty, .error, .requestingAccessToken, .requestingDeviceCode:
             break
         case .authorizing, .receivedDeviceCode:
             openWindow(id: "oauth")
@@ -140,7 +142,7 @@ OAuthKit provides an out of the box SwiftUI view ``OAWebView`` that will automat
 /// - Parameter state: the published state change
 func handle(state: OAuth.State) {
     switch state {
-    case .empty, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
+    case .empty, .error, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
         break
     case .authorizing:
         openWindow(id: "oauth")
@@ -165,7 +167,7 @@ struct ContentView: View {
     var body: some View {
         VStack {
             switch oauth.state {
-            case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode:
+            case .empty, .error, .authorizing, .requestingAccessToken, .requestingDeviceCode:
                 EmptyView()
             case .authorized:
                 Text("Authorized [\(provider.id)]")

@@ -143,7 +143,7 @@ final class OAWebViewTests {
         let monitor: OAuth.Monitor = .init(oauth: oauth)
         for await state in monitor.stream {
             switch state {
-            case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
+            case .empty, .error, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
                 break
             case .authorized(_, _):
                 keychain.clear()

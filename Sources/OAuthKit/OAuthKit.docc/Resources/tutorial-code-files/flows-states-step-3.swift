@@ -58,6 +58,8 @@ struct ContentView: View {
                     .padding()
                     .border(Color.primary)
                     .font(.title)
+            case .error(let provider, let error):
+                Text("Error [\(provider.id)]: \(error.localizedDescription)")
             }
         }
         .onChange(of: oauth.state) { _, state in

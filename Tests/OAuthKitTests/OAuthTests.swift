@@ -260,29 +260,29 @@ final class OAuthTests {
 
         // Token
         let oauth: OAuth = .init(.module, options: options)
-        let result = await oauth.requestToken(provider: provider, code: .secureRandom())
-        #expect(result == .failure(.decoding))
+        await oauth.requestToken(provider: provider, code: .secureRandom())
+        #expect(oauth.state == .error(provider, .decoding))
 
         // Refresh Token
         let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 0, scope: "email", type: "Bearer")
         let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
         try! oauth.keychain.set(auth, for: provider.id)
         await oauth.refreshToken(provider: provider)
-        #expect(oauth.state == .empty)
+        #expect(oauth.state == .error(provider, .decoding))
         oauth.clear()
 
         // Client Credentials
         await oauth.requestClientCredentials(provider: provider)
-        #expect(oauth.state == .empty)
+        #expect(oauth.state == .error(provider, .decoding))
 
         // Device Code
         await oauth.requestDeviceCode(provider: provider)
-        #expect(oauth.state == .empty)
+        #expect(oauth.state == .error(provider, .decoding))
 
         // Device Code Polling
         let deviceCode: OAuth.DeviceCode = .init(deviceCode: .secureRandom(), userCode: .secureRandom(), verificationUri: "https://example.com", expiresIn: 200, interval: 0)
         await oauth.poll(provider: provider, deviceCode: deviceCode)
-        #expect(oauth.state == .empty)
+        #expect(oauth.state == .error(provider, .decoding))
     }
 
     @Test("When Received server error")
@@ -301,29 +301,29 @@ final class OAuthTests {
 
         // Token
         let oauth: OAuth = .init(.module, options: options)
-        let result = await oauth.requestToken(provider: provider, code: .secureRandom())
-        #expect(result == .failure(.badResponse))
+        await oauth.requestToken(provider: provider, code: .secureRandom())
+        #expect(oauth.state == .error(provider, .badResponse))
 
         // Refresh Token
         let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 0, scope: "email", type: "Bearer")
         let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
         try! oauth.keychain.set(auth, for: provider.id)
         await oauth.refreshToken(provider: provider)
-        #expect(oauth.state == .empty)
+        #expect(oauth.state == .error(provider, .badResponse))
         oauth.clear()
 
         // Client Credentials
         await oauth.requestClientCredentials(provider: provider)
-        #expect(oauth.state == .empty)
+        #expect(oauth.state == .error(provider, .badResponse))
 
         // Device Code
         await oauth.requestDeviceCode(provider: provider)
-        #expect(oauth.state == .empty)
+        #expect(oauth.state == .error(provider, .badResponse))
 
         // Device Code Polling
         let deviceCode: OAuth.DeviceCode = .init(deviceCode: .secureRandom(), userCode: .secureRandom(), verificationUri: "https://example.com", expiresIn: 200, interval: 0)
         await oauth.poll(provider: provider, deviceCode: deviceCode)
-        #expect(oauth.state == .empty)
+        #expect(oauth.state == .error(provider, .badResponse))
     }
 
     /// Tests the PKCE request parameters.
@@ -427,7 +427,7 @@ final class OAuthTests {
         let monitor: OAuth.Monitor = .init(oauth: oauth)
         for await state in monitor.stream {
             switch state {
-            case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
+            case .empty, .error, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
                 break
             case .authorized(_, _):
                 oauth.clear()

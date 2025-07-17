@@ -45,7 +45,7 @@ extension OAuth {
                 let state = oauth.state
                 continuation?.yield(state)
                 switch state {
-                case .empty, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
+                case .empty, .error, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
                     waitForNextValue()
                 case .authorized(_, _):
                     continuation?.finish()

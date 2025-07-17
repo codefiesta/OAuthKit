@@ -18,7 +18,7 @@ private let defaultExtension = "json"
 private let defaultAuthenticationWithBiometricsOrCompanionReason = "unlock keychain"
 
 /// Provides an enum of oauth errors.
-public enum OAError: Error, Sendable {
+public enum OAError: Error {
     /// An error occurred while building a request url
     case malformedURL
     /// An error occurred while loading data from a request

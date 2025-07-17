@@ -149,7 +149,7 @@ struct ContentView: View {
     private func handle(state: OAuth.State) {
         #if canImport(WebKit)
         switch state {
-        case .empty, .requestingAccessToken, .requestingDeviceCode:
+        case .empty, .error, .requestingAccessToken, .requestingDeviceCode:
             break
         case .authorizing, .receivedDeviceCode:
             openWindow(id: "oauth")

@@ -75,7 +75,7 @@ public class OAWebViewCoordinator: NSObject {
     /// - Parameter state: the published state change.
     func update(state: OAuth.State) {
         switch state {
-        case .empty, .authorized, .requestingAccessToken, .requestingDeviceCode:
+        case .empty, .error, .authorized, .requestingAccessToken, .requestingDeviceCode:
             break
         case .authorizing(let provider, let grantType):
             // Override the custom user agent for the provider and tell the browser to load the request
@@ -99,7 +99,7 @@ extension OAWebViewCoordinator: WKNavigationDelegate {
     public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
         guard let url = navigationAction.request.url else { return .cancel }
         switch oauth.state {
-        case .empty, .requestingAccessToken, .authorized, .requestingDeviceCode, .receivedDeviceCode:
+        case .empty, .error, .requestingAccessToken, .authorized, .requestingDeviceCode, .receivedDeviceCode:
             break
         case .authorizing(let provider, let grantType):
             handle(url: url, provider: provider, grantType: grantType)

@@ -40,7 +40,7 @@ OAuthKit can be installed using [Swift Package Manager](https://www.swift.org/do
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/codefiesta/OAuthKit", from: "1.4.6")
+    .package(url: "https://github.com/codefiesta/OAuthKit", from: "1.5.0")
 ]
 ```
 
@@ -111,6 +111,8 @@ struct ContentView: View {
                     .padding()
                     .border(Color.primary)
                     .font(.title)
+            case .error(let provider, let error):
+                Text("Error [\(provider.id)]: \(error.localizedDescription)")
             }
         }
         .onChange(of: oauth.state) { _, state in
@@ -147,7 +149,7 @@ struct ContentView: View {
     private func handle(state: OAuth.State) {
         #if canImport(WebKit)
         switch state {
-        case .empty, .requestingAccessToken, .requestingDeviceCode:
+        case .empty, .error, .requestingAccessToken, .requestingDeviceCode:
             break
         case .authorizing, .receivedDeviceCode:
             openWindow(id: "oauth")

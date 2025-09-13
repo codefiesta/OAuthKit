@@ -40,15 +40,15 @@ extension OAuth {
         public var rawValue: String {
             switch self {
             case .authorizationCode:
-                return "authorization_code"
+                "authorization_code"
             case .clientCredentials:
-                return "client_credentials"
+                "client_credentials"
             case .deviceCode:
-                return "device_code"
+                "device_code"
             case .pkce:
-                return "pkce"
+                "pkce"
             case .refreshToken:
-                return "refresh_token"
+                "refresh_token"
             }
         }
     }

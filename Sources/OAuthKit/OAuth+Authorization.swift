@@ -19,7 +19,7 @@ extension OAuth {
         /// The issued access token.
         public let token: Token
 
-        /// Initializer
+        /// Creates an authorization that can be stored inside the keychain.
         /// - Parameters:
         ///   - issuer: the provider ID that issued the authorization.
         ///   - token: the access token

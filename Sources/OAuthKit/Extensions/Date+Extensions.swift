@@ -2,7 +2,7 @@
 //  Date+Extensions.swift
 //
 //
-//  Created by Kevin McKee on 5/30/24.
+//  Created by Kevin McKee
 //
 
 import Foundation
@@ -15,6 +15,6 @@ public extension Date {
     ///   - rhs: the right hand date
     /// - Returns: the time interval between the two dates.
     static func - (lhs: Date, rhs: Date) -> TimeInterval {
-        return lhs.timeIntervalSinceReferenceDate - rhs.timeIntervalSinceReferenceDate
+        lhs.timeIntervalSinceReferenceDate - rhs.timeIntervalSinceReferenceDate
     }
 }

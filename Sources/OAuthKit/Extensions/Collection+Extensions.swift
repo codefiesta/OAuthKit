@@ -2,7 +2,7 @@
 //  Collection+Extensions.swift
 //
 //
-//  Created by Kevin McKee on 5/29/24.
+//  Created by Kevin McKee
 //
 
 import Foundation
@@ -11,7 +11,5 @@ extension Collection {
 
     /// Returns true if the collection is not empty.
     @inlinable
-    public var isNotEmpty: Bool {
-        !isEmpty
-    }
+    public var isNotEmpty: Bool { !isEmpty }
 }

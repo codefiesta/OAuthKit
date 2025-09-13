@@ -10,7 +10,7 @@ import Foundation
 
 extension String {
 
-    /// Denotes an empty string.
+    /// Denotes an empty string literal.
     static let empty = ""
 
     /// Returns the SHA-256 Digest for this string instance

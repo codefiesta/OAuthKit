@@ -17,9 +17,6 @@ jobs:
     # Only run this action if the PR isn't a draft and it is labled as a `security` PR
     if: github.event.pull_request.draft == false && contains(github.event.pull_request.labels.*.name, 'security')
 
-    env:
-      XCODE_VERSION: 'Xcode_16.4'
-
     name: Analyze (${{ matrix.language }})
     # Runner size impacts CodeQL analysis time. To learn more, please see:
     #   - https://gh.io/recommended-hardware-resources-for-running-codeql
@@ -27,7 +24,7 @@ jobs:
     #   - https://gh.io/using-larger-runners (GitHub.com only)
     # Consider using larger runners or machines with greater resources for possible analysis time improvements.
     
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
     permissions:
       # required for all workflows
@@ -50,8 +47,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-    - name: Select Xcode
-      run: sudo xcode-select -s "/Applications/$XCODE_VERSION.app"
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:

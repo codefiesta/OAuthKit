@@ -27,7 +27,7 @@ Key features include:
 - [Custom URLSession](https://codefiesta.github.io/OAuthKit/documentation/oauthkit/configuration#URL-Session) configuration for complete control custom protocol specific data
 - [Observable State](https://codefiesta.github.io/OAuthKit/documentation/oauthkit/gettingstarted#Observing-OAuth-State) driven events to allow full control over when and if users are prompted to authenticate with an OAuth provider
 - Supports all Apple Platforms (iOS, macOS, tvOS, visionOS, watchOS)
-- [Support for every OAuth 2.0 Flow](#oauthkit-configuration)
+- [Support for every OAuth 2.0 Flow](#oauthkit-authorization-flows)
 	- [Authorization Code](#oauth-20-authorization-code-flow)
 	- [PKCE](#oauth-20-pkce-flow)
 	- [Device Code](#oauth-20-device-code-flow)

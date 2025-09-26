@@ -2,7 +2,7 @@
 //  Keychain.swift
 //
 //
-//  Created by Kevin McKee on 5/28/24.
+//  Created by Kevin McKee
 //
 
 import Foundation
@@ -159,6 +159,6 @@ class Keychain: @unchecked Sendable {
     /// - Parameter key: the key to prefix.
     /// - Returns: the unique account key to use
     private func accountKey(_ key: String) -> String {
-        return applicationTag + "." + key + "." + tokenIdentifier
+        applicationTag + "." + key + "." + tokenIdentifier
     }
 }

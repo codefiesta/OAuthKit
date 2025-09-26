@@ -2,7 +2,7 @@
 //  OAuth.swift
 //
 //
-//  Created by Kevin McKee on 5/14/24.
+//  Created by Kevin McKee
 //
 import Foundation
 #if canImport(LocalAuthentication)

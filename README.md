@@ -1,11 +1,11 @@
 ![Build](https://github.com/codefiesta/OAuthKit/actions/workflows/swift.yml/badge.svg)
-![Xcode 26.0+](https://img.shields.io/badge/Xcode-26.0%2B-gold.svg)
-![Swift 6.1+](https://img.shields.io/badge/Swift-6.1%2B-tomato.svg)
-![iOS 18.0+](https://img.shields.io/badge/iOS-18.0%2B-crimson.svg)
-![macOS 15.0+](https://img.shields.io/badge/macOS-15.0%2B-skyblue.svg)
-![tvOS 18.0+](https://img.shields.io/badge/tvOS-18.0%2B-blue.svg)
-![visionOS 2.0+](https://img.shields.io/badge/visionOS-2.0%2B-violet.svg)
-![watchOS 11.0+](https://img.shields.io/badge/watchOS-11.0%2B-magenta.svg)
+![Swift 6.2+](https://img.shields.io/badge/Swift-6.2%2B-gold.svg)
+![Xcode 26.0+](https://img.shields.io/badge/Xcode-26.0%2B-tomato.svg)
+![iOS 26.0+](https://img.shields.io/badge/iOS-26.0%2B-crimson.svg)
+![macOS 26.0+](https://img.shields.io/badge/macOS-26.0%2B-skyblue.svg)
+![tvOS 26.0+](https://img.shields.io/badge/tvOS-26.0%2B-blue.svg)
+![visionOS 26.0+](https://img.shields.io/badge/visionOS-26.0%2B-violet.svg)
+![watchOS 26.0+](https://img.shields.io/badge/watchOS-26.0%2B-magenta.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-indigo.svg)](https://opensource.org/licenses/MIT)
 ![Code Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/codefiesta/87655b6e3c89b9198287b2fefbfa641f/raw/oauthkit-coverage.json)
 
@@ -36,11 +36,11 @@ Key features include:
 
 ## OAuthKit Installation
 
-OAuthKit can be installed using [Swift Package Manager](https://www.swift.org/documentation/package-manager/):
+OAuthKit can be installed using [Swift Package Manager](https://www.swift.org/documentation/package-manager/). If you need to build with Swift Tools `6.1` and Apple APIs > `26.0` use version [1.5.1](https://github.com/codefiesta/OAuthKit/releases/tag/1.5.1).
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/codefiesta/OAuthKit", from: "1.5.0")
+    .package(url: "https://github.com/codefiesta/OAuthKit", from: "2.0.0")
 ]
 ```
 

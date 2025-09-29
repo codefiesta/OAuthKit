@@ -1,6 +1,6 @@
 ![Build](https://github.com/codefiesta/OAuthKit/actions/workflows/swift.yml/badge.svg)
-![Xcode 26.0+](https://img.shields.io/badge/Xcode-26.0%2B-gold.svg)
-![Swift 6.2+](https://img.shields.io/badge/Swift-6.2%2B-tomato.svg)
+![Swift 6.2+](https://img.shields.io/badge/Swift-6.2%2B-gold.svg)
+![Xcode 26.0+](https://img.shields.io/badge/Xcode-26.0%2B-tomato.svg)
 ![iOS 26.0+](https://img.shields.io/badge/iOS-26.0%2B-crimson.svg)
 ![macOS 26.0+](https://img.shields.io/badge/macOS-26.0%2B-skyblue.svg)
 ![tvOS 26.0+](https://img.shields.io/badge/tvOS-26.0%2B-blue.svg)

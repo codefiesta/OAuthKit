@@ -27,14 +27,13 @@ extension OAuth {
         public let state: String
 
         /// Returns the code challenge method. Currently only supports [SHA-256 hash](https://en.wikipedia.org/wiki/SHA-2).
-        public var codeChallengeMethod: String {
-            defaultCodeChallengeMethod
-        }
+        public let codeChallengeMethod: String
 
         /// Initializer.
         public init() {
             codeVerifier = .secureRandom()
             codeChallenge = codeVerifier.sha256.base64URL
+            codeChallengeMethod = defaultCodeChallengeMethod
             state = .secureRandom(count: 16).base64URL
         }
     }

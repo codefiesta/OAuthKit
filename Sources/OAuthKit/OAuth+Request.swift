@@ -18,7 +18,7 @@ extension OAuth {
     struct Request {
 
         /// Provides constants for URLQueryItem keys.
-        enum Key: String {
+        fileprivate enum Key: String {
             case code = "code"
             case clientID = "client_id"
             case clientSecret = "client_secret"

@@ -2,7 +2,7 @@
 //  OAuth+Monitor.swift
 //  OAuthKit
 //
-//  Created by Kevin McKee on 6/6/25.
+//  Created by Kevin McKee
 //
 
 import Foundation

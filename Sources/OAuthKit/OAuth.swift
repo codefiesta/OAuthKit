@@ -117,15 +117,15 @@ public extension OAuth {
             state = .authorizing(provider, grantType)
         case .deviceCode:
             state = .requestingDeviceCode(provider)
-            Task(priority: .high) {
+            Task.immediate {
                 await requestDeviceCode(provider: provider)
             }
         case .clientCredentials:
-            Task(priority: .high) {
+            Task.immediate {
                 await requestClientCredentials(provider: provider)
             }
         case .refreshToken:
-            Task(priority: .high) {
+            Task.immediate {
                 await refreshToken(provider: provider)
             }
         }
@@ -138,7 +138,7 @@ public extension OAuth {
     ///   - code: the code to exchange
     ///   - pkce: the pkce data
     func token(provider: Provider, code: String, pkce: PKCE? = nil) {
-        Task(priority: .high) {
+        Task.immediate {
             await requestToken(provider: provider, code: code, pkce: pkce)
         }
     }
@@ -242,7 +242,7 @@ private extension OAuth {
         if context.canEvaluatePolicy(policy, error: &error) {
             context.evaluatePolicy(policy, localizedReason: localizedReason) { [weak self] success, error in
                 guard let self else { return }
-                Task(priority: .high) { @MainActor in
+                Task.immediate { @MainActor in
                     if success {
                         self.loadAuthorizations()
                     }
@@ -309,7 +309,7 @@ private extension OAuth {
                     tasks.append(task)
                 } else {
                     // Execute the task immediately
-                    Task(priority: .high) {
+                    Task.immediate {
                         await refreshToken(provider: provider)
                     }
                 }

@@ -6,11 +6,11 @@ import PackageDescription
 let package = Package(
     name: "OAuthKit",
     platforms: [
-        .iOS(.v26),
-        .macOS(.v26),
-        .tvOS(.v26),
-        .visionOS(.v26),
-        .watchOS(.v26)
+        .iOS(.v17),
+        .macOS(.v14),
+        .tvOS(.v17),
+        .visionOS(.v1),
+        .watchOS(.v10)
     ],
     products: [
         .library(

@@ -51,6 +51,18 @@ public final class OAuth: Sendable {
     #if os(macOS) || os(iOS) || os(visionOS)
     @ObservationIgnored
     var context: LAContext = .init()
+    
+    var policy: LAPolicy = {
+        #if os(macOS) || os(iOS)
+        if #available(macOS 15, iOS 18, *) {
+            return .deviceOwnerAuthenticationWithBiometricsOrCompanion
+        }
+        return .deviceOwnerAuthenticationWithBiometrics
+        #else
+        return .deviceOwnerAuthenticationWithBiometrics
+        #endif
+    }()
+    
     #endif
 
     @ObservationIgnored

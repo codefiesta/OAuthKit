@@ -249,7 +249,7 @@ private extension OAuth {
         if context.canEvaluatePolicy(policy, error: &error) {
             context.evaluatePolicy(policy, localizedReason: localizedReason) { [weak self] success, error in
                 guard let self, success else { return }
-                Task { @MainActor in
+                task { @MainActor [self] in
                     loadAuthorizations()
                 }
             }
@@ -262,7 +262,7 @@ private extension OAuth {
 
     /// Starts the network monitor.
     func monitor() {
-        Task {
+        task { [self] in
             await networkMonitor.start()
         }
     }

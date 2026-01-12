@@ -289,7 +289,7 @@ private extension OAuth {
         let timeInterval: TimeInterval = .init(deviceCode.interval)
         let task = Task.delayed(timeInterval: timeInterval) { [weak self] in
             guard let self else { return }
-            await self.poll(provider: provider, deviceCode: deviceCode)
+            await poll(provider: provider, deviceCode: deviceCode)
         }
         tasks.append(task)
     }
@@ -309,7 +309,7 @@ private extension OAuth {
                     // Schedule the auto refresh task
                     let task = Task.delayed(timeInterval: timeInterval) { [weak self] in
                         guard let self else { return }
-                        await self.refreshToken(provider: provider)
+                        await refreshToken(provider: provider)
                     }
                     tasks.append(task)
                 } else {

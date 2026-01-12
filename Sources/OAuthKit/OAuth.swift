@@ -249,7 +249,7 @@ private extension OAuth {
         if context.canEvaluatePolicy(policy, error: &error) {
             context.evaluatePolicy(policy, localizedReason: localizedReason) { [weak self] success, error in
                 guard let self, success else { return }
-                task { @MainActor [self] in
+                Task { @MainActor [self] in
                     loadAuthorizations()
                 }
             }

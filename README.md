@@ -36,11 +36,11 @@ Key features include:
 
 ## OAuthKit Installation
 
-OAuthKit can be installed using [Swift Package Manager](https://www.swift.org/documentation/package-manager/). If you need to build with Swift Tools `6.1` and Apple APIs > `26.0` use version [1.5.1](https://github.com/codefiesta/OAuthKit/releases/tag/1.5.1).
+OAuthKit can be installed using [Swift Package Manager](https://www.swift.org/documentation/package-manager/).
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/codefiesta/OAuthKit", from: "2.0.1")
+    .package(url: "https://github.com/codefiesta/OAuthKit", from: "2.1.0")
 ]
 ```
 

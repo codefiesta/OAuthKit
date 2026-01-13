@@ -7,8 +7,8 @@ let package = Package(
     name: "OAuthKit",
     platforms: [
         .iOS(.v17),
-        .macOS(.v14),
-        .tvOS(.v17),
+        .macOS(.v15),
+        .tvOS(.v18),
         .visionOS(.v1),
         .watchOS(.v10)
     ],

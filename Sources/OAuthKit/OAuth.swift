@@ -54,7 +54,7 @@ public final class OAuth: Sendable {
 
     var policy: LAPolicy = {
         #if os(macOS) || os(iOS)
-        if #available(macOS 15, iOS 18, *) {
+        if #available(macOS 15.0, iOS 18.0, *) {
             return .deviceOwnerAuthenticationWithBiometricsOrCompanion
         }
         return .deviceOwnerAuthenticationWithBiometrics

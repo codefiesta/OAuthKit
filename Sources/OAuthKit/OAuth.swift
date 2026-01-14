@@ -51,6 +51,18 @@ public final class OAuth: Sendable {
     #if os(macOS) || os(iOS) || os(visionOS)
     @ObservationIgnored
     var context: LAContext = .init()
+
+    var policy: LAPolicy = {
+        #if os(macOS) || os(iOS)
+        if #available(macOS 15.0, iOS 18.0, *) {
+            return .deviceOwnerAuthenticationWithBiometricsOrCompanion
+        }
+        return .deviceOwnerAuthenticationWithBiometrics
+        #else
+        return .deviceOwnerAuthenticationWithBiometrics
+        #endif
+    }()
+
     #endif
 
     @ObservationIgnored
@@ -117,15 +129,15 @@ public extension OAuth {
             state = .authorizing(provider, grantType)
         case .deviceCode:
             state = .requestingDeviceCode(provider)
-            Task.immediate {
+            task { [self] in
                 await requestDeviceCode(provider: provider)
             }
         case .clientCredentials:
-            Task.immediate {
+            task { [self] in
                 await requestClientCredentials(provider: provider)
             }
         case .refreshToken:
-            Task.immediate {
+            task { [self] in
                 await refreshToken(provider: provider)
             }
         }
@@ -138,7 +150,7 @@ public extension OAuth {
     ///   - code: the code to exchange
     ///   - pkce: the pkce data
     func token(provider: Provider, code: String, pkce: PKCE? = nil) {
-        Task.immediate {
+        task { [self] in
             await requestToken(provider: provider, code: code, pkce: pkce)
         }
     }
@@ -233,19 +245,12 @@ private extension OAuth {
 
         #if os(macOS) || os(iOS) || os(visionOS)
         let localizedReason = context.localizedReason.isNotEmpty ? context.localizedReason: defaultAuthenticationWithBiometricsOrCompanionReason
-        #if os(macOS) || os(iOS)
-        let policy: LAPolicy = .deviceOwnerAuthenticationWithBiometricsOrCompanion
-        #else
-        let policy: LAPolicy = .deviceOwnerAuthenticationWithBiometrics
-        #endif
         var error: NSError?
         if context.canEvaluatePolicy(policy, error: &error) {
             context.evaluatePolicy(policy, localizedReason: localizedReason) { [weak self] success, error in
-                guard let self else { return }
-                Task.immediate { @MainActor in
-                    if success {
-                        self.loadAuthorizations()
-                    }
+                guard let self, success else { return }
+                Task { @MainActor [self] in
+                    loadAuthorizations()
                 }
             }
         }
@@ -257,7 +262,7 @@ private extension OAuth {
 
     /// Starts the network monitor.
     func monitor() {
-        Task {
+        task { [self] in
             await networkMonitor.start()
         }
     }
@@ -284,7 +289,7 @@ private extension OAuth {
         let timeInterval: TimeInterval = .init(deviceCode.interval)
         let task = Task.delayed(timeInterval: timeInterval) { [weak self] in
             guard let self else { return }
-            await self.poll(provider: provider, deviceCode: deviceCode)
+            await poll(provider: provider, deviceCode: deviceCode)
         }
         tasks.append(task)
     }
@@ -304,16 +309,28 @@ private extension OAuth {
                     // Schedule the auto refresh task
                     let task = Task.delayed(timeInterval: timeInterval) { [weak self] in
                         guard let self else { return }
-                        await self.refreshToken(provider: provider)
+                        await refreshToken(provider: provider)
                     }
                     tasks.append(task)
                 } else {
                     // Execute the task immediately
-                    Task.immediate {
+                    task { [self] in
                         await refreshToken(provider: provider)
                     }
                 }
             }
+        }
+    }
+
+    /// Create and immediately start running a new detached task in the context of this actor.
+    /// - Parameters:
+    ///   - priority: the task priority
+    ///   - operation: the operation to be run immediately upon entering the task.
+    func task(priority: TaskPriority = .high, operation: sending @escaping @isolated(any) () async throws -> Void) {
+        if #available(macOS 26, iOS 26, watchOS 26, tvOS 26, visionOS 26, *) {
+            Task.immediate(operation: operation)
+        } else {
+            Task(priority: priority, operation: operation)
         }
     }
 }

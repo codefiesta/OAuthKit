@@ -328,7 +328,13 @@ private extension OAuth {
     ///   - operation: the operation to be run immediately upon entering the task.
     func task(priority: TaskPriority = .high, operation: sending @escaping @isolated(any) () async throws -> Void) {
         if #available(macOS 26, iOS 26, watchOS 26, tvOS 26, visionOS 26, *) {
+            #if compiler(>=6.2)
+            // Swfit 6.2 compilers and above
             Task.immediate(operation: operation)
+            #else
+            // Swift 6.1 compiler
+            Task(priority: priority, operation: operation)
+            #endif
         } else {
             Task(priority: priority, operation: operation)
         }

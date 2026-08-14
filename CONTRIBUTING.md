@@ -5,10 +5,10 @@ This document provides general guidelines about how to contribute to the project
 
 ### Reporting issues
 
-* Use [github issues](https://github.com/codefiesta/OAuthKit/issues) to report a bug.
+* Use [github issues](/issues) to report a bug.
 * Before creating a new issue:
-  * Make sure you are using the [latest release](https://github.com/codefiesta/OAuthKit/releases).
-  * Check if the issue was [already reported or fixed](https://github.com/codefiesta/OAuthKit/issues?utf8=%E2%9C%93&q=is%3Aissue). Notice that it may not be released yet.
+  * Make sure you are using the [latest release](/releases).
+  * Check if the issue was [already reported or fixed](/issues?utf8=%E2%9C%93&q=is%3Aissue). Notice that it may not be released yet.
   * If you found a match add a brief comment "I have the same problem" or "+1". This helps prioritize the issues addressing the most common and critical first. If possible add additional information to help us reproduce and fix the issue. Please use your best judgement.    
 * Reporting issues:
   * Please include the following information to help maintainers to fix the problem faster:

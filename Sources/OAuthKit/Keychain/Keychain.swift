@@ -104,7 +104,7 @@ class Keychain: @unchecked Sendable {
         defer { lock.unlock() }
 
         let account = accountKey(key)
-        
+
         #if canImport(Security)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -165,7 +165,7 @@ class Keychain: @unchecked Sendable {
     /// - Returns: true if able to delete from the keychain, otherwise false
     @discardableResult
     private func deleteNoLock(_ key: String) -> Bool {
-        
+
         #if canImport(Security)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,

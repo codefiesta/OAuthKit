@@ -52,6 +52,10 @@ extension Data {
         _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
         #else
         // Android / Linux
+        var generator = SystemRandomNumberGenerator()
+        for i in 0..<count {
+            bytes[i] = UInt8.random(in: 0...255, using: &generator)
+        }
         #endif
         return Data(bytes: &bytes, count: bytes.count)
     }

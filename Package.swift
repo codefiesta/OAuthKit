@@ -3,12 +3,33 @@
 
 import PackageDescription
 
+var packageDependencies: [Package.Dependency] = []
+var targetDependencies: [Target.Dependency] = []
+var linkerSettings: [LinkerSetting] = []
 #if os(Linux) || os(Android)
-let dependencies: [Pacakge.Dependency] = [
+// Android and Linux
+packageDependencies = [
     .package(url: "https://github.com/apple/swift-crypto.git", from: .init(4, 5, 0))
 ]
+targetDependencies = [
+    .product(name: "Crypto", package: "swift-crypto")
+]
 #else
-let dependencies: [Package.Dependency] = []
+// Apple
+linkerSettings = [
+    .linkedFramework("CryptoKit",
+        .when(platforms: [.iOS, .macOS, .tvOS, .visionOS, .watchOS])
+    ),
+    .linkedFramework("LocalAuthentication",
+        .when(platforms: [.iOS])
+    ),
+    .linkedFramework("Network",
+        .when(platforms: [.iOS, .macOS, .tvOS, .visionOS, .watchOS])
+    ),
+    .linkedFramework("Security",
+        .when(platforms: [.iOS, .macOS, .tvOS, .visionOS, .watchOS])
+    )
+]
 #endif
 
 let package = Package(
@@ -18,31 +39,19 @@ let package = Package(
         .macOS(.v15),
         .tvOS(.v18),
         .visionOS(.v1),
-        .watchOS(.v10)
+        .watchOS(.v10),
     ],
     products: [
         .library(
             name: "OAuthKit",
             targets: ["OAuthKit"])
     ],
-    dependencies: dependencies,
+    dependencies: packageDependencies,
     targets: [
         .target(
             name: "OAuthKit",
-            linkerSettings: [
-                .linkedFramework("CryptoKit",
-                    .when(platforms: [.iOS, .macOS, .tvOS, .visionOS, .watchOS])
-                ),
-                .linkedFramework("LocalAuthentication",
-                    .when(platforms: [.iOS])
-                ),
-                .linkedFramework("Network",
-                    .when(platforms: [.iOS, .macOS, .tvOS, .visionOS, .watchOS])
-                ),
-                .linkedFramework("Security",
-                    .when(platforms: [.iOS, .macOS, .tvOS, .visionOS, .watchOS])
-                )
-            ]
+            dependencies: targetDependencies,
+            linkerSettings: linkerSettings
         ),
         .testTarget(
             name: "OAuthKitTests",

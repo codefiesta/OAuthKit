@@ -3,9 +3,18 @@
 
 import PackageDescription
 
+let supportedPlatforms: [SupportedPlatform] = [
+    .iOS(.v17),
+    .macOS(.v15),
+    .tvOS(.v18),
+    .visionOS(.v1),
+    .watchOS(.v10)
+]
 var packageDependencies: [Package.Dependency] = []
 var targetDependencies: [Target.Dependency] = []
 var linkerSettings: [LinkerSetting] = []
+let platforms: [Platform] = [.iOS, .macOS, .tvOS, .watchOS, .visionOS]
+
 #if os(Linux) || os(Android)
 // Android and Linux
 packageDependencies = [
@@ -18,29 +27,23 @@ targetDependencies = [
 // Apple
 linkerSettings = [
     .linkedFramework("CryptoKit",
-        .when(platforms: [.iOS, .macOS, .tvOS, .visionOS, .watchOS])
+        .when(platforms: platforms)
     ),
     .linkedFramework("LocalAuthentication",
-        .when(platforms: [.iOS])
+        .when(platforms: platforms)
     ),
     .linkedFramework("Network",
-        .when(platforms: [.iOS, .macOS, .tvOS, .visionOS, .watchOS])
+        .when(platforms: platforms)
     ),
     .linkedFramework("Security",
-        .when(platforms: [.iOS, .macOS, .tvOS, .visionOS, .watchOS])
-    )
+        .when(platforms: platforms)
+    ),
 ]
 #endif
 
 let package = Package(
     name: "OAuthKit",
-    platforms: [
-        .iOS(.v17),
-        .macOS(.v15),
-        .tvOS(.v18),
-        .visionOS(.v1),
-        .watchOS(.v10),
-    ],
+    platforms: supportedPlatforms,
     products: [
         .library(
             name: "OAuthKit",

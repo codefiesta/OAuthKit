@@ -60,7 +60,7 @@ class Keychain: @unchecked Sendable {
 
         return results.filter{ $0.starts(with: applicationTag)}.sorted{ $0 < $1}
         #else
-        // Android / Linux storage
+        // TODO: Android / Linux storage
         return []
         #endif
     }
@@ -90,7 +90,7 @@ class Keychain: @unchecked Sendable {
         let status = SecItemAdd(query as CFDictionary, nil)
         return status == errSecSuccess
         #else
-        // Android / Linux storage
+        // TODO: Android / Linux storage
         return false
         #endif
     }
@@ -126,7 +126,7 @@ class Keychain: @unchecked Sendable {
         return value
 
         #else
-        // Android / Linux storage
+        // TODO: Android / Linux storage
         return nil
         #endif
     }
@@ -174,7 +174,7 @@ class Keychain: @unchecked Sendable {
         let status = SecItemDelete(query as CFDictionary)
         return status == noErr
         #else
-        // Android / Linux storage
+        // TODO: Android / Linux storage
         return false
         #endif
     }

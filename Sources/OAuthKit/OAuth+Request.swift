@@ -6,6 +6,9 @@
 //
 
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 private let httpPost = "POST"
 private let httpAcceptHeaderField = "Accept"

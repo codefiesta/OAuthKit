@@ -3,6 +3,14 @@
 
 import PackageDescription
 
+#if os(Linux) || os(Android)
+let dependencies: [Pacakge.Dependency] = [
+    .package(url: "https://github.com/apple/swift-crypto.git", from: .init(4, 5, 0))
+]
+#else
+let dependencies: [Package.Dependency] = []
+#endif
+
 let package = Package(
     name: "OAuthKit",
     platforms: [
@@ -17,16 +25,23 @@ let package = Package(
             name: "OAuthKit",
             targets: ["OAuthKit"])
     ],
+    dependencies: dependencies,
     targets: [
         .target(
             name: "OAuthKit",
             linkerSettings: [
-                .linkedFramework("CryptoKit"),
-                .linkedFramework("LocalAuthentication", .when(
-                    platforms: [.iOS]
-                )),
-                .linkedFramework("Network"),
-                .linkedFramework("Security")
+                .linkedFramework("CryptoKit",
+                    .when(platforms: [.iOS, .macOS, .tvOS, .visionOS, .watchOS])
+                ),
+                .linkedFramework("LocalAuthentication",
+                    .when(platforms: [.iOS])
+                ),
+                .linkedFramework("Network",
+                    .when(platforms: [.iOS, .macOS, .tvOS, .visionOS, .watchOS])
+                ),
+                .linkedFramework("Security",
+                    .when(platforms: [.iOS, .macOS, .tvOS, .visionOS, .watchOS])
+                )
             ]
         ),
         .testTarget(

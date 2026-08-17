@@ -5,7 +5,11 @@
 //  Created by Kevin McKee
 //
 
+#if canImport(CryptoKit)
 import CryptoKit
+#else
+import Crypto
+#endif
 import Foundation
 
 extension Data {
@@ -42,8 +46,13 @@ extension Data {
     /// - Parameter count: The number of bytes to generate.
     /// - Returns: an array of cryptographically secure random bytes
     static func secureRandom(count: Int = 32) -> Data {
+        #if canImport(CryptoKit)
         var bytes = [UInt8](repeating: 0, count: count)
         _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
         return Data(bytes: &bytes, count: bytes.count)
+        #else
+        // Android / Linux
+        return .init()
+        #endif
     }
 }

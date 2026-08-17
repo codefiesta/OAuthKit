@@ -5,7 +5,11 @@
 //  Created by Kevin McKee
 //
 
+#if canImport(CryptoKit)
 import CryptoKit
+#else
+import Crypto
+#endif
 import Foundation
 
 extension String {

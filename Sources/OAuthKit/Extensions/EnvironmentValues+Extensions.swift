@@ -4,7 +4,7 @@
 //
 //  Created by Kevin McKee
 //
-
+#if canImport(SwiftUI)
 import SwiftUI
 
 public extension EnvironmentValues {
@@ -21,3 +21,4 @@ struct OAuthKey: @preconcurrency EnvironmentKey {
     /// The default OAuth instance that is loaded into the environment.
     @MainActor static let defaultValue: OAuth = .init(.main)
 }
+#endif

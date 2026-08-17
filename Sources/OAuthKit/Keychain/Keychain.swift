@@ -6,7 +6,9 @@
 //
 
 import Foundation
+#if canImport(Security)
 import Security
+#endif
 
 /// The default application tag to use.
 private let defaultApplicationTag = "oauthkit"
@@ -33,6 +35,7 @@ class Keychain: @unchecked Sendable {
     /// Queries the keychain for keys.
     var keys: [String] {
 
+        #if canImport(Security)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecReturnAttributes as String: true,
@@ -56,6 +59,10 @@ class Keychain: @unchecked Sendable {
         }
 
         return results.filter{ $0.starts(with: applicationTag)}.sorted{ $0 < $1}
+        #else
+        // Android / Linux storage
+        return []
+        #endif
     }
 
     /// Sets the value for the specified key.
@@ -69,6 +76,7 @@ class Keychain: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
 
+        #if canImport(Security)
         let account = accountKey(key)
         deleteNoLock(account)
 
@@ -81,6 +89,10 @@ class Keychain: @unchecked Sendable {
 
         let status = SecItemAdd(query as CFDictionary, nil)
         return status == errSecSuccess
+        #else
+        // Android / Linux storage
+        return false
+        #endif
     }
 
     /// Fetches a storeed value from the keychain with the specified key and attempts to decode it from the implied generic.
@@ -92,7 +104,8 @@ class Keychain: @unchecked Sendable {
         defer { lock.unlock() }
 
         let account = accountKey(key)
-
+        
+        #if canImport(Security)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecMatchLimit as String: kSecMatchLimitOne,
@@ -111,6 +124,11 @@ class Keychain: @unchecked Sendable {
 
         let value = try? decoder.decode(T.self, from: data)
         return value
+
+        #else
+        // Android / Linux storage
+        return nil
+        #endif
     }
 
     /// Clears the keychain
@@ -147,12 +165,18 @@ class Keychain: @unchecked Sendable {
     /// - Returns: true if able to delete from the keychain, otherwise false
     @discardableResult
     private func deleteNoLock(_ key: String) -> Bool {
+        
+        #if canImport(Security)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key
         ]
         let status = SecItemDelete(query as CFDictionary)
         return status == noErr
+        #else
+        // Android / Linux storage
+        return false
+        #endif
     }
 
     /// Builds the account key by prefixing the specified key with the application tag.

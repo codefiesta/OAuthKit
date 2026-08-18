@@ -27,8 +27,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Crypto",
                          package: "swift-crypto",
-                         condition:
-                        .when(platforms: [.android, .linux])
+                         condition: .when(platforms: [.android, .linux])
                 )
             ],
             linkerSettings: [

@@ -35,6 +35,7 @@ class Keychain: @unchecked Sendable {
     /// Queries the keychain for keys.
     var keys: [String] {
 
+        var results = [String]()
         #if canImport(Security)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -47,9 +48,8 @@ class Keychain: @unchecked Sendable {
             SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer(pointer))
         }
 
-        guard status == noErr else { return [] }
+        guard status == noErr else { return results }
 
-        var results = [String]()
         if let items = result as? [[String: Any]] {
             for item in items {
                 if let key = item[kSecAttrAccount as String] as? String {
@@ -58,11 +58,10 @@ class Keychain: @unchecked Sendable {
             }
         }
 
-        return results.filter{ $0.starts(with: applicationTag)}.sorted{ $0 < $1}
         #else
         // TODO: Android / Linux storage
-        return []
         #endif
+        return results.filter{ $0.starts(with: applicationTag)}.sorted{ $0 < $1}
     }
 
     /// Sets the value for the specified key.
@@ -124,7 +123,6 @@ class Keychain: @unchecked Sendable {
 
         let value = try? decoder.decode(T.self, from: data)
         return value
-
         #else
         // TODO: Android / Linux storage
         return nil

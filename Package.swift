@@ -19,7 +19,7 @@ let package = Package(
     ],
     dependencies: [
         // Android / Linux Dependencies
-        .package(url: "https://github.com/apple/swift-crypto.git", from: .init(4, 5, 0))
+        .package(url: "https://github.com/apple/swift-crypto", from: .init(4, 5, 0))
     ],
     targets: [
         .target(

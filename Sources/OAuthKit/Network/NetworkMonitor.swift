@@ -5,7 +5,9 @@
 //  Created by Kevin McKee
 //
 
+#if canImport(Network)
 import Network
+#endif
 import Observation
 
 /// An  `Observable` type that publishes network reachability information.
@@ -16,8 +18,10 @@ public final class NetworkMonitor: Sendable {
     // The shared singleton network monitor.
     public static let shared: NetworkMonitor = .init()
 
+    #if canImport(Network)
     @ObservationIgnored
     private let pathMonitor = NWPathMonitor()
+    #endif
 
     /// Flag indicating if monitoring is currently active or not.
     public private(set) var isMonitoring = false
@@ -39,12 +43,16 @@ public final class NetworkMonitor: Sendable {
 
     /// Starts the network monitor (conforms to AsyncSequence).
     public func start() async {
+        #if canImport(Network)
         guard !isMonitoring else { return }
         isMonitoring.toggle()
         for await path in pathMonitor {
             handle(path: path)
         }
+        #endif
     }
+
+    #if canImport(Network)
 
     /// Handles the snapshot view of the network path state.
     /// - Parameter path: the snapshot view of the network path state
@@ -53,4 +61,6 @@ public final class NetworkMonitor: Sendable {
         onCellular = path.usesInterfaceType(.cellular)
         onWiredEthernet = path.usesInterfaceType(.wiredEthernet)
     }
+
+    #endif
 }

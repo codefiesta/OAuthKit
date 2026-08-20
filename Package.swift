@@ -17,16 +17,23 @@ let package = Package(
             name: "OAuthKit",
             targets: ["OAuthKit"])
     ],
+    dependencies: [
+        // Android / Linux Dependencies
+        .package(url: "https://github.com/apple/swift-crypto", from: .init(4, 5, 0))
+    ],
     targets: [
         .target(
             name: "OAuthKit",
+            dependencies: [
+                .product(name: "Crypto",
+                         package: "swift-crypto",
+                         condition: .when(platforms: [.android, .linux])
+                )
+            ],
             linkerSettings: [
-                .linkedFramework("CryptoKit"),
-                .linkedFramework("LocalAuthentication", .when(
-                    platforms: [.iOS]
-                )),
-                .linkedFramework("Network"),
-                .linkedFramework("Security")
+                .linkedFramework("LocalAuthentication",
+                    .when(platforms: [.iOS])
+                ),
             ]
         ),
         .testTarget(

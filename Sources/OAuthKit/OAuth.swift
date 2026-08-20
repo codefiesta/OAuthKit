@@ -5,6 +5,9 @@
 //  Created by Kevin McKee
 //
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 #if canImport(LocalAuthentication)
 import LocalAuthentication
 #endif

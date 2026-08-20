@@ -25,7 +25,9 @@ class Keychain: @unchecked Sendable {
     /// - Parameter account: a key indicating the account owner. Ideally, use the application identifier for this value.
     public init(_ account: String) {
         assert(account.isNotEmpty, "❌ The account identifier cannot be empty.")
+        #if canImport(Security)
         self.storage = DefaultStorage(account: account)
+        #endif
     }
 
     /// Queries the keychain for keys.

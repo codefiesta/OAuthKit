@@ -27,6 +27,10 @@ class Keychain: @unchecked Sendable {
         assert(account.isNotEmpty, "❌ The account identifier cannot be empty.")
         #if canImport(Security)
         self.storage = DefaultStorage(account: account)
+        #elseif os(Android)
+        // TODO: Android storage not implemented
+        #elseif os(Linux)
+        // TODO: Linux storage not implemented
         #endif
     }
 

@@ -318,5 +318,5 @@ You can find the complete Swift DocC documentation for the [OAuthKit Framework h
 
 ## Linux / Android Support
 
-As of version [2.2.0](https://github.com/codefiesta/OAuthKit/releases/tag/2.2.0) OAuthKit will now compile for both Android and Linux. However, secure storage still needs to be implemented for both [Android](https://github.com/codefiesta/OAuthKit/issues/153) and [Linux](https://github.com/codefiesta/OAuthKit/issues/152).
+As of version [2.2.0](https://github.com/codefiesta/OAuthKit/releases/tag/2.2.0) OAuthKit will now compile for both [Android and Linux](https://www.swift.org/documentation/articles/swift-sdk-for-android-getting-started.html). However, secure storage still needs to be implemented for both [Android](https://github.com/codefiesta/OAuthKit/issues/153) and [Linux](https://github.com/codefiesta/OAuthKit/issues/152).
 

@@ -10,58 +10,27 @@ import Foundation
 import Security
 #endif
 
-/// The default application tag to use.
-private let defaultApplicationTag = "oauthkit"
-/// The default token identifier suffix.
-private let tokenIdentifier = "oauth-token"
-
-/// A helper class used to interact with  Keychain access.
+/// A helper class used to interact with Keychain storage access. Wraps all storage write operations with threadsafe locks.
 class Keychain: @unchecked Sendable {
 
     static let `default`: Keychain = Keychain()
     private let lock = NSLock()
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
-    private var applicationTag: String = defaultApplicationTag
+    private var storage: Storage? = nil
 
     private init() { }
 
-    /// Initializes the keychain with an overridden application tag.
-    /// - Parameter applicationTag: the application tag to use. Ideally, use the application identifier for this value.
-    public init(_ applicationTag: String) {
-        self.applicationTag = applicationTag
+    /// Initializes the keychain with an overridden accound identifier.
+    /// - Parameter account: a key indicating the account owner. Ideally, use the application identifier for this value.
+    public init(_ account: String) {
+        assert(account.isNotEmpty, "❌ The account identifier cannot be empty.")
+        self.storage = DefaultStorage(account: account)
     }
 
     /// Queries the keychain for keys.
     var keys: [String] {
-
-        var results = [String]()
-        #if canImport(Security)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecReturnAttributes as String: true,
-            kSecMatchLimit as String: kSecMatchLimitAll
-        ]
-
-        var result: AnyObject?
-        let status = withUnsafeMutablePointer(to: &result) { pointer in
-            SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer(pointer))
-        }
-
-        guard status == noErr else { return results }
-
-        if let items = result as? [[String: Any]] {
-            for item in items {
-                if let key = item[kSecAttrAccount as String] as? String {
-                    results.append(key)
-                }
-            }
-        }
-
-        #else
-        // TODO: Android / Linux storage
-        #endif
-        return results.filter{ $0.starts(with: applicationTag)}.sorted{ $0 < $1}
+        storage?.keys ?? []
     }
 
     /// Sets the value for the specified key.
@@ -75,26 +44,12 @@ class Keychain: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
 
-        #if canImport(Security)
-        let account = accountKey(key)
-        deleteNoLock(account)
-
+        guard let storage else { return false }
         let data = try encoder.encode(value)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: account,
-            kSecValueData as String: data
-        ]
-
-        let status = SecItemAdd(query as CFDictionary, nil)
-        return status == errSecSuccess
-        #else
-        // TODO: Android / Linux storage
-        return false
-        #endif
+        return try storage.set(data, for: key)
     }
 
-    /// Fetches a storeed value from the keychain with the specified key and attempts to decode it from the implied generic.
+    /// Fetches a stored value from the keychain with the specified key and attempts to decode it from the implied generic.
     /// - Parameter key: the keychain key
     /// - Returns: the generic codeable for the specified key or nil if not found
     func get<T>(key: String) throws -> T? where T: Codable {
@@ -102,48 +57,19 @@ class Keychain: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
 
-        let account = accountKey(key)
-
-        #if canImport(Security)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecMatchLimit as String: kSecMatchLimitOne,
-            kSecAttrAccount as String: account,
-            kSecReturnData as String: true
-        ]
-
-        var result: AnyObject?
-        let status = withUnsafeMutablePointer(to: &result) { pointer in
-            SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer(pointer))
-        }
-
-        guard status == noErr, let data = result as? Data else {
-            return nil
-        }
-
+        guard let storage else { return nil }
+        guard let data = try storage.get(key: key) else { return nil }
         let value = try? decoder.decode(T.self, from: data)
         return value
-        #else
-        // TODO: Android / Linux storage
-        return nil
-        #endif
     }
 
     /// Clears the keychain
     /// - Returns: true if values were cleared, otherwise false.
     @discardableResult
     func clear() -> Bool {
-
         lock.lock()
         defer { lock.unlock() }
-
-        var results: [Bool] = []
-        for key in keys {
-            results.append(deleteNoLock(key))
-        }
-
-        guard results.isNotEmpty else { return true }
-        return results.allSatisfy{ $0 == true }
+        return storage?.clear() ?? false
     }
 
     /// Deletes the value for the specified key.
@@ -154,33 +80,8 @@ class Keychain: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
 
-        let account = accountKey(key)
-        return deleteNoLock(account)
-    }
-
-    /// Attempts to delete the value for the specifed key without a lock in place.
-    /// - Parameter key: the key to delete
-    /// - Returns: true if able to delete from the keychain, otherwise false
-    @discardableResult
-    private func deleteNoLock(_ key: String) -> Bool {
-
-        #if canImport(Security)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key
-        ]
-        let status = SecItemDelete(query as CFDictionary)
-        return status == noErr
-        #else
-        // TODO: Android / Linux storage
-        return false
-        #endif
-    }
-
-    /// Builds the account key by prefixing the specified key with the application tag.
-    /// - Parameter key: the key to prefix.
-    /// - Returns: the unique account key to use
-    private func accountKey(_ key: String) -> String {
-        applicationTag + "." + key + "." + tokenIdentifier
+        guard let storage else { return false }
+        let account = storage.accountKey(key)
+        return storage.delete(key: account)
     }
 }

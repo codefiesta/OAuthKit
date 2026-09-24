@@ -17,7 +17,7 @@ class Keychain: OAuth.Storage, @unchecked Sendable {
     private let encoder: JSONEncoder = .init()
     private let decoder: JSONDecoder = .init()
     public var account: String
-    
+
     /// Initializes the keychain with an overridden accound identifier.
     /// - Parameter account: a key indicating the account owner. Ideally, use the application identifier for this value.
     required init(_ account: String) {
@@ -63,7 +63,7 @@ class Keychain: OAuth.Storage, @unchecked Sendable {
         defer { lock.unlock() }
 
         let data = try encoder.encode(value)
-        
+
         let account = accountKey(key)
         deleteNoLock(account)
 
@@ -84,7 +84,7 @@ class Keychain: OAuth.Storage, @unchecked Sendable {
 
         lock.lock()
         defer { lock.unlock() }
-        
+
         let account = accountKey(key)
 
         let query: [String: Any] = [

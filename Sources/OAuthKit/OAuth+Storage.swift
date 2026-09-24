@@ -21,7 +21,7 @@ extension OAuth {
         /// - Parameter account: a key indicating the account owner. Ideally, use the application identifier for this value.
         init(_ account: String)
 
-        /// The account owner of this keychain storage.
+        /// The account owner of this token storage.
         var account: String { get }
 
         /// Returns a list of keys owned by this account.

@@ -50,6 +50,7 @@ public final class OAuth: Sendable {
     @ObservationIgnored
     public var urlSession: URLSession = .init(configuration: .ephemeral)
 
+    /// The token storage facility to use.
     @ObservationIgnored
     var storage: Storage
 
@@ -99,7 +100,7 @@ public final class OAuth: Sendable {
     ///   - providers: the list of oauth providers
     ///   - options: the configuration options to apply
     public init(providers: [Provider] = [Provider](), options: [Option: Any]? = nil) {
-        self.storage = Keychain(defaultAccount)
+        self.storage = makeStorage(options: options)
         self.providers = providers
         configure(options)
     }
@@ -109,7 +110,7 @@ public final class OAuth: Sendable {
     ///   - bundle: the bundle to load the oauth provider configuration information from.
     ///   - options: the configuration options to apply
     public init(_ bundle: Bundle, options: [Option: Any]? = nil) {
-        self.storage = Keychain(defaultAccount)
+        self.storage = makeStorage(options: options)
         self.providers = loadProviders(bundle)
         configure(options)
     }
@@ -513,4 +514,21 @@ extension OAuth {
         }
         publish(state: .authorized(provider, authorization))
     }
+}
+
+/// Builds the token storage facility based on OS and options.
+fileprivate func makeStorage(options: [OAuth.Option: Any]? = nil) -> OAuth.Storage {
+
+    var storageAccount: String = defaultAccount
+
+    // Override from account from passed in options
+    if let options, let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
+        storageAccount = applicationTag
+    }
+
+    #if canImport(Security)
+    return Keychain(storageAccount)
+    #elseif os(Android)
+    #elseif os(Linux)
+    #endif
 }

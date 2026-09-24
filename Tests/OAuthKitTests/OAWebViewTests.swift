@@ -31,8 +31,8 @@ final class OAWebViewTests {
         oauth.providers.filter{ $0.id == "GitHub" }.first!
     }
 
-    var keychain: Keychain {
-        oauth.keychain
+    var storage: OAuth.Storage {
+        oauth.storage
     }
 
     /// Initializer.
@@ -146,7 +146,7 @@ final class OAWebViewTests {
             case .empty, .error, .authorizing, .requestingAccessToken, .requestingDeviceCode, .receivedDeviceCode:
                 break
             case .authorized(_, _):
-                keychain.clear()
+                storage.clear()
                 return true
             }
         }

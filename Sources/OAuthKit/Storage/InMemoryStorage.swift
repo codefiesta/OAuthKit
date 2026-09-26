@@ -14,7 +14,7 @@ class InMemoryStorage: OAuth.Storage, @unchecked Sendable {
     private let lock: NSLock = .init()
     public var account: String
 
-    /// Initializes the storage with an overridden accound identifier.
+    /// Initializes the storage with an account identifier.
     /// - Parameter account: a key indicating the account owner. Ideally, use the application identifier for this value.
     required init(_ account: String) {
         assert(account.isNotEmpty, "❌ The account identifier cannot be empty.")
@@ -45,7 +45,6 @@ class InMemoryStorage: OAuth.Storage, @unchecked Sendable {
     /// - Parameter key: the storage key
     /// - Returns: the generic codeable for the specified key or nil if not found
     func get<T>(key: String) throws -> T? where T: Codable {
-
         lock.lock()
         defer { lock.unlock() }
 

@@ -44,16 +44,19 @@ final class OAuthTests {
         oauth = .init(.module, options: options)
         #expect(oauth.useNonPersistentWebDataStore == true)
         #expect(oauth.urlSession == Self.urlSession)
+        #expect(oauth.storage is Keychain)
     }
 
     /// Tests the initialization with providers.
     @Test("When Initializing")
     func whenInitializing() async throws {
         let appTag: String = .secureRandom()
+        let storage = InMemoryStorage(appTag)
         let options: [OAuth.Option: Any] = [
             .applicationTag: appTag,
             .autoRefresh: true,
             .urlSession: Self.urlSession,
+            .storage: storage
         ]
         let providers: [OAuth.Provider] = [
             .init(id: .secureRandom(),
@@ -66,6 +69,9 @@ final class OAuthTests {
         #expect(customOAuth.providers.count == 1)
         #expect(customOAuth.useNonPersistentWebDataStore == false)
         #expect(customOAuth.urlSession == Self.urlSession)
+        #expect(customOAuth.providers.count == 1)
+        #expect(customOAuth.storage.account == appTag)
+        #expect(customOAuth.storage is InMemoryStorage)
     }
 
     @Test("When Requiring Local Authentication")

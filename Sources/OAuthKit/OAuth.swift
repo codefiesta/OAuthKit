@@ -224,14 +224,13 @@ private extension OAuth {
             }
             #endif
 
+            if let customStorage = options[.storage] as? Storage {
+                self.storage = customStorage
+            }
+
             // Override the url session
             if let urlSession = options[.urlSession] as? URLSession {
                 self.urlSession = urlSession
-            }
-
-            // Override the keychain to use the custom application tag
-            if let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
-                self.storage = Keychain(applicationTag)
             }
         }
         monitor()
@@ -516,19 +515,19 @@ extension OAuth {
     }
 }
 
-/// Builds the token storage facility based on OS and options.
+/// Builds the default token storage facility based on OS and options.
 fileprivate func makeStorage(options: [OAuth.Option: Any]? = nil) -> OAuth.Storage {
 
-    var storageAccount: String = defaultAccount
+    var account: String = defaultAccount
 
     // Override from account from passed in options
     if let options, let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
-        storageAccount = applicationTag
+        account = applicationTag
     }
 
     #if canImport(Security)
-    return Keychain(storageAccount)
-    #elseif os(Android)
-    #elseif os(Linux)
+    return Keychain(account)
+    #elseif os(Android) || os(Linux)
+    return InMemoryStorage(account)
     #endif
 }

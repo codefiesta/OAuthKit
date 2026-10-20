@@ -10,9 +10,9 @@ import Foundation
 /// A storage implementation that holds all of the tokens in-memory.
 class InMemoryStorage: OAuth.Storage, @unchecked Sendable {
 
+    public let account: String
     private var values: [String: Codable] = .init()
     private let lock: NSLock = .init()
-    public var account: String
 
     /// Initializes the storage with an account identifier.
     /// - Parameter account: a key indicating the account owner. Ideally, use the application identifier for this value.

@@ -13,10 +13,10 @@ import Security
 /// A helper class used to interact with Keychain storage access. Wraps all storage write operations with threadsafe locks.
 class Keychain: OAuth.Storage, @unchecked Sendable {
 
+    public let account: String
     private let lock: NSLock = .init()
     private let encoder: JSONEncoder = .init()
     private let decoder: JSONDecoder = .init()
-    public var account: String
 
     /// Initializes the keychain with an overridden accound identifier.
     /// - Parameter account: a key indicating the account owner. Ideally, use the application identifier for this value.

@@ -83,3 +83,15 @@ let oauth: OAuth = .init(.module, options: options)
 
 > Tip: See ``OAuth/Option`` for a complete list of configuration options.
 
+### Custom Token Storage
+The ``OAuth/Option/storage`` option allows you to provide a custom token storage repository that conforms to the ``OAuth/Storage`` protocol. [Kotlin Interoperability with Swift](https://kotlinlang.org/docs/native-objc-interop.html)  
+
+```swift
+// Custom Token Storage
+let storage: Storage = MyCustomStorage("com.myapp.AppName")
+
+let options: [OAuth.Option: Any] = [
+    .storage: storage
+]
+let oauth: OAuth = .init(.module, options: options)
+```

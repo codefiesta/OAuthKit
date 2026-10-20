@@ -67,10 +67,3 @@ public extension OAuth.Storage {
         account + "." + key + "." + tokenIdentifier
     }
 }
-
-//public extension OAuth.Storage where Self: Equatable {
-//    
-//    static func == (lhs: any OAuth.Storage, rhs: any OAuth.Storage) -> Bool {
-//        return false
-//    }
-//}

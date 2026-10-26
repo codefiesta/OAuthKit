@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// A storage implementation that holds all of the tokens in-memory.
+/// A storage implementation that holds all of the tokens in-memory. 
 class InMemoryStorage: OAuth.Storage, @unchecked Sendable {
 
     public let account: String

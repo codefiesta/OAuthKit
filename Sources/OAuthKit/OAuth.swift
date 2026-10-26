@@ -224,6 +224,7 @@ private extension OAuth {
             }
             #endif
 
+            // Override the default token storage
             if let customStorage = options[.storage] as? Storage {
                 self.storage = customStorage
             }

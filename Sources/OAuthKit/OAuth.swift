@@ -13,6 +13,8 @@ import LocalAuthentication
 #endif
 import Observation
 
+/// The default account  to use.
+private let defaultAccount = "oauthkit"
 /// The default file name that holds the list of providers.
 private let defaultResourceName = "oauth"
 /// The default file extension.
@@ -48,8 +50,9 @@ public final class OAuth: Sendable {
     @ObservationIgnored
     public var urlSession: URLSession = .init(configuration: .ephemeral)
 
+    /// The token storage facility to use.
     @ObservationIgnored
-    var keychain: Keychain = .default
+    var storage: Storage
 
     #if os(macOS) || os(iOS) || os(visionOS)
     @ObservationIgnored
@@ -97,6 +100,7 @@ public final class OAuth: Sendable {
     ///   - providers: the list of oauth providers
     ///   - options: the configuration options to apply
     public init(providers: [Provider] = [Provider](), options: [Option: Any]? = nil) {
+        self.storage = makeStorage(options: options)
         self.providers = providers
         configure(options)
     }
@@ -106,6 +110,7 @@ public final class OAuth: Sendable {
     ///   - bundle: the bundle to load the oauth provider configuration information from.
     ///   - options: the configuration options to apply
     public init(_ bundle: Bundle, options: [Option: Any]? = nil) {
+        self.storage = makeStorage(options: options)
         self.providers = loadProviders(bundle)
         configure(options)
     }
@@ -161,7 +166,7 @@ public extension OAuth {
     /// Removes all tokens and clears the OAuth state
     func clear() {
         debugPrint("⚠️ [Clearing oauth state]")
-        keychain.clear()
+        storage.clear()
         state = .empty
     }
 }
@@ -185,7 +190,7 @@ private extension OAuth {
     /// Loads authorizations from the keychain.
     func loadAuthorizations() {
         for provider in providers {
-            if let authorization: OAuth.Authorization = try? keychain.get(key: provider.id) {
+            if let authorization: OAuth.Authorization = try? storage.get(key: provider.id) {
                 publish(state: .authorized(provider, authorization))
             }
         }
@@ -219,14 +224,14 @@ private extension OAuth {
             }
             #endif
 
+            // Override the default token storage
+            if let customStorage = options[.storage] as? Storage {
+                self.storage = customStorage
+            }
+
             // Override the url session
             if let urlSession = options[.urlSession] as? URLSession {
                 self.urlSession = urlSession
-            }
-
-            // Override the keychain to use the custom application tag
-            if let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
-                self.keychain = .init(applicationTag)
             }
         }
         monitor()
@@ -333,13 +338,13 @@ private extension OAuth {
         if #available(macOS 26, iOS 26, watchOS 26, tvOS 26, visionOS 26, *) {
             #if compiler(>=6.2)
             // Swfit 6.2 compilers and above
-            Task.immediate(operation: operation)
+            _ = Task.immediate(operation: operation)
             #else
             // Swift 6.1 compiler
-            Task(priority: priority, operation: operation)
+            _ = Task(priority: priority, operation: operation)
             #endif
         } else {
-            Task(priority: priority, operation: operation)
+            _ = Task(priority: priority, operation: operation)
         }
     }
 }
@@ -379,7 +384,7 @@ extension OAuth {
 
         // Store the authorization
         let authorization = Authorization(issuer: provider.id, token: token)
-        guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
+        guard let stored = try? storage.set(authorization, for: authorization.issuer), stored else {
             return publish(state: .error(provider, .keychain))
         }
 
@@ -391,7 +396,7 @@ extension OAuth {
     /// - Parameters:
     ///   - provider: the provider to request a refresh token for
     func refreshToken(provider: Provider) async {
-        guard let auth: OAuth.Authorization = try? keychain.get(key: provider.id) else { return }
+        guard let auth: OAuth.Authorization = try? storage.get(key: provider.id) else { return }
 
         // If we can't build a refresh request simply bail as no refresh token
         // was returned in the original auth request
@@ -417,7 +422,7 @@ extension OAuth {
 
         // Store the authorization
         let authorization = Authorization(issuer: provider.id, token: token)
-        guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
+        guard let stored = try? storage.set(authorization, for: authorization.issuer), stored else {
             return publish(state: .error(provider, .keychain))
         }
         publish(state: .authorized(provider, authorization))
@@ -469,7 +474,7 @@ extension OAuth {
 
         // Store the authorization
         let authorization = Authorization(issuer: provider.id, token: token)
-        guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
+        guard let stored = try? storage.set(authorization, for: authorization.issuer), stored else {
             return publish(state: .error(provider, .keychain))
         }
         publish(state: .authorized(provider, authorization))
@@ -504,9 +509,27 @@ extension OAuth {
 
         // Store the authorization
         let authorization = Authorization(issuer: provider.id, token: token)
-        guard let stored = try? keychain.set(authorization, for: authorization.issuer), stored else {
+        guard let stored = try? storage.set(authorization, for: authorization.issuer), stored else {
             return publish(state: .error(provider, .keychain))
         }
         publish(state: .authorized(provider, authorization))
     }
+}
+
+/// Builds the default token storage facility based on OS and options.
+fileprivate func makeStorage(options: [OAuth.Option: Any]? = nil) -> OAuth.Storage {
+
+    var account: String = defaultAccount
+
+    // Override from account from passed in options
+    if let options, let applicationTag = options[.applicationTag] as? String, applicationTag.isNotEmpty {
+        account = applicationTag
+    }
+
+    #if canImport(Security)
+    return Keychain(account)
+    #elseif os(Android) || os(Linux)
+    // TODO: Android and Linux Default Secure Storage
+    return InMemoryStorage(account)
+    #endif
 }

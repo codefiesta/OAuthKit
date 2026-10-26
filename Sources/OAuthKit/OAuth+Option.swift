@@ -46,5 +46,8 @@ public extension OAuth.Option {
     /// This is disabled by default, but this can be turned on to allow developers to use an ephemeral webkit datastore
     /// that effectively implements private browsing and forces a new login attempt every time an authorization flow is started.
     static let useNonPersistentWebDataStore: OAuth.Option = .init(rawValue: "useNonPersistentWebDataStore")
+
+    /// A key used for providing a custom token storage.
+    static let storage: OAuth.Option = .init(rawValue: "storage")
 }
 

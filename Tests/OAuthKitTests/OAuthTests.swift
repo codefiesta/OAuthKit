@@ -17,8 +17,8 @@ final class OAuthTests {
 
     let oauth: OAuth
     let tag: String
-    var keychain: Keychain {
-        oauth.keychain
+    var storage: OAuth.Storage {
+        oauth.storage
     }
     var provider: OAuth.Provider {
         oauth.providers.filter{ $0.id == "GitHub" }.first!
@@ -44,16 +44,19 @@ final class OAuthTests {
         oauth = .init(.module, options: options)
         #expect(oauth.useNonPersistentWebDataStore == true)
         #expect(oauth.urlSession == Self.urlSession)
+        #expect(oauth.storage is Keychain)
     }
 
     /// Tests the initialization with providers.
     @Test("When Initializing")
     func whenInitializing() async throws {
         let appTag: String = .secureRandom()
+        let storage = InMemoryStorage(appTag)
         let options: [OAuth.Option: Any] = [
             .applicationTag: appTag,
             .autoRefresh: true,
             .urlSession: Self.urlSession,
+            .storage: storage
         ]
         let providers: [OAuth.Provider] = [
             .init(id: .secureRandom(),
@@ -66,6 +69,9 @@ final class OAuthTests {
         #expect(customOAuth.providers.count == 1)
         #expect(customOAuth.useNonPersistentWebDataStore == false)
         #expect(customOAuth.urlSession == Self.urlSession)
+        #expect(customOAuth.providers.count == 1)
+        #expect(customOAuth.storage.account == appTag)
+        #expect(customOAuth.storage is InMemoryStorage)
     }
 
     @Test("When Requiring Local Authentication")
@@ -89,7 +95,7 @@ final class OAuthTests {
         let key = provider.id
         let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 3600, scope: "email", type: "Bearer")
         let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
-        let inserted = try! keychain.set(auth, for: key)
+        let inserted = try! storage.set(auth, for: key)
         #expect(inserted == true)
 
         let options: [OAuth.Option: Any] = [
@@ -100,7 +106,7 @@ final class OAuthTests {
         ]
         let restoredOAuth: OAuth = .init(.module, options: options)
         #expect(restoredOAuth.state == .authorized(provider, auth))
-        keychain.clear()
+        storage.clear()
     }
 
     /// Tests the custom date extension operator.
@@ -217,7 +223,7 @@ final class OAuthTests {
         #expect(request!.url!.absoluteString.contains("grant_type=refresh_token"))
         #expect(request!.url!.absoluteString.contains("refresh_token=\(token.refreshToken!)"))
         let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
-        try! keychain.set(auth, for: provider.id)
+        try! storage.set(auth, for: provider.id)
         oauth.authorize(provider: provider, grantType: .refreshToken)
         let result = await waitForAuthorization(oauth)
         #expect(result == true)
@@ -228,7 +234,7 @@ final class OAuthTests {
         let key = provider.id
         let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 0, scope: "email", type: "Bearer")
         let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
-        let inserted = try! keychain.set(auth, for: key)
+        let inserted = try! storage.set(auth, for: key)
         #expect(inserted == true)
 
         let options: [OAuth.Option: Any] = [
@@ -266,7 +272,7 @@ final class OAuthTests {
         // Refresh Token
         let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 0, scope: "email", type: "Bearer")
         let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
-        try! oauth.keychain.set(auth, for: provider.id)
+        try! oauth.storage.set(auth, for: provider.id)
         await oauth.refreshToken(provider: provider)
         #expect(oauth.state == .error(provider, .decoding))
         oauth.clear()
@@ -307,7 +313,7 @@ final class OAuthTests {
         // Refresh Token
         let token: OAuth.Token = .init(accessToken: .secureRandom(), refreshToken: .secureRandom(), expiresIn: 0, scope: "email", type: "Bearer")
         let auth: OAuth.Authorization = .init(issuer: provider.id, token: token)
-        try! oauth.keychain.set(auth, for: provider.id)
+        try! oauth.storage.set(auth, for: provider.id)
         await oauth.refreshToken(provider: provider)
         #expect(oauth.state == .error(provider, .badResponse))
         oauth.clear()

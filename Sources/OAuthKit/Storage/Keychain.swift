@@ -5,10 +5,9 @@
 //  Created by Kevin McKee
 //
 
-import Foundation
 #if canImport(Security)
+import Foundation
 import Security
-#endif
 
 /// A helper class used to interact with Keychain storage access. Wraps all storage write operations with threadsafe locks.
 class Keychain: OAuth.Storage, @unchecked Sendable {
@@ -148,3 +147,4 @@ class Keychain: OAuth.Storage, @unchecked Sendable {
         return status == noErr
     }
 }
+#endif
